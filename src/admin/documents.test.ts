@@ -3,7 +3,7 @@ import * as t from "@/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDirectoryTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
-import { getDocumentForAdmin, getDocumentFormOptions, listDocumentsForAdmin, parseDocumentInput, saveDocument, type DocumentFormOptions } from "./documents";
+import { getDocumentForAdmin, getDocumentFormOptions, listDocumentsForAdmin, markDocumentVerified, parseDocumentInput, saveDocument, type DocumentFormOptions } from "./documents";
 import { insertSampleData, type SampleIds } from "./sample-data";
 
 describe("Document edit", () => {
@@ -84,6 +84,18 @@ describe("Document edit", () => {
     ];
     expect(refusals.map((r) => r.ok)).toEqual([false, false, false, false, false]);
     expect(await listDocumentsForAdmin(db)).toEqual(before);
+  });
+
+  it("Mark verified changes only Last verified", async () => {
+    const saved = await saveDocument(db, null, parse({ lastVerified: "2020-01-01" }));
+    if (!saved.ok) throw new Error(saved.error);
+    const id = saved.value.id;
+    const before = (await getDocumentForAdmin(db, id))!.document;
+    expect(await markDocumentVerified(db, id, new Date("2026-11-08T03:30:00Z"))).toEqual({ ok: true, value: { lastVerified: "2026-11-07" } });
+    const after = (await getDocumentForAdmin(db, id))!.document;
+    expect({ ...after, lastVerified: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, updatedAt: "" });
+    expect(after.lastVerified).toBe("2026-11-07");
+    expect(await markDocumentVerified(db, 999999)).toMatchObject({ ok: false });
   });
 });
 

@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { APP, HOST } from "./fixture";
+import { setFilter } from "./filters";
 
 const IFRAME = "iframe[data-momsbloom-embed]";
 
@@ -66,7 +67,7 @@ test("host-url-gets-mbr-keys: a filter change goes into the host URL with replac
   await page.goto(`${HOST}/?q=host-search`);
   const frame = page.frameLocator(IFRAME);
   const before = await page.evaluate(() => history.length);
-  await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await setFilter(page, frame, /^Spanish/);
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
   expect(hostUrl(page).searchParams.get("q")).toBe("host-search");
   expect(page.url()).not.toMatch(/zip|near/);
@@ -90,7 +91,7 @@ test("near-never-shared: Use my location does not reach the host URL", async ({ 
   await frame.getByRole("button", { name: /use my location/i }).click();
   // The iframe URL holds `near` now (the page is the iframe's own, so we read its URL).
   await expect.poll(() => page.frames().some((f) => f.url().includes("near=42.96,-85.67") || f.url().includes("near=42.96%2C-85.67"))).toBe(true);
-  await frame.getByRole("checkbox", { name: /^Spanish/ }).check(); // a later change, so a message surely came after
+  await setFilter(page, frame, /^Spanish/); // a later change, so a message surely came after
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
   expect(page.url()).not.toContain("near");
 });
@@ -99,7 +100,7 @@ test("zip-never-shared: a ZIP search stays out of the host URL", async ({ page }
   await page.goto(HOST);
   const frame = page.frameLocator(IFRAME);
   await frame.getByRole("textbox", { name: /zip/i }).fill("49508");
-  await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await setFilter(page, frame, /^Spanish/);
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
   expect(page.url()).not.toMatch(/zip|49508|near/);
 });
@@ -131,17 +132,17 @@ test("detail-syncs-program: the host URL follows the open Program", async ({ pag
 test("custom-filter-host-sync: a custom filter goes into the host URL and comes back on load", async ({ page }) => {
   await page.goto(HOST);
   const frame = page.frameLocator(IFRAME);
-  await frame.getByRole("checkbox", { name: /^Free lot/ }).check();
+  await setFilter(page, frame, /^Free lot/);
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-cf1")).toBe("1");
   await expect(frame.getByRole("link", { name: "Remove Parking: Free lot" })).toBeVisible();
 
   // A copied link opens the iframe with the same filter.
   await page.goto(`${HOST}/?mbr-cf1=1&mbr-cfx=1`);
   await expect(page.locator(IFRAME)).toHaveAttribute("src", `${APP}/embed?cf1=1`);
-  await expect(frame.getByRole("checkbox", { name: /^Free lot/ })).toBeChecked();
+  await expect(frame.getByRole("checkbox", { name: /^Free lot/, includeHidden: true })).toBeChecked();
 
   // Unchecking removes it from the host URL.
-  await frame.getByRole("checkbox", { name: /^Free lot/ }).uncheck();
+  await setFilter(page, frame, /^Free lot/, false);
   await expect.poll(() => hostUrl(page).searchParams.has("mbr-cf1")).toBe(false);
 });
 

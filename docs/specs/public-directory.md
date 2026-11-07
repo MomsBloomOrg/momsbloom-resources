@@ -54,7 +54,8 @@ While new results load, keep the old ones on screen (React's `useTransition`).
 
 ## Filters
 
-The Facets, in this order: Distance, Type of support (Category with its Subcategories indented
+The filters are in a modal that the "Filters" button opens (like Airbnb), on every screen size; there
+is no filter column. The Facets, in this order: Type of support (Category with its Subcategories indented
 under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service format).
 
 - Inside one group, options combine with OR: "Medicaid or Priority Health".
@@ -80,7 +81,11 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - Radius options: 5, 10, 25, Any. The default is Any. The Distance group shows only when a location is known.
 - Distance applies to Programs only. Programs that are virtual only, or have no coordinates, show
   in a "Virtual and phone" group and are never hidden by the radius. Documents always show.
-- Sort options: Nearest (the default when a ZIP code is set), A to Z, Recently verified.
+- Sort is one dropdown ("Sort: Nearest"): Nearest (the default when a location is set), A to Z,
+  Recently verified. The default option sends no `sort` in the URL. Without a location there is no
+  Nearest option, so A to Z is the default. Without JavaScript, a "Sort" button applies the choice.
+- On a phone, one toolbar row holds "Filters (n)", the other view ("Map" or "List View"), and the sort
+  dropdown. The result count sits under the filter chips.
 
 ## Results
 
@@ -157,11 +162,12 @@ only when the page has one Embed. See [ADR 0005](../adr/0005-shared-links-throug
 The ZIP code, the radius, and `near` are never shared: a link holds the keyword and filters, never the ZIP code or the
 family's location, because the host page URL goes to analytics ("Analytics" below forbids that).
 
-## Mobile filter sheet
+## Filters modal
 
 See `mobile-filters-sheet.png`.
 
-- The "Filters" button opens a sheet from the bottom with the same groups. The number on the button
+- The "Filters" button opens a sheet from the bottom on phones, and a centered panel from `md`, with the
+  same groups. Without JavaScript the groups show at the bottom of the page and the button jumps there. The number on the button
   is the count of active filters.
 - Results update underneath while the sheet is open. The footer button reads "Show 24 results" and
   closes the sheet.
@@ -176,7 +182,8 @@ works.
 - Leaflet with OpenStreetMap tiles: free, no API key.
 - The map shows the same filtered Programs as the list. Selecting a card highlights its pin, and
   the reverse.
-- A note tells families that Documents are in the list view.
+- Guides and downloads show below the list and map, as in the list view.
+- Desktop: the cards scroll in their own box, as tall as the map.
 - Mobile: the map sits above the cards, and a selected pin shows a small card (Program, Organization,
   distance, "Get directions"). The "Map" button becomes "List View".
 - The map fits the Program pins. It never centers on the family's ZIP code or location, and it has no

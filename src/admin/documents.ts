@@ -12,6 +12,7 @@ import {
   parseTextFields,
   statusExists,
   str,
+  todayInDetroit,
   type AdminResult,
   type Raw,
   type StatusOption,
@@ -130,6 +131,17 @@ export async function saveDocument(db: Db, id: number | null, input: DocumentInp
     if (languageIds.length) await tx.insert(t.documentLanguages).values(languageIds.map((languageId) => ({ documentId, languageId })));
     return { ok: true, value: { id: documentId } } as const;
   });
+}
+
+/** Sets Last verified to today (Michigan) and changes nothing else. */
+export async function markDocumentVerified(db: Db, id: number, now = new Date()): Promise<AdminResult<{ lastVerified: string }>> {
+  const lastVerified = todayInDetroit(now);
+  const rows = await db
+    .update(t.documents)
+    .set({ lastVerified, updatedAt: now.toISOString() })
+    .where(eq(t.documents.id, id))
+    .returning({ id: t.documents.id });
+  return rows.length ? { ok: true, value: { lastVerified } } : { ok: false, error: GONE };
 }
 
 export interface DocumentListRow {
