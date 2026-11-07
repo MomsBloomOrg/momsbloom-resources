@@ -122,7 +122,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
       {actionBar("mt-4 min-[900px]:hidden")}
 
       {/* One grid, in the mobile order (actions, About, Location, Contacts, Insurance, Languages, More), so the tab order
-          matches the screen. From 900 px the right-hand cards go to column 2 and `dense` packs each column from the top. Cards in the same row stretch to one height. */}
+          matches the screen. From 900 px the right-hand cards go to column 2 and `dense` packs each column from the top. Cards keep their own height (rows still align). */}
       <div className="mt-6 flex flex-col gap-4 min-[900px]:grid min-[900px]:grid-flow-dense min-[900px]:grid-cols-[minmax(0,1fr)_22rem] min-[900px]:items-start">
         {actionBar(`${card} hidden min-[900px]:col-start-2 min-[900px]:flex`)}
         <section aria-labelledby="about" className={`${card} min-[900px]:col-start-1`}>
