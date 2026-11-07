@@ -18,6 +18,7 @@ export default async function DocumentPage({ params }: PageProps<"/admin/documen
   const [detail, options] = await Promise.all([getDocumentForAdmin(db, id), getDocumentFormOptions(db)]);
   if (!detail) notFound();
   const { document } = detail;
+  const uploadPrefix = process.env.VERCEL_ENV === "production" ? "documents/" : "preview/documents/";
 
   return (
     <>
@@ -30,7 +31,7 @@ export default async function DocumentPage({ params }: PageProps<"/admin/documen
         }
       />
       <Card title="Document">
-        <DocumentForm key={id} id={id} document={document} options={options} />
+        <DocumentForm key={id} id={id} document={document} options={options} uploadPrefix={uploadPrefix} />
         <p className={`${hintClass} mt-4`}>
           Last changed {new Date(document.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
         </p>
