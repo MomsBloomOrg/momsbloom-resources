@@ -3,7 +3,10 @@ import { count } from "drizzle-orm";
 import { organizations, programs, statuses } from "@/db/schema";
 import type { Db } from "@/db/types";
 
-/** The Status name that "n need review" counts. The statuses table has no flag for it. */
+/**
+ * The Status name that "n need review" counts.
+ * shortcut: matches the Status by name, breaks if staff rename it; add a flag column when the settings slice allows renames.
+ */
 export const NEEDS_REVIEW_STATUS = "Needs review";
 
 export type OrganizationSort = "name" | "verified";
@@ -91,8 +94,9 @@ export async function listOrganizationsForAdmin(
     })
     .sort((a, b) => {
       if (sort === "verified") {
-        const byDate = (a.lastVerified ?? "").localeCompare(b.lastVerified ?? ""); // "" sorts first
-        if (byDate) return byDate;
+        // ISO dates sort as text; "" (never verified) sorts first.
+        const [x, y] = [a.lastVerified ?? "", b.lastVerified ?? ""];
+        if (x !== y) return x < y ? -1 : 1;
       }
       return a.name.localeCompare(b.name);
     });

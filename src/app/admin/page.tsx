@@ -141,7 +141,7 @@ export default async function OrganizationsPage({ searchParams }: PageProps<"/ad
                   <td role="cell" data-label="Programs" className={stackTdClass}>
                     {row.programCount}
                     {row.needsReviewCount > 0 && (
-                      <span className="text-muted"> ({row.needsReviewCount} need review)</span>
+                      <span className="text-muted"> ({row.needsReviewCount} {row.needsReviewCount === 1 ? "needs" : "need"} review)</span>
                     )}
                   </td>
                   <td role="cell" data-label="Last verified" className={stackTdClass}>
