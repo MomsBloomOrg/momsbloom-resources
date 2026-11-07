@@ -27,7 +27,7 @@ async function LinkError({ searchParams }: { searchParams: PageProps<"/login">["
   if (typeof error !== "string") return null;
   const message = ERROR_MESSAGES[error] ?? "Login did not work. Try again, or get a new link below.";
   return (
-    <p role="alert" className="mb-6 rounded-2xl border-l-4 border-primary bg-primary-soft px-4 py-3 text-primary-text">
+    <p role="alert" className="mb-6 rounded-2xl border-l-4 border-primary bg-primary-soft px-4 py-3 text-ink">
       {message}
     </p>
   );

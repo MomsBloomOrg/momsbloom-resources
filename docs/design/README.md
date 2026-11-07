@@ -23,7 +23,7 @@ MomsBloom spreadsheet, which the database will import.
 - Colors and the font are already set up in `src/app/globals.css` (Tailwind classes such as
   `bg-primary`, `text-muted`) and `src/app/layout.tsx` (Nunito). Use those classes, not hex values.
 - The bright orange (#FD7A00) fails the contrast rules for text. Use
-  `primary-text` (#B35400) for links, button backgrounds with white text, and orange text. See the
+  `primary-text` (#C14D00, Figma "Brand Accessibility Orange") for links, button backgrounds with white text, and orange text. See the
   comment in `globals.css`.
 
 ## Directory: list view

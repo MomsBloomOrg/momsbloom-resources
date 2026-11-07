@@ -198,7 +198,7 @@ and the style of the existing screens.
 
 ## Accessibility (WCAG 2.1 AA)
 
-- Contrast: use `primary-text` (#B35400) for orange text, links, and button backgrounds with white
+- Contrast: use `primary-text` (#C14D00, Figma "Brand Accessibility Orange") for orange text, links, and button backgrounds with white
   text. The bright orange fails (about 2.6:1). Tag text is `ink`, not green. See
   `src/app/globals.css`.
 - Everything works with the keyboard only, with a visible focus ring.
