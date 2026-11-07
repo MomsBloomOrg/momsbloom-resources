@@ -63,13 +63,11 @@ export function AnalyticsReporter({
 
   useEffect(() => {
     if (programId) send("program_view", { program_id: programId, ...(programName && { program_name: eventText(programName) }) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [programId]);
+  }, [programId, programName]);
 
   useEffect(() => {
     if (organizationId) send("organization_view", { organization_id: organizationId, ...(organizationName && { organization_name: eventText(organizationName) }) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationId]);
+  }, [organizationId, organizationName]);
 
   useEffect(() => {
     // The host page does not navigate when a link is clicked in the iframe, so nothing can block: no preventDefault, no wait.

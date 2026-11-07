@@ -74,8 +74,8 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
 ## Consequences
 
 - **GA4 shows `search_term` at once.** `result_count`, `filter_group`, `filter_value`, `program_id`,
-  `program_name`, `organization_id`, `organization_name`, `document_id`, `document_title`, and `filters` show in reports only after a person with GA4 admin access on
-  momsbloom.org registers them as custom dimensions (`result_count` as a custom metric). MomsBloom
+  `program_name`, `organization_id`, `organization_name`, `document_id`, `document_title`, and
+  `filters` show in reports only after a person with GA4 admin access on momsbloom.org registers them as custom dimensions (`result_count` as a custom metric). MomsBloom
   does this after the deploy. It is not part of the code.
 - **A typed personal name can reach GA4** as the keyword. This is a known limit.
 - **Change both sides together.** `embed.js` has no build step, so it has its own copy of the
