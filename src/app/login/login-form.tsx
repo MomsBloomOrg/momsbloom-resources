@@ -10,7 +10,7 @@ export function LoginForm() {
 
   if (state.result === "sent") {
     return (
-      <p role="status" className="rounded-2xl border-l-4 border-secondary bg-field px-4 py-3">
+      <p role="status" className="rounded-2xl border-l-4 border-secondary bg-surface px-4 py-3">
         If <strong className="font-semibold">{state.email}</strong> is on the staff list, we sent a Login link.
       </p>
     );
@@ -27,7 +27,7 @@ export function LoginForm() {
         type="email"
         autoComplete="email"
         required
-        className="w-full rounded-3xl border border-muted bg-surface px-4 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
+        className="w-full rounded-lg border border-muted/70 bg-surface px-4 py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
       />
       {state.result === "error" && (
         <p role="alert" className="text-primary-text">

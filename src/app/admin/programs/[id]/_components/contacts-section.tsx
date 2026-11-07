@@ -84,7 +84,7 @@ export function ContactsSection({ programId, contacts }: { programId: number; co
       {contacts.length === 0 && <EmptyState>No Contacts yet.</EmptyState>}
       <ul className="flex flex-col gap-4">
         {contacts.map((c) => (
-          <li key={c.id} className="rounded-2xl bg-surface p-4">
+          <li key={c.id} className="rounded-2xl border border-line p-4">
             <p className="mb-3">
               <Badge tone={c.showOnWebsite ? "good" : "neutral"}>{c.showOnWebsite ? "Public" : "Private"}</Badge>
             </p>
@@ -92,7 +92,7 @@ export function ContactsSection({ programId, contacts }: { programId: number; co
           </li>
         ))}
       </ul>
-      <details className="mt-4 rounded-2xl bg-surface p-4">
+      <details className="mt-4 rounded-2xl border border-line p-4">
         <summary className="cursor-pointer font-semibold">Add contact</summary>
         <div className="mt-3 flex flex-col gap-3">
           {addKey > 0 && <Notice tone="success" role="status">Contact added.</Notice>}

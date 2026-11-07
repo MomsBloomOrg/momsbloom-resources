@@ -18,7 +18,7 @@ export default async function NewOrganizationPage() {
       <PageHeader
         title="New Organization"
         back={
-          <Link href="/admin" className={linkClass}>
+          <Link href="/admin?type=organization" className={linkClass}>
             Back to Organizations
           </Link>
         }

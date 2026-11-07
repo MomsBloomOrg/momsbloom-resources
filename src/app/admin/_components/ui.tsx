@@ -3,11 +3,11 @@
  * so server pages and client forms use the same parts. Colors are the momsbloom tokens in
  * globals.css (white on `primary-text` is about 5:1; never put white on `primary`).
  *
- * The look follows momsbloom.org (its Squarespace theme): Nunito at light weights (body 300 with
- * .02em letter spacing, set in the Admin layout; headings 400), pill buttons (600, .05em; primary
- * solid, secondary outline), light grey panels (`field`) on a white page, and no card borders. Two
- * changes for accessibility: buttons use `primary-text` (white on the site's orange fails), and
- * inputs keep a visible border (the site's borderless fields are hard to find).
+ * The look follows the Admin design ("Resource Admin List"), which follows momsbloom.org: Nunito at
+ * light weights (body 300 with .02em letter spacing, set in the Admin layout; headings 400), pill
+ * buttons (600, .05em; primary solid, secondary outline), white boxes with a light border on the warm
+ * `background` page. Inputs keep a border dark enough to find (about 3:1), a little darker than the
+ * design's.
  */
 import type { ReactNode } from "react";
 
@@ -36,7 +36,7 @@ export function buttonClass(variant: ButtonVariant = "secondary", size: keyof ty
 /** Links sit on `field` panels, where `primary-text` is below 4.5:1, so they use `primary-hover` (about 6:1). */
 export const linkClass = "text-primary-hover underline decoration-1 underline-offset-2 hover:text-ink";
 export const inputClass =
-  "w-full rounded-3xl border border-muted bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
+  "w-full rounded-lg border border-muted/70 bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
 export const labelClass = "font-semibold text-ink";
 export const hintClass = "text-sm text-muted";
@@ -54,7 +54,7 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <section className={`rounded-3xl bg-field p-5 sm:p-8 ${className}`}>
+    <section className={`rounded-2xl border border-line bg-surface p-5 sm:p-8 ${className}`}>
       {(title || actions) && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           {title && <h2 className="text-2xl font-normal sm:text-3xl">{title}</h2>}
@@ -86,7 +86,7 @@ export type BadgeTone = "good" | "warning" | "neutral";
 const BADGE_TONES: Record<BadgeTone, string> = {
   good: "bg-secondary-soft text-ink",
   warning: "bg-amber-100 text-amber-900",
-  neutral: "bg-surface text-ink",
+  neutral: "bg-line text-ink",
 };
 
 export function Badge({ tone, children }: { tone: BadgeTone; children: ReactNode }) {

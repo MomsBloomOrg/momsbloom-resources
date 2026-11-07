@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+// "Resources" is the Admin home: one list of Organizations, Programs, and Guides & Downloads.
 const LINKS = [
-  { href: "/admin", label: "Organizations", match: ["/admin", "/admin/organizations", "/admin/programs"] },
-  { href: "/admin/documents", label: "Documents", match: ["/admin/documents"] },
+  { href: "/admin", label: "Resources", match: ["/admin", "/admin/organizations", "/admin/programs", "/admin/documents"] },
   { href: "/admin/settings", label: "Settings", match: ["/admin/settings"] },
   { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"] },
 ];
@@ -54,19 +54,17 @@ export function AdminNavLinks() {
   }, [pathname]);
 
   return (
-    <nav aria-label="Admin" className="-mb-px flex flex-wrap gap-x-6 gap-y-1">
+    <nav aria-label="Admin" className="flex flex-wrap gap-x-8 gap-y-1 text-lg">
       {LINKS.map((link) => {
-        // "/admin" itself matches only exactly, or every Admin page would count as Organizations.
+        // "/admin" itself matches only exactly, or every Admin page would count as Resources.
         const current = link.match.some((m) => pathname === m || (m !== "/admin" && pathname.startsWith(`${m}/`)));
         return (
           <Link
             key={link.href}
             href={link.href}
             aria-current={current ? "page" : undefined}
-            className={`flex min-h-11 items-center border-b-[3px] pb-1 ${
-              current
-                ? "border-ink font-semibold text-ink"
-                : "border-transparent text-ink hover:border-ink/40"
+            className={`flex min-h-11 items-center border-b-[3px] ${
+              current ? "border-primary-text text-ink" : "border-transparent text-ink hover:border-line"
             }`}
           >
             {link.label}

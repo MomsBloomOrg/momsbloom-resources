@@ -45,7 +45,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
       <PageHeader
         title={organization.name}
         back={
-          <Link href="/admin" className={linkClass}>
+          <Link href="/admin?type=organization" className={linkClass}>
             Back to Organizations
           </Link>
         }
