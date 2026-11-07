@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { EMBED_ROOT_ID, RESIZE_MESSAGE, SCROLL_MESSAGE } from "@/embed/protocol";
+import { EMBED_ROOT_ID, LOCATION_MESSAGE, RESIZE_MESSAGE, SCROLL_MESSAGE } from "@/embed/protocol";
 
 /**
  * Runs inside the iframe. It tells the parent page (momsbloom.org) how tall our content is, so the
@@ -10,11 +10,14 @@ import { EMBED_ROOT_ID, RESIZE_MESSAGE, SCROLL_MESSAGE } from "@/embed/protocol"
  * Why: an iframe does not grow by itself. Without this, the parent page would show a fixed-height
  * box with its own scroll bar, which is hard to use on a phone.
  *
+ * It also tells the parent the shared part of the URL (`share`) and the open Program, so the parent can
+ * show them in its own URL (ADR 0005). `share` never holds `near`, so the location stays in the iframe.
+ *
  * How: a ResizeObserver calls `post` each time the root element changes size (for example, when a
  * filter shows fewer results). We measure the root element, not <html>, because <html> always fills
  * the full iframe height, so its height would never shrink.
  */
-export function ResizeReporter() {
+export function ResizeReporter({ share, program }: { share?: string; program?: string }) {
   useEffect(() => {
     // Not in an iframe (someone opened /embed directly): nobody to tell.
     if (window.parent === window) return;
@@ -45,5 +48,12 @@ export function ResizeReporter() {
     if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
     return () => observer.disconnect();
   }, []);
+  // Its own effect with its own deps: a filter change posts a location, and never re-runs the scroll above.
+  useEffect(() => {
+    // The error screen has no `share`: it sends no location.
+    if (window.parent === window || share === undefined) return;
+    // Target "*" as for resize: the data holds no location, and the parent script checks the sender.
+    window.parent.postMessage({ type: LOCATION_MESSAGE, search: share, program: program ?? null }, "*");
+  }, [share, program]);
   return null;
 }

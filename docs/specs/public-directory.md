@@ -116,14 +116,11 @@ The handoff doc keeps all state in the URL, so a family can text a link and the 
 the same results. Examples: `?q=yoga&zip=49508&r=10&cat=Yoga` for results, and a Program ID for
 the detail view.
 
-> **Open question: links inside the iframe (Changed for Option C).** The state is already in the
-> iframe's URL (ADR 0004), but the family never sees that URL. A link copied from the browser bar
-> is the momsbloom.org page, with no filters. Recommendation: do what bikegr-calendar does. The iframe tells the host page its
-> current query with a `postMessage`, and `embed.js` writes it into the host page URL with a
-> prefix (`mbr-q=yoga`), so it never clashes with Squarespace's own `?q=`. When a family opens a
-> link with those keys, `embed.js` passes them to the iframe. The code to copy is in
-> bikegr-calendar `public/embed.js` and `src/embed/protocol.ts` (the `location` message). To be
-> recorded in an ADR.
+The family never sees the iframe URL, so the iframe tells the host page its state with a `location`
+message. `embed.js` writes it into the host page URL with the prefix `mbr-` (`mbr-q=yoga`,
+`mbr-program=P-101`), so it never clashes with Squarespace's own `?q=`. When a family opens a link
+with those keys, `embed.js` passes them to the iframe. The URL changes with `replaceState`, and
+only when the page has one Embed. See [ADR 0005](../adr/0005-shared-links-through-the-host-page-url.md).
 
 `near` is never shared: a link holds the ZIP code, never the family's location.
 

@@ -58,3 +58,56 @@ test("detail-scrolls-host: opening a Program scrolls the host page to the top of
   const top = () => page.locator(IFRAME).evaluate((el) => Math.round(el.getBoundingClientRect().top));
   await expect.poll(async () => Math.abs(await top())).toBeLessThan(5);
 });
+
+// Link sync (ADR 0005). The host URL gets mbr- keys; other host keys stay as they are.
+const hostUrl = (page: Page) => new URL(page.url());
+
+test("host-url-gets-mbr-keys: a filter change goes into the host URL with replaceState", async ({ page }) => {
+  await page.goto(`${HOST}/?q=host-search`);
+  const frame = page.frameLocator(IFRAME);
+  const before = await page.evaluate(() => history.length);
+  await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
+  expect(hostUrl(page).searchParams.get("q")).toBe("host-search");
+  expect(await page.evaluate(() => history.length)).toBe(before); // replaceState: no new history entry
+});
+
+test("host-keys-open-filtered: mbr- keys reach the iframe; other keys and near do not", async ({ page }) => {
+  const url = `${HOST}/?mbr-q=yoga&mbr-near=42.96,-85.67&q=other`;
+  await page.goto(url);
+  await expect(page.locator(IFRAME)).toHaveAttribute("src", `${APP}/embed?q=yoga`);
+  await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
+  expect(page.url()).toBe(url);
+});
+
+test("near-never-shared: Use my location does not reach the host URL", async ({ page, context }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 42.96, longitude: -85.67 });
+  await page.goto(HOST);
+  // embed.js gives the iframe no allow="geolocation", so the browser would refuse "Use my location" here.
+  // Add it and reload the iframe, so this test reaches the code that must not share `near`.
+  await page.locator(IFRAME).evaluate((el: HTMLIFrameElement) => {
+    el.allow = "geolocation";
+    el.src = el.src;
+  });
+  const frame = page.frameLocator(IFRAME);
+  await frame.getByRole("button", { name: /use my location/i }).click();
+  // The iframe URL holds `near` now (the page is the iframe's own, so we read its URL).
+  await expect.poll(() => page.frames().some((f) => f.url().includes("near=42.96,-85.67") || f.url().includes("near=42.96%2C-85.67"))).toBe(true);
+  await frame.getByRole("checkbox", { name: /^Spanish/ }).check(); // a later change, so a message surely came after
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
+  expect(page.url()).not.toContain("near");
+});
+
+test("detail-syncs-program: the host URL follows the open Program", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-q=yoga`);
+  const frame = page.frameLocator(IFRAME);
+  await frame.getByRole("link", { name: "View details for Mom and baby yoga" }).click();
+  await expect(frame.getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-program")).toBe("P-001");
+  await frame.getByRole("link", { name: /^Back to results/ }).click();
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-program")).toBeNull();
+  // A shared link opens the detail view.
+  await page.goto(`${HOST}/?mbr-program=P-001&mbr-q=yoga`);
+  await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
+});

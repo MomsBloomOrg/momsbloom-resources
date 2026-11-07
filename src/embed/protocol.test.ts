@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_HEIGHT, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { LOCATION_MESSAGE, MAX_HEIGHT, MAX_SEARCH_LENGTH, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -29,5 +29,23 @@ describe("readEmbedMessage", () => {
     ["NaN", { type: RESIZE_MESSAGE, height: Number.NaN }],
   ])("refuses %s", (_name, data) => {
     expect(readEmbedMessage(data)).toBeNull();
+  });
+
+  it("accepts a location message with and without a Program", () => {
+    const good = { type: LOCATION_MESSAGE, search: "q=yoga&zip=49508", program: null };
+    expect(readEmbedMessage(good)).toEqual(good);
+    expect(readEmbedMessage({ ...good, program: "P-101" })).toEqual({ ...good, program: "P-101" });
+    expect(readEmbedMessage({ ...good, program: "42" })).toEqual({ ...good, program: "42" });
+  });
+
+  it.each([
+    ["a search that is too long", { search: "q=".padEnd(MAX_SEARCH_LENGTH + 1, "a"), program: null }],
+    ["a search that is not text", { search: 5, program: null }],
+    ["a Program ID with bad characters", { search: "", program: "P-1&mbr-q=x" }],
+    ["a Program ID that is too long", { search: "", program: "P".repeat(41) }],
+    ["a Program ID that is not text", { search: "", program: 7 }],
+    ["no program field", { search: "" }],
+  ])("refuses a location message with %s", (_name, rest) => {
+    expect(readEmbedMessage({ type: LOCATION_MESSAGE, ...rest })).toBeNull();
   });
 });
