@@ -7,16 +7,25 @@ The goal from the project brief: MomsBloom staff can add, edit, verify, and remo
 without help from a developer. If a staff member has to email us to fix a phone number, the Admin
 has failed.
 
-## There is no design yet
+## Design
 
-The "Admin Designs" page in Figma is empty, and "Build out admin experience" is on the designer's
-to-do list. Until a design exists:
+The "Admin Designs" page in Figma has one screen, the resource list
+(`admin-resource-list.png` in [docs/design](../design/README.md)). The other Admin screens are
+not designed yet ("Build out admin experience" is still on the designer's to-do list). Until they are:
 
 - Build plain, clear pages: a table for each list and a simple form for each record.
 - Reuse the Directory's components and colors (buttons, chips, tags, checkbox rows; see
   [docs/design](../design/README.md)), so the Admin looks like the same product.
 - Design for a laptop first. Staff do this work at a desk. The pages must still work on a phone,
   but they do not have to be pretty there.
+
+The resource list design is one list for Organizations and Documents: title "Resources Admin", a
+"New Resource" button, tabs (All, Organizations, Guides & Downloads), "Sign Out", a search box, Type
+and Status menus, a "Show Deleted" checkbox, and a table with Name, Type, and Status. Today the
+Admin has separate Organizations and Documents pages (see "Pages" below). **Open questions:** does
+the design replace those two lists; what "Type" filters (record type or Organization); and what
+"Deleted" means, because Status has only Active, Needs review, and Inactive, and records are
+never deleted (they become Inactive). Build work: issue #38.
 
 ## Who and how they log in
 

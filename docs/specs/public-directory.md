@@ -95,6 +95,12 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - **Document card:** title, description, tags, "PDF" and languages, and "Download".
 - The green box "Can't find what you need?" (call or text 211, or contact MomsBloom) always comes
   last.
+- The heading is "Postpartum Resources" with the line "Find nearby support that fits your family,
+  your insurance, and your needs." (no small heading above it).
+- **Open question:** Figma has a "No distance" version of the list view
+  (`desktop-directory-list-no-distance.png`): no ZIP code field, no Distance filter, no List/Map
+  toggle, and "Sort: A-Z". It does not say when it applies (before a ZIP code is entered, or always,
+  if we drop distance).
 
 ## Program detail
 
@@ -108,7 +114,20 @@ See the four `*-detail-*.png` captures.
   Organization.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
-- "Report a change" links to a form. **Open question:** MomsBloom must give us the link.
+- "Request an update" follows "Last verified" and links to a form. **Open question:** MomsBloom
+  must give us the link.
+
+## Organization detail
+
+See `desktop-organization-detail.png` (desktop only so far). Build work: issue #37.
+
+- The page for one Organization: name, tags, About, and "Programs at [Organization]", a list of its
+  Programs (name, tags, arrow) that open their Program detail.
+- Call, Directions, and Website, then a Location card with a map and the address.
+- "Last verified" and "Request an update" at the bottom. "Back to results" returns to the results.
+- **Open question:** what opens this page. Today "Part of [Organization]" opens the results
+  filtered to that Organization (above). The design's back link reads "Back to results for "hope
+  network"", so a search for an Organization name may lead here too.
 
 ## Sharing a link
 
@@ -138,12 +157,15 @@ See `mobile-filters-sheet.png`.
 
 ## Map view (stretch goal)
 
-See `desktop-directory-map.png`. Build it only after everything above works.
+See `desktop-directory-map.png` and `mobile-directory-map.png`. Build it only after everything above
+works.
 
 - Leaflet with OpenStreetMap tiles: free, no API key.
 - The map shows the same filtered Programs as the list. Selecting a card highlights its pin, and
   the reverse.
 - A note tells families that Documents are in the list view.
+- Mobile: the map sits above the cards, and a selected pin shows a small card (Program, Organization,
+  distance, "Get directions"). The "Map" button becomes "List View".
 - The map fits the Program pins. It never centers on the family's ZIP code or location, and it has no
   "you are here" marker.
 - OpenStreetMap gets only tile requests: the map area, and the page origin as the Referer. It never
