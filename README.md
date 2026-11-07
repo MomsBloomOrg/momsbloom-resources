@@ -27,7 +27,7 @@ GitHub (code) ──▶ Vercel (build + host)
 
 - The main site, `momsbloom.org`, lives on **Squarespace**.
 - This app is deployed to **Vercel** and served at `resources.momsbloom.org`.
-- The Squarespace site embeds the resources app (for example, in an embed/iframe block) so it appears inside the main site.
+- The Squarespace site embeds the resources app with an Embed (or Code) block that holds the `embed.js` script, so it appears inside the main site. A bare `<iframe>` would not change its height; see [How the embed works](#how-the-embed-works).
 
 ## Data model
 
@@ -113,7 +113,7 @@ Before you open a pull request, run `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## How the embed works
 
-1. The Squarespace page has a code block with one line:
+1. The Squarespace page has an Embed block (a Code block also works) with one line:
    `<script src="https://resources.momsbloom.org/embed.js" async></script>`
 2. That script (`public/embed.js`) adds an iframe that shows `https://resources.momsbloom.org/embed`.
 3. An iframe does not grow by itself. So the page inside the iframe
@@ -159,13 +159,16 @@ These steps are done once, by someone with access to the Vercel and Squarespace 
 
 ### 3. Test the embed on Squarespace
 
-1. Check the plan in Squarespace **Settings → Billing**. JavaScript in code blocks runs only on
-   the Core plan or higher. On a lower plan, the embed script does not run.
-2. Make a test page that is not in the navigation, and add a **Code** block with:
+1. Make a test page that is not in the navigation, and add an **Embed** block (or a **Code** block) with:
    `<script src="https://resources.momsbloom.org/embed.js" async></script>`
+2. Drag the block's edge across the full width of the section. The iframe is as wide as the block,
+   and a new block in the Squarespace editor is only a few columns wide.
 3. Open the page. You should see "Postpartum Resources" with no scroll bar inside the box.
    Also open the page from the main menu, not only with a refresh: some Squarespace templates load
    pages without a full reload, and the embed must work then too.
+
+The test page is <https://www.momsbloom.org/resources-test>. On 2026-11-06 the embed worked there,
+in an Embed block on MomsBloom's current Squarespace plan, at desktop and phone widths.
 
 ## Roadmap
 
