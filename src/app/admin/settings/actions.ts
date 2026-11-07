@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag } from "next/cache";
+import { directoryChanged } from "@/admin/directory-changed";
 import {
   addFacetValue,
   deleteFacetValue,
@@ -20,7 +20,7 @@ const UNKNOWN: FacetFormState = { result: "error", message: "Unknown action. Rel
 /** On success, the Directory snapshot reloads (tag "directory"), so families see the change at once. */
 function toState<T>(result: FacetResult<T>, message: (value: T) => string): FacetFormState {
   if (!result.ok) return { result: "error", message: result.error };
-  updateTag("directory");
+  directoryChanged();
   return { result: "ok", message: message(result.value) };
 }
 

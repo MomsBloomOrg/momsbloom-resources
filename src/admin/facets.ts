@@ -197,6 +197,22 @@ async function nameTaken(tx: Tx, key: FacetKey, name: string, categoryId: number
 
 const takenMessage = (name: string) => `Another value in this list is named "${name}".`;
 
+/** Postgres unique violation (23505). Drivers put the code on the error or on its `cause`. */
+function isUniqueViolation(error: unknown): boolean {
+  const e = error as { code?: string; cause?: { code?: string } } | null;
+  return e?.code === "23505" || e?.cause?.code === "23505";
+}
+
+/** Runs a write; a unique violation (two saves of one name at the same moment) becomes the "name taken" refusal. */
+async function refuseTakenName<T>(name: string, write: () => Promise<FacetResult<T>>): Promise<FacetResult<T>> {
+  try {
+    return await write();
+  } catch (error) {
+    if (isUniqueViolation(error)) return refuse(takenMessage(name));
+    throw error;
+  }
+}
+
 /** Adds a value at the end of its list. A Subcategory needs `categoryId`. */
 export async function addFacetValue(
   db: Db,
@@ -208,7 +224,7 @@ export async function addFacetValue(
   const categoryId = input.key === "subcategory" ? parseId(input.categoryId) : undefined;
   if (categoryId === null) return NOT_FOUND;
 
-  return db.transaction(async (tx) => {
+  return refuseTakenName(name, () => db.transaction(async (tx) => {
     if (categoryId !== undefined) {
       const [category] = await tx.select({ id: t.categories.id }).from(t.categories).where(eq(t.categories.id, categoryId));
       if (!category) return NOT_FOUND;
@@ -221,7 +237,7 @@ export async function addFacetValue(
         ? await tx.insert(t.subcategories).values({ categoryId, name, sortOrder }).returning({ id: t.subcategories.id, name: t.subcategories.name })
         : await tx.insert(FACETS[input.key].table).values({ name, sortOrder }).returning({ id: FACETS[input.key].table.id, name: FACETS[input.key].table.name });
     return { ok: true, value: created } as const;
-  });
+  }));
 }
 
 /** Renames a value. Records point to the value, so the new name shows everywhere at once. */
@@ -232,7 +248,7 @@ export async function renameFacetValue(db: Db, input: { key: FacetKey; id: unkno
   if (id === null) return NOT_FOUND;
   const name = parsed.value;
 
-  return db.transaction(async (tx) => {
+  return refuseTakenName(name, () => db.transaction(async (tx) => {
     const current = await findValue(tx, input.key, id);
     if (!current) return NOT_FOUND;
     if (input.key === "serviceFormat" && SERVICE_FORMAT_NAMES_READ.includes(current.name.trim().toLowerCase()) && name.toLowerCase() !== current.name.trim().toLowerCase()) {
@@ -242,7 +258,7 @@ export async function renameFacetValue(db: Db, input: { key: FacetKey; id: unkno
     const table = FACETS[input.key].table;
     await tx.update(table).set({ name }).where(eq(table.id, id));
     return { ok: true, value: { name } } as const;
-  });
+  }));
 }
 
 /**

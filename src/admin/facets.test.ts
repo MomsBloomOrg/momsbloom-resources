@@ -81,6 +81,14 @@ describe("Facet values", () => {
     expect(await renameFacetValue(db, { key: "audience", id: "424242", name: "Other" })).toMatchObject({ ok: false });
   });
 
+  it("turns a unique violation from a save at the same moment into the name-taken refusal", async () => {
+    const racing = { transaction: async () => Promise.reject(Object.assign(new Error("insert failed"), { cause: { code: "23505" } })) } as unknown as Db;
+    expect(await addFacetValue(racing, { key: "language", name: "Arabic" })).toEqual({ ok: false, error: 'Another value in this list is named "Arabic".' });
+    expect(await renameFacetValue(racing, { key: "language", id: "1", name: "Arabic" })).toMatchObject({ ok: false });
+    const broken = { transaction: async () => Promise.reject(new Error("connection lost")) } as unknown as Db;
+    await expect(addFacetValue(broken, { key: "language", name: "Arabic" })).rejects.toThrow("connection lost");
+  });
+
   it("refuses to rename the Service format names that the Directory reads", async () => {
     const id = await idOf("serviceFormat", "Virtual");
     expect(await renameFacetValue(db, { key: "serviceFormat", id: String(id), name: "Online" })).toMatchObject({ ok: false });
