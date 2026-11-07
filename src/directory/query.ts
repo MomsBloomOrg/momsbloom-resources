@@ -113,7 +113,7 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
 
   return {
     q: (getFirst(input, "q") ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_KEYWORD_LENGTH),
-    zip: zip && /^\d{5}$/.test(zip) ? zip : null,
+    zip: zip && !isBadZip(zip) ? zip : null,
     near: parseNear(getFirst(input, "near")),
     radius: parseRadius(getFirst(input, "r")),
     filters,
@@ -162,4 +162,10 @@ export function toggleFilter(query: DirectoryQuery, facet: FacetKey, value: stri
 /** "Clear all": every filter and the Organization filter go; the keyword and location stay. */
 export function clearFilters(query: DirectoryQuery): DirectoryQuery {
   return { ...query, filters: emptyFilters(), org: null, pages: 1 };
+}
+
+/** True when the family typed a ZIP that is not 5 digits (after trimming). Empty is not bad. */
+export function isBadZip(raw: string): boolean {
+  const zip = raw.trim();
+  return zip !== "" && !/^\d{5}$/.test(zip);
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SlidersHorizontal } from "lucide-react";
-import { clearFilters, hasActiveFilters, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
+import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
@@ -51,7 +51,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
       : null;
   // parseDirectoryQuery drops a ZIP that is not 5 digits; show the ZIP message for it (DirectoryLive sends it only on an explicit search).
   const rawZip = typeof params.zip === "string" ? params.zip : "";
-  const zipInvalid = rawZip !== "" && !/^\d{5}$/.test(rawZip);
+  const zipInvalid = isBadZip(rawZip);
   const filterCount = activeFilterCount(query);
 
   const cards = (list: ProgramResult[]) => (

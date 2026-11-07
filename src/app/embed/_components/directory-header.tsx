@@ -1,6 +1,6 @@
-import { IS_SAMPLE_DATA } from "@/directory/snapshot";
+import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
 
-/** Title, intro, and the "Sample data" note. Shared by the page, the loading skeleton, and the error screen so nothing jumps. */
+/** Title, intro, and the "Sample data" note. Shared by the page and the error screen so the header does not jump. */
 export function DirectoryHeader() {
   return (
     <header className="text-center">

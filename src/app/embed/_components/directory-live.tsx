@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useTransition, type ReactNode } from "react";
-import { parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
+import { isBadZip, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
 
 const KEYWORD_DEBOUNCE_MS = 250;
 const roundTo2 = (n: number) => Math.round(n * 100) / 100;
@@ -32,7 +32,7 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
     rootRef.current?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
       if (input.type === "checkbox" || input.type === "radio") input.checked = input.defaultChecked;
       // A half-typed ZIP is not in the URL; keep it so the family can finish typing.
-      else if (input !== document.activeElement && !(input.name === "zip" && input.value && !/^\d{5}$/.test(input.value)))
+      else if (input !== document.activeElement && !(input.name === "zip" && isBadZip(input.value)))
         input.value = input.defaultValue;
     });
   }, [searchParams]);
@@ -58,7 +58,7 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
         const near = searchParams.get("near");
         if (near && !params.get("zip")) params.set("near", near);
         const search = serializeDirectoryQuery(parseDirectoryQuery(params));
-        const badZip = explicit && rawZip && !/^\d{5}$/.test(rawZip);
+        const badZip = explicit && isBadZip(rawZip);
         navigate(badZip ? `${search}${search ? "&" : ""}zip=${encodeURIComponent(rawZip)}` : search);
       }}
       onInput={(event) => {
