@@ -8,6 +8,13 @@
       "when": 1794067130457,
       "tag": "0000_solid_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794069423335,
+      "tag": "0001_crazy_scrambler",
+      "breakpoints": true
     }
   ]
 }

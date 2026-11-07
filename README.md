@@ -95,6 +95,26 @@ The app does not read the database yet, so you can skip this until the tables ex
 The tables are defined in `src/db/schema.ts`. After you change that file, run `pnpm db:generate`
 (writes a migration file into `drizzle/`) and then `pnpm db:migrate` (applies it to the database).
 
+### Admin login settings
+
+| Variable | What it is |
+| --- | --- |
+| `AUTH_SECRET` | Signs the login cookies and keys the rate limit. Make one with `openssl rand -base64 32`. |
+| `AUTH_URL` | Local and Playwright only (`http://localhost:3000`). Do not set it on Vercel: there Auth.js uses the request host, so each Preview sends links to itself. |
+| `RESEND_API_KEY` | Resend key. Empty: the Login link prints in the `pnpm dev` log (refused on Vercel). |
+| `EMAIL_FROM` | The From address. Default `"MomsBloom Resources" <no-reply@momsbloom.org>`. |
+| `ADMIN_EMAILS` | The Staff admin allow-list, separated by commas. Remove an address to lock that person out on their next request (their sessions are deleted). On Vercel, a change takes effect only after a redeploy. Never commit real addresses. |
+
+Production and Preview on Vercel need `AUTH_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, and `ADMIN_EMAILS`.
+
+### Log in to the Admin locally
+
+1. Start a local database (`pnpm db:up`) and run `pnpm db:migrate`, so the login tables exist.
+2. In `.env.local`, set `AUTH_SECRET`, `AUTH_URL=http://localhost:3000`, `ADMIN_EMAILS=you@example.org`,
+   and leave `RESEND_API_KEY` empty.
+3. Run `pnpm dev`, open http://localhost:3000/login, and enter that address.
+4. The Login link prints in the terminal (`[login-link] for …`). Open it to log in.
+
 ## Scripts
 
 | Command | What it does |
@@ -184,7 +204,7 @@ in an Embed block on MomsBloom's current Squarespace plan, at desktop and phone 
 - `docs/adr/`: decisions and why we made them (ADR = Architecture Decision Record). Read these before you change how the app is built, deployed, or logged in to.
   - [0001 pnpm is the package manager](docs/adr/0001-pnpm-is-the-package-manager.md)
   - [0002 Vercel deploys from GitHub](docs/adr/0002-vercel-deploys-from-github.md)
-  - [0003 Admin login by email link first](docs/adr/0003-admin-login-by-email-link-first.md)
+  - [0003 Admin login is an email link only](docs/adr/0003-admin-login-by-email-link-first.md)
   - [0004 Search filters a cached snapshot on the server](docs/adr/0004-search-filters-a-cached-snapshot-on-the-server.md)
 - [`docs/design/`](docs/design/README.md): screenshots of every Figma screen, with notes for developers. Read the "Read this first" list before you build a screen.
 - [`CONTEXT.md`](CONTEXT.md): the words we use (Organization, Program, Facet, ...). Read it first.

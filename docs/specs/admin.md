@@ -29,7 +29,7 @@ to-do list. Until a design exists:
 - Everything under `/admin` needs a logged-in Staff admin. **Check the login on the server in every
   page and every save action**, not only in one central place. If one check is forgotten, the
   others still protect the data.
-- Microsoft 365 login comes later, as a second button on the same page.
+- The email link is the only login. Microsoft 365 SSO was dropped (ADR 0003, 2026-11-07).
 
 ## Pages
 

@@ -18,18 +18,23 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@auth/core": "0.41.3",
+    "@auth/drizzle-adapter": "^1.11.3",
     "@neondatabase/serverless": "^1.2.0",
     "@vercel/functions": "^3.9.11",
     "drizzle-orm": "^0.45.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.70.0",
     "next": "16.4.5",
+    "next-auth": "5.0.0-beta.32",
     "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "resend": "^6.37.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/leaflet": "^1.9.22",
