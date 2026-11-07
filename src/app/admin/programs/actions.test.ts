@@ -1,10 +1,11 @@
 /** Each Program write checks the login first and clears the Directory cache after a good write. */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   updateTag: vi.fn(),
   requireStaffAdmin: vi.fn(),
   write: vi.fn(),
+  old: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
@@ -19,6 +20,7 @@ vi.mock("@/admin/programs", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/admin/programs")>()),
   saveProgram: mocks.write,
   markProgramVerified: mocks.write,
+  getProgramForAdmin: mocks.old,
 }));
 
 import { saveProgramAction } from "./actions";
@@ -36,7 +38,10 @@ describe("saveProgramAction", () => {
     for (const m of Object.values(mocks)) m.mockReset();
     mocks.requireStaffAdmin.mockResolvedValue({ id: "a", email: "staff@example.org" });
     mocks.write.mockResolvedValue({ ok: true, value: { id: 7, lastVerified: "2026-11-07" } });
+    mocks.old.mockResolvedValue(null);
   });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   it("without a login: nothing is written", async () => {
     mocks.requireStaffAdmin.mockRejectedValue(new Error("redirect:/login"));
@@ -66,5 +71,30 @@ describe("saveProgramAction", () => {
     expect(await saveProgramAction(idle, form({ ...valid, id: "7" }))).toMatchObject({ status: "invalid", errors: { subcategoryIds: "x" } });
     expect(await saveProgramAction(idle, form({ ...valid, id: "abc" }))).toMatchObject({ status: "invalid" });
     expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+
+  const withAddress = { ...valid, id: "7", streetAddress: "1 Example Way", city: "Sampletown", state: "MI", zip: "48000" };
+  const census = (body: unknown) => vi.fn().mockResolvedValue({ ok: true, json: async () => body });
+
+  it("a changed address is geocoded and the coordinates are saved", async () => {
+    const fetchMock = census({ result: { addressMatches: [{ coordinates: { x: -84.5, y: 42.7 } }] } });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await saveProgramAction(idle, form(withAddress))).toMatchObject({ status: "saved", notice: undefined });
+    expect(mocks.write.mock.calls[0].at(-1)).toMatchObject({ latitude: 42.7, longitude: -84.5 });
+  });
+
+  it("a geocoder failure still saves, with a notice", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("timeout")));
+    expect(await saveProgramAction(idle, form(withAddress))).toMatchObject({ status: "saved", notice: expect.stringContaining("couldn't place") });
+    expect(mocks.write).toHaveBeenCalled();
+    expect(mocks.updateTag).toHaveBeenCalledWith("directory");
+  });
+
+  it("typed coordinates skip the geocoder", async () => {
+    mocks.old.mockResolvedValue({ program: { streetAddress: null, city: null, state: null, zip: null, latitude: null, longitude: null } });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await saveProgramAction(idle, form({ ...withAddress, latitude: "42.1", longitude: "-84.1" }));
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

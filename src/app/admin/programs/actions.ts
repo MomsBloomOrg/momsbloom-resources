@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
 import { GONE, parseId } from "@/admin/organizations";
-import { markProgramVerified, parseProgramInput, saveProgram } from "@/admin/programs";
+import { getProgramForAdmin, markProgramVerified, parseProgramInput, saveProgram } from "@/admin/programs";
+import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
 import { getDb } from "@/db";
 
 export type ProgramFormState =
   | { status: "idle" }
-  | { status: "saved"; message: string; lastVerified?: string }
+  | { status: "saved"; message: string; lastVerified?: string; notice?: string }
   | { status: "invalid"; message: string; errors: Record<string, string> };
 
 const invalid = (message: string, errors: Record<string, string> = {}): ProgramFormState => ({ status: "invalid", message, errors });
@@ -35,9 +36,11 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
 
   const parsed = parseProgramInput(formData);
   if (!parsed.ok) return invalid(parsed.error, parsed.fieldErrors);
-  const saved = await saveProgram(db, id, parsed.value);
+  const old = id === null ? null : ((await getProgramForAdmin(db, id))?.program ?? null);
+  const { input, failed } = await geocodeOnSave(parsed.value, old);
+  const saved = await saveProgram(db, id, input);
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();
   if (id === null) redirect(`/admin/programs/${saved.value.id}`);
-  return { status: "saved", message: "Saved." };
+  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined };
 }

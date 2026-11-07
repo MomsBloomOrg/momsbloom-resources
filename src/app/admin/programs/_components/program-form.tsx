@@ -276,6 +276,7 @@ export function ProgramForm({
       </Field>
 
       {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
+      {state.status === "saved" && state.notice && <Notice tone="warning" role="status">{state.notice}</Notice>}
       {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
 
       <div className="flex flex-wrap gap-3">
