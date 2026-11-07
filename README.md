@@ -184,4 +184,5 @@ in an Embed block on MomsBloom's current Squarespace plan, at desktop and phone 
   - [0001 pnpm is the package manager](docs/adr/0001-pnpm-is-the-package-manager.md)
   - [0002 Vercel deploys from GitHub](docs/adr/0002-vercel-deploys-from-github.md)
   - [0003 Admin login by email link first](docs/adr/0003-admin-login-by-email-link-first.md)
+- [`docs/design/`](docs/design/README.md): screenshots of every Figma screen, with notes for developers. Read the "Read this first" list before you build a screen.
 - More to come: `CONTEXT.md` (the words we use) and `docs/specs/`.
