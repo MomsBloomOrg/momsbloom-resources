@@ -65,9 +65,10 @@ test("zip-5mi-keeps-virtual: a 5 mi radius never hides virtual Programs", async 
 test("no-location: no Nearest sort, no Distance group, no miles", async ({ page }) => {
   await page.goto("/embed?q=yoga");
   await expect(resultLine(page)).toHaveText('2 results for "yoga"');
-  const sort = page.getByRole("navigation", { name: "Sort" });
-  await expect(sort.getByRole("link", { name: "Nearest" })).toHaveCount(0);
-  await expect(sort.getByRole("link", { name: "A to Z" })).toHaveAttribute("aria-current", "true");
+  const sort = page.getByRole("combobox", { name: "Sort" });
+  await expect(sort.getByRole("option", { name: "Nearest" })).toHaveCount(0);
+  await expect(sort).toHaveValue("");
+  await expect(sort.locator("option:checked")).toHaveText("A to Z");
   await expect(page.getByRole("group", { name: /Distance/ })).toHaveCount(0);
   await expect(page.getByRole("article")).not.toHaveCount(0);
   await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/)).toHaveCount(0);
@@ -76,7 +77,7 @@ test("no-location: no Nearest sort, no Distance group, no miles", async ({ page 
 test("zip-location: Nearest is current, Distance group shows, cards show miles", async ({ page }) => {
   await page.goto("/embed?q=yoga&zip=49508");
   await expect(resultLine(page)).toContainText("near 49508");
-  await expect(page.getByRole("navigation", { name: "Sort" }).getByRole("link", { name: "Nearest" })).toHaveAttribute("aria-current", "true");
+  await expect(page.getByRole("combobox", { name: "Sort" }).locator("option:checked")).toHaveText("Nearest");
   await expect(page.getByRole("group", { name: /Distance/ })).toBeVisible();
   await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/).first()).toBeVisible();
 });
@@ -217,6 +218,66 @@ test.describe("mobile-filter-sheet", () => {
       await expect(page).toHaveURL(/#filters$/);
       await expect(page.getByRole("heading", { name: "Filters", exact: true })).toBeInViewport();
       await expect(page.getByRole("checkbox", { name: /^Spanish/ })).toBeVisible();
+    });
+  });
+});
+
+test.describe("sort-dropdown", () => {
+  const sort = (page: Page) => page.getByRole("combobox", { name: "Sort" });
+
+  test("sort-default-sends-nothing: the default option adds no sort to the URL", async ({ page }) => {
+    await page.goto("/embed?q=yoga&zip=49508");
+    await expect(sort(page).locator("option:checked")).toHaveText("Nearest");
+    await sort(page).selectOption({ label: "A to Z" });
+    await expect(page).toHaveURL(/sort=az/);
+    await expect(sort(page)).toHaveValue("az");
+    const names = await programCards(page).getByRole("heading").allTextContents();
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    await sort(page).selectOption({ label: "Nearest" });
+    await expect(page).not.toHaveURL(/sort=/);
+    await expect(sort(page)).toHaveValue("");
+  });
+
+  test("sort-select-follows-url: the select keeps the choice after a chip click (the live layer replaces history, so there is no Back step)", async ({ page }) => {
+    await page.goto("/embed?q=yoga&zip=49508&lang=spanish");
+    await sort(page).selectOption({ label: "A to Z" });
+    await expect(page).toHaveURL(/sort=az/);
+    await expect(sort(page)).toHaveValue("az");
+    await page.getByRole("link", { name: /Clear all/ }).first().click();
+    await expect(page).not.toHaveURL(/lang=/);
+    await expect(sort(page)).toHaveValue("az");
+  });
+
+  test("sort-no-location-options: no Nearest without a location", async ({ page }) => {
+    await page.goto("/embed?q=yoga");
+    await expect(sort(page).locator("option")).toHaveText(["A to Z", "Recently verified"]);
+  });
+
+  test.describe("sort-no-js", () => {
+    test.use({ javaScriptEnabled: false });
+    test("the Sort button applies the choice", async ({ page }) => {
+      await page.goto("/embed?q=yoga");
+      await sort(page).selectOption({ label: "Recently verified" });
+      await page.getByRole("button", { name: "Sort", exact: true }).click();
+      await expect(page).toHaveURL(/sort=verified/);
+    });
+  });
+
+  test.describe("mobile-one-row", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+    test("Filters, view link, and Sort share one row", async ({ page }) => {
+      await page.goto("/embed?q=yoga&zip=49508");
+      const ys = async () =>
+        Promise.all(
+          [page.getByRole("link", { name: /^Filters/ }), page.getByRole("link", { name: "Map", exact: true }), sort(page)].map(
+            async (locator) => (await locator.boundingBox())!.y,
+          ),
+        );
+      const [filters, view, select] = await ys();
+      expect(Math.abs(filters - view)).toBeLessThanOrEqual(4);
+      expect(Math.abs(filters - select)).toBeLessThanOrEqual(4);
+      await page.goto("/embed?q=yoga&zip=49508&view=map");
+      await expect(page.getByRole("link", { name: "List View", exact: true })).toBeVisible();
     });
   });
 });

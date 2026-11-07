@@ -1,5 +1,7 @@
-import { serializeDirectoryQuery, type Sort } from "@/directory/query";
+import type { ReactNode } from "react";
+import type { Sort } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
+import { DIRECTORY_FORM_ID } from "./search-bar";
 import { ViewToggle } from "./view-toggle";
 
 const SORT_LABELS: Record<Sort, string> = { nearest: "Nearest", az: "A to Z", verified: "Recently verified" };
@@ -16,30 +18,49 @@ export function resultSummary({ totalPrograms, query, origin, radius }: Director
     .join(" ");
 }
 
-/** The result count (announced to screen readers after each change) and the sort links. */
-export function ResultLine({ results }: { results: DirectoryResults }) {
-  const sorts: Sort[] = results.origin ? ["nearest", "az", "verified"] : ["az", "verified"];
+/** The result count, announced to screen readers after each change. */
+export function ResultSummary({ results }: { results: DirectoryResults }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <p aria-live="polite" className="font-bold">
-        {resultSummary(results)}
-      </p>
-      <div className="flex flex-wrap items-center gap-x-4">
-        <nav aria-label="Sort" className="flex items-center gap-1 text-sm">
-          <span className="text-muted">Sort:</span>
+    <p aria-live="polite" className="font-bold">
+      {resultSummary(results)}
+    </p>
+  );
+}
+
+/**
+ * The toolbar: `children` (the mobile Filters link), the view link, and the sort dropdown. The select is a
+ * field of the search form. Its default option sends no `sort` (the URL stays clean); without JavaScript
+ * the "Sort" button submits it, with JavaScript DirectoryLive submits on change.
+ */
+export function ResultToolbar({ results, children }: { results: DirectoryResults; children?: ReactNode }) {
+  const sorts: Sort[] = results.origin ? ["nearest", "az", "verified"] : ["az", "verified"];
+  const valueOf = (sort: Sort) => (sort === sorts[0] ? "" : sort);
+  return (
+    <div className="flex items-center gap-2 max-md:justify-between md:gap-4">
+      {children}
+      <ViewToggle query={results.query} />
+      <label className="flex min-w-0 items-center gap-1 text-sm max-md:flex-1">
+        <span className="text-muted max-md:sr-only">Sort:</span>
+        <select
+          // Keyed: a new sort remounts it, so the browser never keeps a stale choice after Back or a chip click.
+          key={results.sort}
+          name="sort"
+          form={DIRECTORY_FORM_ID}
+          defaultValue={valueOf(results.sort)}
+          className="min-h-11 w-full min-w-0 rounded-full border border-line bg-surface px-3 md:min-h-8"
+        >
           {sorts.map((sort) => (
-            <a
-              key={sort}
-              href={`?${serializeDirectoryQuery({ ...results.query, sort, pages: 1 })}`}
-              aria-current={results.sort === sort ? "true" : undefined}
-              className="flex min-h-11 items-center rounded-full px-3 aria-[current]:border aria-[current]:border-line aria-[current]:bg-surface aria-[current]:font-bold md:min-h-8"
-            >
+            <option key={sort} value={valueOf(sort)}>
               {SORT_LABELS[sort]}
-            </a>
+            </option>
           ))}
-        </nav>
-        <ViewToggle query={results.query} />
-      </div>
+        </select>
+      </label>
+      <noscript>
+        <button type="submit" form={DIRECTORY_FORM_ID} className="min-h-11 w-full min-w-0 rounded-full border border-line bg-surface px-3 text-sm">
+          Sort
+        </button>
+      </noscript>
     </div>
   );
 }

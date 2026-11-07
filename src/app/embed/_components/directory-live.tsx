@@ -11,7 +11,7 @@ const roundTo2 = (n: number) => Math.round(n * 100) / 100;
  * The live layer on top of the server-rendered Directory. Without JavaScript, every control is a link
  * or a GET form and still works. With it, this component:
  * - turns form submits and "?..." link clicks into `router.replace` (no full reload, no scroll jump),
- * - submits the form 250 ms after the family stops typing a keyword, and on each checkbox change,
+ * - submits the form 250 ms after the family stops typing a keyword, and on each checkbox or sort change,
  * - keeps the old results on screen, faded, until the new ones arrive (`data-pending`),
  * - runs "Use my location" (refused: the cursor goes to the ZIP field).
  */
@@ -69,7 +69,7 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
       }}
       onChange={(event) => {
         const input = event.target as HTMLInputElement;
-        if (input.type === "checkbox" || input.type === "radio") form()?.requestSubmit();
+        if (input instanceof HTMLSelectElement || input.type === "checkbox" || input.type === "radio") form()?.requestSubmit();
       }}
       onClick={(event) => {
         const target = event.target as HTMLElement;
