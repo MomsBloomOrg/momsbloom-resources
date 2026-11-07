@@ -2,11 +2,9 @@
 export function DirectoryHeader() {
   return (
     <header className="text-center">
-      <p className="text-sm font-bold uppercase tracking-wide text-muted">Located in Kent County</p>
-      <h1 className="mt-1 text-3xl font-extrabold md:text-4xl">Postpartum Resources</h1>
+      <h1 className="text-3xl font-extrabold md:text-4xl">Postpartum Resources</h1>
       <p className="mx-auto mt-3 max-w-xl text-muted">
-        Search local help for pregnancy and the first year after birth. Filter by what&apos;s near you, what your
-        insurance covers, and the support type you need.
+        Find nearby support that fits your family, your insurance, and your needs.
       </p>
     </header>
   );
