@@ -16,7 +16,7 @@ import {
   type Raw,
   type StatusOption,
 } from "./organizations";
-import { allExist, type Option } from "./programs";
+import { allExist, shownOptions, shownSubcategories, type Option } from "./programs";
 
 export const DOCUMENT_LISTS = ["categoryIds", "subcategoryIds", "languageIds"] as const;
 export type DocumentListKey = (typeof DOCUMENT_LISTS)[number];
@@ -182,16 +182,22 @@ export interface DocumentFormOptions {
   languages: Option[];
 }
 
-/** Every choice the Document form shows. */
-export async function getDocumentFormOptions(db: Db): Promise<DocumentFormOptions> {
-  const [statuses, categories, subcategories, languages] = await Promise.all([
+/** Every choice the Document form shows. `used` is the saved record: its hidden values stay, marked "(hidden)". */
+export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput> = {}): Promise<DocumentFormOptions> {
+  const [statuses, allCategories, allSubcategories, allLanguages] = await Promise.all([
     listStatuses(db),
-    db.select({ id: t.categories.id, name: t.categories.name }).from(t.categories).orderBy(t.categories.sortOrder, t.categories.id),
+    db.select({ id: t.categories.id, name: t.categories.name, hidden: t.categories.hidden }).from(t.categories).orderBy(t.categories.sortOrder, t.categories.id),
     db
-      .select({ id: t.subcategories.id, name: t.subcategories.name, categoryId: t.subcategories.categoryId })
+      .select({ id: t.subcategories.id, name: t.subcategories.name, categoryId: t.subcategories.categoryId, hidden: t.subcategories.hidden })
       .from(t.subcategories)
       .orderBy(t.subcategories.sortOrder, t.subcategories.id),
-    db.select({ id: t.languages.id, name: t.languages.name }).from(t.languages).orderBy(t.languages.sortOrder, t.languages.id),
+    db.select({ id: t.languages.id, name: t.languages.name, hidden: t.languages.hidden }).from(t.languages).orderBy(t.languages.sortOrder, t.languages.id),
   ]);
-  return { statuses, categories, subcategories, languages };
+  const categories = shownOptions(allCategories, used.categoryIds);
+  return {
+    statuses,
+    categories,
+    subcategories: shownSubcategories(allSubcategories, categories, used.subcategoryIds),
+    languages: shownOptions(allLanguages, used.languageIds),
+  };
 }
