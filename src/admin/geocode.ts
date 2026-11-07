@@ -36,14 +36,18 @@ export interface Placed {
 const addressKey = (a: Placed) => [a.streetAddress, a.city, a.state, a.zip].map((v) => v ?? "").join("|");
 
 /**
- * Fills latitude and longitude when the street address is new or changed and staff left the coordinates
- * as they were. A blank street address is never geocoded (a Program then inherits the Organization's).
- * Returns the input to save and `failed` (true when a lookup ran and found nothing). The save goes on.
+ * Keeps latitude and longitude in step with the street address when the address is new or changed and
+ * staff left the coordinates as they were: a lookup fills them; a failed lookup or a cleared street
+ * address sets them to null (never the old pin). A blank street address is never looked up (a Program
+ * then inherits the Organization's). Returns the input to save and `failed` (a lookup found nothing).
+ * The save goes on either way.
  */
 export async function geocodeOnSave<T extends Placed>(input: T, old: Placed | null, fetchFn: Fetch = fetch): Promise<{ input: T; failed: boolean }> {
-  const edited = !!old && (old.latitude !== input.latitude || old.longitude !== input.longitude);
+  const edited = input.latitude !== (old?.latitude ?? null) || input.longitude !== (old?.longitude ?? null);
   const changed = !old || addressKey(old) !== addressKey(input);
-  if (!input.streetAddress || !changed || edited) return { input, failed: false };
+  if (!changed || edited) return { input, failed: false };
+  const cleared = { ...input, latitude: null, longitude: null };
+  if (!input.streetAddress) return { input: cleared, failed: false };
   const point = await geocodeAddress([input.streetAddress, input.city, input.state, input.zip].filter(Boolean).join(", "), fetchFn);
-  return point ? { input: { ...input, ...point }, failed: false } : { input, failed: true };
+  return point ? { input: { ...input, ...point }, failed: false } : { input: cleared, failed: true };
 }

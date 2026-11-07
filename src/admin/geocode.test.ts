@@ -35,10 +35,17 @@ describe("geocodeOnSave", () => {
     expect(await geocodeOnSave(place, null, reply({ result: { addressMatches: [] } }))).toEqual({ input: place, failed: true });
   });
 
-  it("skips a blank street address (a Program then inherits)", async () => {
+  it("a cleared street address is not looked up and drops the old pin", async () => {
     const f = reply(match);
-    expect((await geocodeOnSave({ ...place, streetAddress: null }, null, f)).failed).toBe(false);
+    const old = { ...place, latitude: 1, longitude: 2 };
+    expect(await geocodeOnSave({ ...old, streetAddress: null }, old, f)).toMatchObject({ input: { latitude: null, longitude: null }, failed: false });
     expect(f).not.toHaveBeenCalled();
+  });
+
+  it("a failed lookup on a changed address drops the old pin", async () => {
+    const old = { ...place, latitude: 1, longitude: 2 };
+    const r = await geocodeOnSave({ ...old, city: "Elsewhere" }, old, reply({ result: { addressMatches: [] } }));
+    expect(r).toMatchObject({ input: { latitude: null, longitude: null }, failed: true });
   });
 
   it("skips an unchanged address and edited coordinates", async () => {
