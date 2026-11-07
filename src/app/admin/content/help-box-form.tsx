@@ -13,8 +13,10 @@ const idle: HelpBoxFormState = { result: "idle" };
  */
 export function HelpBoxForm({ saved, defaults }: { saved: Record<HelpBoxField, string>; defaults: HelpBoxContent }) {
   const [state, action, pending] = useActionState(saveHelpBoxAction, idle);
+  // After a save, the fields show what was sent (React resets the form, even on an error).
+  const shown = state.result === "idle" ? saved : state.values;
   const input = (name: HelpBoxField, id: string) => (
-    <input id={id} name={name} type={name === "buttonUrl" ? "url" : "text"} defaultValue={saved[name]} placeholder={defaults[name]} className={inputClass} />
+    <input id={id} name={name} type={name === "buttonUrl" ? "url" : "text"} defaultValue={shown[name]} placeholder={defaults[name]} className={inputClass} />
   );
   return (
     <form action={action} className="flex max-w-2xl flex-col gap-4">
@@ -26,7 +28,7 @@ export function HelpBoxForm({ saved, defaults }: { saved: Record<HelpBoxField, s
           id="hb-body"
           name="body"
           rows={4}
-          defaultValue={saved.body}
+          defaultValue={shown.body}
           placeholder={defaults.body}
           aria-describedby="hb-body-hint"
           className={inputClass}

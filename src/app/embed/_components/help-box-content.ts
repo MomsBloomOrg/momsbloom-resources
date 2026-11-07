@@ -9,7 +9,14 @@ import { getDb } from "@/db";
 
 export async function loadHelpBoxContent(): Promise<HelpBoxContent> {
   if (process.env.DIRECTORY_SAMPLE_DATA === "1" && process.env.VERCEL_ENV !== "production") return HELP_BOX_DEFAULTS;
-  return cachedContent();
+  // A failed read (for example `site_content` is not migrated yet) must not take the Directory down. The
+  // error is thrown outside the cache, so the defaults are not cached and the next request tries again.
+  try {
+    return await cachedContent();
+  } catch (error) {
+    console.error("Help box content failed to load; showing the defaults.", error);
+    return HELP_BOX_DEFAULTS;
+  }
 }
 
 async function cachedContent(): Promise<HelpBoxContent> {

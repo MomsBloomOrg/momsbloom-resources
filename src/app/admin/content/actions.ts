@@ -1,17 +1,24 @@
 "use server";
 
 import { directoryChanged } from "@/admin/directory-changed";
-import { saveHelpBoxContent } from "@/admin/help-box";
+import { HELP_BOX_FIELDS, saveHelpBoxContent, type HelpBoxField } from "@/admin/help-box";
 import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 
-export type HelpBoxFormState = { result: "idle" } | { result: "ok"; message: string } | { result: "error"; message: string };
+/** `values` is what the form sent, so the fields keep it: React resets a form after its action, even on an error. */
+export type HelpBoxFormState =
+  | { result: "idle" }
+  | { result: "ok"; message: string; values: Record<HelpBoxField, string> }
+  | { result: "error"; message: string; values: Record<HelpBoxField, string> };
 
 /** On success, the Directory reloads (tag "directory"), so families see the new text at once. */
 export async function saveHelpBoxAction(_prev: HelpBoxFormState, formData: FormData): Promise<HelpBoxFormState> {
   await requireStaffAdmin();
+  const values = Object.fromEntries(
+    HELP_BOX_FIELDS.map((f) => [f, typeof formData.get(f) === "string" ? (formData.get(f) as string) : ""]),
+  ) as Record<HelpBoxField, string>;
   const result = await saveHelpBoxContent(getDb(), formData);
-  if (!result.ok) return { result: "error", message: result.error };
+  if (!result.ok) return { result: "error", message: result.error, values };
   directoryChanged();
-  return { result: "ok", message: "Saved. The Directory shows the new help box now." };
+  return { result: "ok", message: "Saved. The Directory shows the new help box now.", values };
 }

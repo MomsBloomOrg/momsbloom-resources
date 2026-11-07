@@ -10,7 +10,10 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
 vi.mock("@/db", () => ({ getDb: () => ({}) }));
 vi.mock("@/auth/dal", () => ({ requireStaffAdmin: mocks.requireStaffAdmin }));
-vi.mock("@/admin/help-box", () => ({ saveHelpBoxContent: mocks.save }));
+vi.mock("@/admin/help-box", () => ({
+  saveHelpBoxContent: mocks.save,
+  HELP_BOX_FIELDS: ["heading", "body", "phone", "buttonLabel", "buttonUrl"],
+}));
 
 import { saveHelpBoxAction } from "./actions";
 
@@ -30,9 +33,15 @@ describe("saveHelpBoxAction", () => {
     expect(mocks.updateTag).toHaveBeenCalledWith("directory");
   });
 
-  it("shows the error and does not reload on a refusal", async () => {
+  it("shows the error, keeps the typed values, and does not reload on a refusal", async () => {
     mocks.save.mockResolvedValueOnce({ ok: false, error: "Nope." });
-    expect(await saveHelpBoxAction(idle, new FormData())).toEqual({ result: "error", message: "Nope." });
+    const data = new FormData();
+    data.set("heading", "Typed");
+    expect(await saveHelpBoxAction(idle, data)).toEqual({
+      result: "error",
+      message: "Nope.",
+      values: { heading: "Typed", body: "", phone: "", buttonLabel: "", buttonUrl: "" },
+    });
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 });

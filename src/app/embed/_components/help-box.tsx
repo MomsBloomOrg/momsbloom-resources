@@ -16,7 +16,7 @@ export async function HelpBox() {
         <h2 id="help-heading" className="font-extrabold">
           {content.heading}
         </h2>
-        <p className="mt-1 text-sm">
+        <p className="mt-1 whitespace-pre-line text-sm">
           {parts.map((part, i) => (
             <span key={i}>
               {i > 0 && (
