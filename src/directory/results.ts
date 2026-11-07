@@ -15,7 +15,7 @@
 import { distanceMiles, roundMiles } from "./distance";
 import { countFacetValues, DOCUMENT_FACETS, matchesFilters, type FacetCounts } from "./filter";
 import { emptyFilters, PAGE_SIZE, type DirectoryQuery, type RadiusMiles, type Sort } from "./query";
-import { documentSearchText, keywordWords, matchesWords, programSearchText, type LabelLookup } from "./search";
+import { documentSearchText, facetLabelLookup, keywordWords, matchesWords, programSearchText } from "./search";
 import { FACET_KEYS, type DirectoryDocument, type DirectoryProgram, type DirectorySnapshot, type LatLng } from "./types";
 import { lookupMichiganZip } from "./zip";
 
@@ -81,17 +81,9 @@ function compareResults(sort: Sort) {
 
 export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQuery): DirectoryResults {
   // Step 1: keep only filter values that exist.
-  const labels = new Map<string, string>();
-  const known = Object.fromEntries(FACET_KEYS.map((facet) => [facet, new Set<string>()]));
-  for (const facet of snapshot.facets) {
-    for (const value of facet.values) {
-      labels.set(value.key, value.label);
-      known[facet.key].add(value.key);
-    }
-  }
+  const labelOf = facetLabelLookup(snapshot.facets);
   const filters = emptyFilters();
-  for (const facet of FACET_KEYS) filters[facet] = query.filters[facet].filter((value) => known[facet].has(value));
-  const labelOf: LabelLookup = (key) => labels.get(key);
+  for (const facet of FACET_KEYS) filters[facet] = query.filters[facet].filter((value) => labelOf(facet, value) !== undefined);
 
   // Step 2: Organization and keyword.
   const words = keywordWords(query.q);

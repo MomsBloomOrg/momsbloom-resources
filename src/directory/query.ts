@@ -112,7 +112,7 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
   const zip = getFirst(input, "zip")?.trim() ?? null;
   const sort = getFirst(input, "sort");
   const pages = Number.parseInt(getFirst(input, "n") ?? "1", 10);
-  const org = getFirst(input, "org")?.trim().toUpperCase() ?? null;
+  const org = getFirst(input, "org")?.trim() ?? null;
 
   return {
     q: (getFirst(input, "q") ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_KEYWORD_LENGTH),
@@ -120,7 +120,8 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
     near: parseNear(getFirst(input, "near")),
     radius: parseRadius(getFirst(input, "r")),
     filters,
-    org: org && /^O-\d{3,}$/.test(org) ? org : null,
+    // An opaque ID: a database id ("12") or a test fixture id ("O-001").
+    org: org && /^[\w-]{1,20}$/.test(org) ? org : null,
     sort: (SORTS as readonly string[]).includes(sort ?? "") ? (sort as Sort) : null,
     pages: Number.isFinite(pages) ? Math.min(Math.max(pages, 1), MAX_PAGES) : 1,
     view: getFirst(input, "view") === "map" ? "map" : "list",

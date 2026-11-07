@@ -6,7 +6,7 @@
  * - Every word the family types must appear somewhere: "yoga spanish" finds Programs that mention
  *   both, not either.
  */
-import type { DirectoryDocument, DirectoryProgram, FacetValueKeys } from "./types";
+import type { DirectoryDocument, DirectoryProgram, FacetDefinition, FacetKey, FacetValueKeys } from "./types";
 
 /** Lower case, no accents ("é" → "e"), single spaces. */
 export function normalizeText(text: string): string {
@@ -29,11 +29,23 @@ export function matchesWords(normalizedText: string, words: readonly string[]): 
   return words.every((word) => normalizedText.includes(word));
 }
 
-/** Finds the label of a Facet value key, so "yoga" matches the Subcategory labeled "Yoga". */
-export type LabelLookup = (key: string) => string | undefined;
+/**
+ * Finds the label of a Facet value, so "yoga" matches the Subcategory labeled "Yoga". Keys are unique
+ * only within a Facet: Category "1" and Language "1" are different values.
+ */
+export type LabelLookup = (facet: FacetKey, key: string) => string | undefined;
+
+/** The LabelLookup for a snapshot's Facets. */
+export function facetLabelLookup(facets: readonly FacetDefinition[]): LabelLookup {
+  const labels = new Map(facets.map((facet) => [facet.key, new Map(facet.values.map((value) => [value.key, value.label]))]));
+  return (facet, key) => labels.get(facet)?.get(key);
+}
 
 function categoryLabels(values: FacetValueKeys, labelOf: LabelLookup): string[] {
-  return [...values.category, ...values.subcategory].map((key) => labelOf(key) ?? "");
+  return [
+    ...values.category.map((key) => labelOf("category", key) ?? ""),
+    ...values.subcategory.map((key) => labelOf("subcategory", key) ?? ""),
+  ];
 }
 
 /** All the searchable text of a Program, as one normalized string. */
