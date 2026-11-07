@@ -277,7 +277,7 @@ export interface ProgramFormOptions {
   serviceFormats: Option[];
 }
 
-/** A Subcategory shows only under a Category the form shows (the Directory does the same). */
+/** A Subcategory shows only under a Category the form shows (the Directory does the same). A used Subcategory whose Category is off the form cannot be saved anyway: the save needs its Category checked. */
 export function shownSubcategories(rows: (Option & { categoryId: number; hidden: boolean })[], categories: Option[], used: readonly number[] = []) {
   return shownOptions(rows, used).filter((r) => categories.some((c) => c.id === r.categoryId));
 }

@@ -146,6 +146,23 @@ describe("Program form hides hidden Facet values", () => {
     expect(o.costOptions.map((c) => c.id)).not.toContain(free);
   });
 
+  it("sibling-lists: used hidden plan, audience, and service format stay marked; acceptance options are not filtered", async () => {
+    const [plan] = await db.select().from(t.insurancePlans).limit(1);
+    const [aud] = await db.select().from(t.audiences).limit(1);
+    const [fmt] = await db.select().from(t.serviceFormats).limit(1);
+    await db.update(t.insurancePlans).set({ hidden: true }).where(eq(t.insurancePlans.id, plan.id));
+    await db.update(t.audiences).set({ hidden: true }).where(eq(t.audiences.id, aud.id));
+    await db.update(t.serviceFormats).set({ hidden: true }).where(eq(t.serviceFormats.id, fmt.id));
+    const fresh = await getProgramFormOptions(db);
+    expect(fresh.insurancePlans.map((x) => x.id)).not.toContain(plan.id);
+    const o = await getProgramFormOptions(db, { insurancePlanIds: [plan.id], audienceIds: [aud.id], serviceFormatId: fmt.id });
+    for (const [list, id] of [[o.insurancePlans, plan.id], [o.audiences, aud.id], [o.serviceFormats, fmt.id]] as const) {
+      expect(list.find((x) => x.id === id)?.name).toMatch(/ \(hidden\)$/);
+    }
+    const accept = await db.select().from(t.insuranceAcceptanceOptions);
+    expect(o.insuranceAcceptanceOptions).toHaveLength(accept.length);
+  });
+
   it("used-hidden-labeled: a hidden value the Program uses stays, marked (hidden)", async () => {
     const o = await getProgramFormOptions(db, { languageIds: [spanish], costOptionId: free });
     expect(o.languages.find((l) => l.id === spanish)?.name).toMatch(/ \(hidden\)$/);
