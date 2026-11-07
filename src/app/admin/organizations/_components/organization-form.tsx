@@ -3,6 +3,8 @@
 import { NOT_PLACED } from "@/admin/geocode";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import type { OrganizationInput, StatusOption } from "@/admin/organizations";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
+import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Field, Notice, buttonClass, inputClass } from "../../_components/ui";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
 
@@ -18,12 +20,15 @@ export function OrganizationForm({
   organization,
   statuses,
   hiddenProgramCount,
+  customFields,
 }: {
   id?: number;
   organization?: OrganizationInput;
   statuses: StatusOption[];
   /** Programs that families see now: the ones a hiding Status would remove. */
   hiddenProgramCount: number;
+  /** The active Organization custom fields, in order. */
+  customFields: readonly CustomFieldDefinition[];
 }) {
   const [state, dispatch, pending] = useActionState(saveOrganizationAction, IDLE);
   const [statusId, setStatusId] = useState(String(organization?.statusId ?? statuses[0]?.id ?? ""));
@@ -120,6 +125,7 @@ export function OrganizationForm({
           />
         </Field>
       </div>
+      <CustomFieldInputs idPrefix="org" fields={customFields} values={o?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
       <Field id="org-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
         <textarea
           id="org-internalNotes"

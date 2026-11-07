@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   updateTag: vi.fn(),
   requireStaffAdmin: vi.fn(),
   write: vi.fn(),
+  custom: vi.fn(),
   old: vi.fn(),
 }));
 
@@ -16,6 +17,10 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/db", () => ({ getDb: () => ({}) }));
 vi.mock("@/auth/dal", () => ({ requireStaffAdmin: mocks.requireStaffAdmin }));
+vi.mock("@/custom-fields/form", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/custom-fields/form")>()),
+  parseCustomForm: mocks.custom,
+}));
 vi.mock("@/admin/programs", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/admin/programs")>()),
   saveProgram: mocks.write,
@@ -38,6 +43,7 @@ describe("saveProgramAction", () => {
     for (const m of Object.values(mocks)) m.mockReset();
     mocks.requireStaffAdmin.mockResolvedValue({ id: "a", email: "staff@example.org" });
     mocks.write.mockResolvedValue({ ok: true, value: { id: 7, lastVerified: "2026-11-07" } });
+    mocks.custom.mockResolvedValue({ ok: true, values: null });
     mocks.old.mockResolvedValue(null);
   });
 
@@ -70,6 +76,26 @@ describe("saveProgramAction", () => {
     mocks.write.mockResolvedValue({ ok: false, error: "gone", fieldErrors: { subcategoryIds: "x" } });
     expect(await saveProgramAction(idle, form({ ...valid, id: "7" }))).toMatchObject({ status: "invalid", errors: { subcategoryIds: "x" } });
     expect(await saveProgramAction(idle, form({ ...valid, id: "abc" }))).toMatchObject({ status: "invalid" });
+    expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+
+  it("custom field answers are saved with the record", async () => {
+    mocks.custom.mockResolvedValue({ ok: true, values: { "21": "1" } });
+    expect(await saveProgramAction(idle, form({ ...valid, id: "7" }))).toMatchObject({ status: "saved" });
+    expect(mocks.write.mock.calls[0][2]).toMatchObject({ custom: { "21": "1" } });
+  });
+
+  it("no custom fields on the form: the custom column is left alone", async () => {
+    await saveProgramAction(idle, form({ ...valid, id: "7" }));
+    expect(mocks.write.mock.calls[0][2]).not.toHaveProperty("custom");
+  });
+
+  it("a bad custom answer and a bad field show together, and nothing is written", async () => {
+    mocks.custom.mockResolvedValue({ ok: false, fieldErrors: { "custom.21": "Pick from the list." } });
+    const state = await saveProgramAction(idle, form({ ...valid, id: "7", name: "" }));
+    expect(state).toMatchObject({ status: "invalid", errors: { "custom.21": "Pick from the list." } });
+    expect(state.status === "invalid" && state.errors.name).toBeTruthy();
+    expect(mocks.write).not.toHaveBeenCalled();
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 

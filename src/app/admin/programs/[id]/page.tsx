@@ -5,7 +5,9 @@ import { getDb } from "@/db";
 import { parseId } from "@/admin/organizations";
 import { listContactsForAdmin } from "@/admin/contacts";
 import { getProgramForAdmin, getProgramFormOptions } from "@/admin/programs";
+import { listActiveFields } from "@/custom-fields/form";
 import { Card, PageHeader, buttonClass, hintClass, linkClass } from "../../_components/ui";
+import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { ProgramForm } from "../_components/program-form";
 import { ContactsSection } from "./_components/contacts-section";
 
@@ -17,7 +19,12 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
-  const [detail, options, contacts] = await Promise.all([getProgramForAdmin(db, id), getProgramFormOptions(db), listContactsForAdmin(db, id)]);
+  const [detail, options, contacts, customFields] = await Promise.all([
+    getProgramForAdmin(db, id),
+    getProgramFormOptions(db),
+    listContactsForAdmin(db, id),
+    listActiveFields(db, "program"),
+  ]);
   if (!detail) notFound();
   const { program } = detail;
   const organization = options.organizations.find((o) => o.id === program.organizationId);
@@ -37,13 +44,16 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
           </a>
         }
       />
-      <Card title="Program">
-        <ProgramForm key={id} id={id} program={program} options={options} />
-        <p className={`${hintClass} mt-4`}>
-          Last changed {new Date(program.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
-        </p>
-      </Card>
-      <ContactsSection programId={id} contacts={contacts} />
+      <div className="flex flex-col gap-6">
+        <Card title="Program">
+          <ProgramForm key={id} id={id} program={program} options={options} customFields={customFields} />
+          <p className={`${hintClass} mt-4`}>
+            Last changed {new Date(program.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
+          </p>
+        </Card>
+        <ContactsSection programId={id} contacts={contacts} />
+        <CustomFieldsManager db={db} entity="program" />
+      </div>
     </>
   );
 }

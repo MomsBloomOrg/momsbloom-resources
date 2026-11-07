@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
-import { GONE, parseId } from "@/admin/organizations";
+import { FIX_FIELDS, GONE, parseId } from "@/admin/organizations";
 import { getProgramForAdmin, markProgramVerified, parseProgramInput, saveProgram } from "@/admin/programs";
 import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
+import { parseCustomForm } from "@/custom-fields/form";
 import { getDb } from "@/db";
 
 export type ProgramFormState =
@@ -34,10 +35,16 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
     return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
   }
 
+  // Both checks run, so one save shows every marked field.
   const parsed = parseProgramInput(formData);
-  if (!parsed.ok) return invalid(parsed.error, parsed.fieldErrors);
+  const custom = await parseCustomForm(db, "program", formData, id);
+  if (!parsed.ok || !custom.ok) {
+    return invalid(parsed.ok ? FIX_FIELDS : parsed.error, { ...(parsed.ok ? {} : parsed.fieldErrors), ...(custom.ok ? {} : custom.fieldErrors) });
+  }
+  const withCustom = custom.values === null ? parsed.value : { ...parsed.value, custom: custom.values };
+  // geocodeOnSave passes every other field through, so the custom answers stay on the input.
   const old = id === null ? null : ((await getProgramForAdmin(db, id))?.program ?? null);
-  const { input, failed } = await geocodeOnSave(parsed.value, old);
+  const { input, failed } = await geocodeOnSave(withCustom, old);
   const saved = await saveProgram(db, id, input);
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();

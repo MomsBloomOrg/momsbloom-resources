@@ -3,6 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
+import type { CustomValues } from "@/custom-fields/types";
 import {
   FIX_FIELDS,
   GONE,
@@ -47,6 +48,8 @@ export interface ProgramFields {
   lastVerified: string | null;
   statusId: number;
   internalNotes: string | null;
+  /** Custom field answers (src/custom-fields/form.ts). Left out: the `custom` column does not change. */
+  custom?: CustomValues;
 }
 
 export type ProgramInput = ProgramFields & Record<ProgramListKey, number[]>;

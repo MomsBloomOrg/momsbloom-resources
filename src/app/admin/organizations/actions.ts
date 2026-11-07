@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
+import { parseCustomForm } from "@/custom-fields/form";
 import {
+  FIX_FIELDS,
   GONE,
   createOrganization,
   getOrganizationForAdmin,
@@ -45,11 +47,17 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
     return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
   }
 
+  // Both checks run, so one save shows every marked field.
   const parsed = parseOrganizationInput(Object.fromEntries(formData));
-  if (!parsed.ok) return invalid(parsed.error, parsed.fieldErrors);
+  const custom = await parseCustomForm(db, "organization", formData, id);
+  if (!parsed.ok || !custom.ok) {
+    return invalid(parsed.ok ? FIX_FIELDS : parsed.error, { ...(parsed.ok ? {} : parsed.fieldErrors), ...(custom.ok ? {} : custom.fieldErrors) });
+  }
+  const withCustom = custom.values === null ? parsed.value : { ...parsed.value, custom: custom.values };
 
+  // geocodeOnSave passes every other field through, so the custom answers stay on the input.
   const old = id === null ? null : ((await getOrganizationForAdmin(db, id))?.organization ?? null);
-  const { input, failed } = await geocodeOnSave(parsed.value, old);
+  const { input, failed } = await geocodeOnSave(withCustom, old);
 
   if (id === null) {
     const created = await createOrganization(db, input);

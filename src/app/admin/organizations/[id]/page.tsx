@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { getOrganizationForAdmin, listStatuses, parseId } from "@/admin/organizations";
+import { listActiveFields } from "@/custom-fields/form";
 import {
   Badge,
   Card,
@@ -18,6 +19,7 @@ import {
   stackTheadRowClass,
   thClass,
 } from "../../_components/ui";
+import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { OrganizationForm } from "../_components/organization-form";
 
 /** Block on the login check (cacheComponents): the page is never prerendered without it. */
@@ -34,7 +36,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
-  const [detail, statuses] = await Promise.all([getOrganizationForAdmin(db, id), listStatuses(db)]);
+  const [detail, statuses, customFields] = await Promise.all([getOrganizationForAdmin(db, id), listStatuses(db), listActiveFields(db, "organization")]);
   if (!detail) notFound();
   const { organization, programs } = detail;
 
@@ -50,7 +52,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
       />
       <div className="flex flex-col gap-6">
         <Card title="Organization">
-          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} hiddenProgramCount={programs.filter((p) => p.showOnSite).length} />
+          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} hiddenProgramCount={programs.filter((p) => p.showOnSite).length} customFields={customFields} />
         </Card>
 
         <Card
@@ -93,6 +95,8 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
             </table>
           )}
         </Card>
+
+        <CustomFieldsManager db={db} entity="organization" />
       </div>
     </>
   );
