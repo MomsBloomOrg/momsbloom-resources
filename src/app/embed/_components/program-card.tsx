@@ -21,6 +21,16 @@ export function insuranceText(plans: readonly string[], accepts: ProgramResult["
   return null;
 }
 
+/** The `tel:` link for a phone text. The extension ("x12", "ext. 12") is cut: a tel: link cannot dial it. */
+export function telHref(phone: string): string {
+  return `tel:${phone.split(/x|ext/i)[0].replace(/[^\d+]/g, "")}`;
+}
+
+/** The website, or null when it is not an http(s) URL (never put another scheme in an href). */
+export function webUrl(website: string | null): string | null {
+  return website && /^https?:\/\//i.test(website) ? website : null;
+}
+
 /** "123 Example Ave SE, Suite 200, Grand Rapids, MI 49508". */
 export function addressText(address: PostalAddress): string {
   return [address.street, address.suite, address.city].filter(Boolean).join(", ") + `, ${address.state} ${address.zip}`;
@@ -51,6 +61,7 @@ export function ProgramCard({
   ].filter((fact): fact is string => Boolean(fact));
   const [contact, ...otherContacts] = program.contacts;
   const { address } = program;
+  const website = webUrl(program.website);
 
   return (
     <article id={`program-${program.id}`} className="rounded-2xl border border-line bg-surface p-5">
@@ -80,17 +91,17 @@ export function ProgramCard({
             ? addressText(address)
             : (format ?? "Virtual and phone")}
         </p>
-        {(program.phone || program.website) && (
+        {(program.phone || website) && (
           <p className="flex flex-wrap items-center gap-x-4">
             {program.phone && (
-              <a href={`tel:${program.phone.replace(/[^\d+]/g, "")}`} className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6">
+              <a href={telHref(program.phone)} className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6">
                 <Phone aria-hidden="true" className="size-4" />
                 {program.phone}
               </a>
             )}
-            {program.website && (
+            {website && (
               <a
-                href={program.website}
+                href={website}
                 target="_blank"
                 rel="noopener"
                 className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6"

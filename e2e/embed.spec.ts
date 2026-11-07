@@ -49,7 +49,7 @@ test("detail-scrolls-host: opening a Program scrolls the host page to the top of
   await page.setViewportSize({ width: 1000, height: 500 });
   await page.goto(HOST);
   const frame = page.frameLocator(IFRAME);
-  const link = frame.getByRole("link", { name: /^View details for/ }).nth(6);
+  const link = frame.getByRole("link", { name: /^View details for/ }).last(); // the last card of the first page: far enough down to need a scroll
   await link.waitFor();
   await page.mouse.wheel(0, 1500);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);

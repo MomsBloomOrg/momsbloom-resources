@@ -35,7 +35,12 @@ export function ResizeReporter() {
     // Then ask the host to scroll (after the resize message, so the height is set first): to the top
     // on the detail page, or to the card that the URL hash names when you come back to the results.
     // Neither: send nothing, so the first load of the host page does not jump.
-    const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    // Only a card ("#program-…") counts: "#filters" must never scroll the host. A malformed hash means no target.
+    let target: HTMLElement | null = null;
+    try {
+      const hash = decodeURIComponent(location.hash.slice(1));
+      if (hash.startsWith("program-")) target = document.getElementById(hash);
+    } catch {}
     const top = root.hasAttribute("data-scroll-top") ? 0 : target ? Math.max(0, target.getBoundingClientRect().top - root.getBoundingClientRect().top) : null;
     if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
     return () => observer.disconnect();
