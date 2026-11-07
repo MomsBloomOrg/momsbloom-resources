@@ -2,6 +2,9 @@
 
 type Env = Record<string, string | undefined>;
 
+/** Auth.js session cookie names (the `__Secure-` form is used on HTTPS). */
+export const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
+
 /**
  * NFKC first, so a look-alike character (for example a fullwidth `＠`) becomes plain ASCII before
  * the lookup and the format check. Then trim and lowercase.

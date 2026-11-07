@@ -355,6 +355,8 @@ export const programAudiences = pgTable("program_audiences", {
 // ---------------------------------------------------------------------------------------------
 // Admin login (Auth.js). Written here, not pulled: the column names follow @auth/drizzle-adapter.
 // A Staff admin row is made at the first login of an address on ADMIN_EMAILS (src/auth/config.ts).
+// No accounts table: the email link is the only login (ADR 0003), and Auth.js's email flow never
+// reads or writes accounts.
 
 export const staffAdmins = pgTable("staff_admins", {
 	id: uuid().primaryKey().defaultRandom(),
@@ -365,22 +367,6 @@ export const staffAdmins = pgTable("staff_admins", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 }, (table) => [
 	check("staff_admins_email_lowercase", sql`${table.email} = lower(${table.email})`),
-]);
-
-export const authAccounts = pgTable("auth_accounts", {
-	userId: uuid("user_id").notNull().references(() => staffAdmins.id, { onDelete: "cascade" }),
-	type: text().notNull(),
-	provider: text().notNull(),
-	providerAccountId: text("provider_account_id").notNull(),
-	refresh_token: text("refresh_token"),
-	access_token: text("access_token"),
-	expires_at: integer("expires_at"),
-	token_type: text("token_type"),
-	scope: text(),
-	id_token: text("id_token"),
-	session_state: text("session_state"),
-}, (table) => [
-	primaryKey({ columns: [table.provider, table.providerAccountId] }),
 ]);
 
 export const authSessions = pgTable("auth_sessions", {

@@ -8,7 +8,7 @@ import { describeError, hitRateLimit, type RateLimitRule } from "@/rate-limit";
 /** Every request from one client (IP, or IPv6 /64), Staff admin or not. */
 export const MAGIC_LINK_IP_RULE: RateLimitRule = { bucket: "magic-link:ip", limit: 20, windowSeconds: 3600 };
 /** Requests for one Staff admin email. Other addresses get no email, so they are not counted. */
-export const MAGIC_LINK_EMAIL_RULE: RateLimitRule = { bucket: "magic-link:email", limit: 5, windowSeconds: 3600 };
+export const MAGIC_LINK_EMAIL_RULE: RateLimitRule = { bucket: "magic-link:email", limit: 10, windowSeconds: 3600 };
 
 export type MagicLinkLimit = "ip" | "email";
 

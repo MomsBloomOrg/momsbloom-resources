@@ -36,7 +36,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 |---|---|
 | pnpm is the package manager | [ADR 0001](adr/0001-pnpm-is-the-package-manager.md) |
 | Vercel deploys from GitHub (no GitHub Action deploy) | [ADR 0002](adr/0002-vercel-deploys-from-github.md) |
-| Admin login by email link (Resend) first; Microsoft 365 later | [ADR 0003](adr/0003-admin-login-by-email-link-first.md) |
+| Admin login by email link (Resend) only; Microsoft 365 SSO dropped | [ADR 0003](adr/0003-admin-login-by-email-link-first.md) |
 | Search filters a cached snapshot on the server | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
 | Shared links go through the host page URL (`mbr-` keys) | [ADR 0005](adr/0005-shared-links-through-the-host-page-url.md) |
 | Analytics events go through the host page's `gtag()` | [ADR 0006](adr/0006-analytics-events-through-the-host-page.md) |

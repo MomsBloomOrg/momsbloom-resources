@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { getCurrentStaffAdmin } from "@/auth/dal";
+import { SESSION_COOKIES } from "@/auth/rules";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -27,8 +31,12 @@ async function LinkError({ searchParams }: { searchParams: PageProps<"/login">["
   );
 }
 
-/** The Staff admin login page (ADR 0003). There are no passwords. */
-export default function LoginPage({ searchParams }: PageProps<"/login">) {
+/** The Staff admin login page (ADR 0003). There are no passwords. A logged-in Staff admin goes to /admin. */
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  // The session read needs the database; skip it when there is no session cookie at all.
+  const jar = await cookies();
+  if (SESSION_COOKIES.some((name) => jar.has(name)) && (await getCurrentStaffAdmin())) redirect("/admin");
+
   return (
     <main className="w-full flex-1 bg-background">
       <div className="mx-auto max-w-[480px] px-6 py-12 sm:py-16">

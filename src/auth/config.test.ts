@@ -124,13 +124,59 @@ describe("Auth.js wiring", () => {
     expect(await count(staffAdmins)).toBe(0);
   });
 
-  it("an address removed from ADMIN_EMAILS loses its session in the DAL check", async () => {
+  it("an address removed from ADMIN_EMAILS fails the DAL check and loses its sessions", async () => {
     await requestLink(STAFF);
-    await handle(new Request(sent[0].url));
+    const login = await handle(new Request(sent[0].url));
     const [admin] = await db.select().from(staffAdmins);
     expect(await findStaffAdmin(db, admin.id, ENV)).toEqual({ id: admin.id, email: STAFF });
+    expect(await count(authSessions)).toBe(1);
+
     expect(await findStaffAdmin(db, admin.id, { ADMIN_EMAILS: "second@example.org" })).toBeNull();
-    expect(await findStaffAdmin(db, admin.id, {})).toBeNull();
+    expect(await count(authSessions)).toBe(0);
+    // Back on the list: the old session does not come back.
+    expect(await findStaffAdmin(db, admin.id, ENV)).not.toBeNull();
+    const cookie = login.headers.getSetCookie().find((c) => c.startsWith("authjs.session-token="))!.split(";")[0];
+    const session = await handle(new Request(`${ORIGIN}/api/auth/session`, { headers: { cookie } }));
+    expect(await session.json()).toBeNull();
+  });
+
+  it("sessions last 7 days", async () => {
+    await requestLink(STAFF);
+    await handle(new Request(sent[0].url));
+    const [row] = await db.select().from(authSessions);
+    const days = (row.expires.getTime() - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(6.99);
+    expect(days).toBeLessThanOrEqual(7);
+  });
+
+  it("the email goes through `defer`, and a failed send logs no address and does not change the answer", async () => {
+    const deferred: (() => Promise<void>)[] = [];
+    const failing: Mailer = { transport: "console", sendMagicLink: vi.fn().mockRejectedValue(new Error(`bad ${STAFF}`)) };
+    const config = buildAuthConfig({ db, mailer: failing, getClientIp: async () => null, env: ENV, defer: (t) => void deferred.push(t) });
+    const run = (request: Request) =>
+      Auth(request, { ...config, secret: "test-secret-for-auth-wiring-tests", trustHost: true, basePath: "/api/auth" });
+
+    const csrfRes = await run(new Request(`${ORIGIN}/api/auth/csrf`));
+    const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
+    const cookie = csrfRes.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
+    const post = (email: string) =>
+      run(
+        new Request(`${ORIGIN}/api/auth/signin/resend`, {
+          method: "POST",
+          headers: { "content-type": "application/x-www-form-urlencoded", cookie },
+          body: new URLSearchParams({ email, csrfToken, callbackUrl: `${ORIGIN}/admin` }),
+        }),
+      );
+    const staff = await post(STAFF);
+    const stranger = await post("stranger@example.org");
+    expect(staff.headers.get("location")).toBe(stranger.headers.get("location"));
+    expect(failing.sendMagicLink).not.toHaveBeenCalled();
+    expect(deferred).toHaveLength(1);
+
+    lines.length = 0;
+    await deferred[0]();
+    expect(failing.sendMagicLink).toHaveBeenCalledOnce();
+    expect(lines).toEqual(["[auth] Login link email failed: Error"]);
   });
 
   it("an invalid email gets one warn line, no query, and no email", async () => {
@@ -162,28 +208,30 @@ describe("Auth.js wiring", () => {
     });
     afterEach(() => vi.useRealTimers());
 
-    it("the 6th request for one address in an hour gets the same answer, no email, and no token", async () => {
+    it("the 11th request for one address in an hour gets the same answer, no email, and no token", async () => {
       const first = await requestLink(STAFF);
-      for (let i = 0; i < 4; i++) await requestLink(STAFF);
-      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(5);
+      for (let i = 0; i < 9; i++) await requestLink(STAFF);
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
       lines.length = 0;
 
       const limited = await requestLink("STAFF@example.org");
-      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(5);
-      expect(await count(authVerificationTokens)).toBe(5);
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
+      expect(await count(authVerificationTokens)).toBe(10);
       expect(limited.status).toBe(first.status);
       expect(limited.headers.get("location")).toBe(first.headers.get("location"));
       expect(lines).toEqual(["[auth] Magic link not sent: rate limit (email)."]);
     });
 
     it("the 21st request from one IP is refused; another IP still works", async () => {
-      for (let i = 0; i < 4; i++) await requestLink(STAFF, { ip: IP });
-      for (let i = 0; i < 16; i++) await requestLink("second@example.org", { ip: IP });
-      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(9); // 4 + 5: the email limit stops second@ first
-      await requestLink(STAFF, { ip: IP });
-      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(9);
-      await requestLink(STAFF, { ip: "198.51.100.2" });
-      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
+      // 11 for staff@ (the 11th hits its email limit) + 9 for second@ = 20 IP hits.
+      for (let i = 0; i < 11; i++) await requestLink(STAFF, { ip: IP });
+      for (let i = 0; i < 9; i++) await requestLink("second@example.org", { ip: IP });
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(19);
+      await requestLink("second@example.org", { ip: IP });
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(19);
+      expect(lines.at(-1)).toBe("[auth] Magic link not sent: rate limit (ip).");
+      await requestLink("second@example.org", { ip: "198.51.100.2" });
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(20);
     });
 
     it("a link click is not counted", async () => {

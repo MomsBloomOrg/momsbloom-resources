@@ -8,10 +8,11 @@ import type { AuthConfig } from "@auth/core";
 import { AuthError } from "@auth/core/errors";
 import { eq } from "drizzle-orm";
 import Resend from "@auth/core/providers/resend";
-import { authAccounts, authSessions, authVerificationTokens, staffAdmins } from "@/db/schema";
+import { authSessions, authVerificationTokens, staffAdmins } from "@/db/schema";
 import type { Db } from "@/db/types";
 import { authErrorLog } from "./error-log";
 import type { Mailer } from "./mailer";
+import { describeError } from "@/rate-limit";
 import { magicLinkLimiter } from "./magic-link-limits";
 import { isStaffEmail, isValidEmail, normalizeEmail } from "./rules";
 
@@ -44,11 +45,20 @@ export interface AuthDeps {
   getClientIp: () => Promise<string | null>;
   /** Where `ADMIN_EMAILS` is read. Read on each check, so a removed address is refused at once. */
   env?: Record<string, string | undefined>;
+  /**
+   * Runs the email send after the response (`after` from next/server in the app), so a staff
+   * request and a stranger's request take the same time. The default awaits it (tests).
+   */
+  defer?: (task: () => Promise<void>) => void | Promise<void>;
 }
+
+/** Database sessions last 7 days. */
+export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 /**
  * The Staff admin for a session's user id, or null when the row is gone or its address is no longer
- * on `ADMIN_EMAILS`. The DAL calls it on every request.
+ * on `ADMIN_EMAILS`. The DAL calls it on every request. A removed address also loses all its
+ * sessions, so adding it back later does not bring an old session back.
  */
 export async function findStaffAdmin(
   db: Db,
@@ -59,22 +69,33 @@ export async function findStaffAdmin(
     .select({ id: staffAdmins.id, email: staffAdmins.email })
     .from(staffAdmins)
     .where(eq(staffAdmins.id, id));
-  return row && isStaffEmail(row.email, env) ? row : null;
+  if (!row) return null;
+  if (isStaffEmail(row.email, env)) return row;
+  await db.delete(authSessions).where(eq(authSessions.userId, row.id));
+  return null;
 }
 
-export function buildAuthConfig({ db, mailer, getClientIp, env = process.env }: AuthDeps): AuthConfig {
+export function buildAuthConfig({
+  db,
+  mailer,
+  getClientIp,
+  env = process.env,
+  defer = (task) => task(),
+}: AuthDeps): AuthConfig {
   // `createUser` stays on: the first login of an allowed address makes its `staff_admins` row. The
-  // `signIn` callback has already refused every other address.
+  // `signIn` callback has already refused every other address. No accounts table: the email flow
+  // never reads or writes accounts (ADR 0003: the email link is the only login).
+  // The adapter's type marks `accountsTable` as required, but at runtime it falls back to its own
+  // table object (`@auth/drizzle-adapter/lib/pg.js` `defineTables`), which nothing here queries.
   const adapter = DrizzleAdapter(db, {
     usersTable: staffAdmins,
-    accountsTable: authAccounts,
     sessionsTable: authSessions,
     verificationTokensTable: authVerificationTokens,
-  });
+  } as unknown as Parameters<typeof DrizzleAdapter<Db>>[1]);
 
   return {
     adapter,
-    session: { strategy: "database" },
+    session: { strategy: "database", maxAge: SESSION_MAX_AGE_SECONDS },
     logger: {
       // A refused email and a used or expired link are normal events, not errors: one line, no stack.
       error(error) {
@@ -106,10 +127,18 @@ export function buildAuthConfig({ db, mailer, getClientIp, env = process.env }: 
           if (!isStaffEmail(identifier, env)) {
             throw new Error("Refused to send a Login link to an address not on ADMIN_EMAILS.");
           }
-          await mailer.sendMagicLink({ to: identifier, url, loginUrl: new URL(LOGIN_PATH, url).toString() });
+          const loginUrl = new URL(LOGIN_PATH, url).toString();
+          // The token insert before this call is awaited; the send is not, so the answer is the same
+          // for everyone. A failed send logs only the error name and code (no address, no link).
+          await defer(async () => {
+            try {
+              await mailer.sendMagicLink({ to: identifier, url, loginUrl });
+            } catch (error) {
+              console.error(`[auth] Login link email failed: ${describeError(error)}`);
+            }
+          });
         },
       }),
-      // Microsoft 365 comes later (ADR 0003): `MicrosoftEntraID` from `@auth/core/providers/microsoft-entra-id`, env AUTH_MICROSOFT_ENTRA_ID_ID / _SECRET / _ISSUER, matched by verified email.
     ],
     callbacks: {
       /**

@@ -6,6 +6,7 @@
  */
 import NextAuth from "next-auth";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { getDb } from "@/db";
 import { clientIp } from "@/rate-limit";
 import { buildAuthConfig } from "./config";
@@ -20,5 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth((req) =>
     // The route handler gives `req`. A server action's `signIn()` (the login form) gives none, but it
     // runs in the browser's request, so `headers()` has the same headers. Read only at a link request.
     getClientIp: async () => clientIp(req ? req.headers : await headers()),
+    // The Login link email goes out after the response (same timing for staff and strangers).
+    defer: after,
   }),
 );

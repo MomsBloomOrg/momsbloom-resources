@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
-/** Auth.js session cookie names (the `__Secure-` form is used on HTTPS). */
-const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
+import { SESSION_COOKIES } from "@/auth/rules";
 
 /**
  * Optimistic check only: no session cookie means no login, so send the person to /login at once.
@@ -13,4 +11,5 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/admin", "/admin/:path*"] };
+// `:path*` is zero or more segments, so this also matches `/admin` (e2e/admin-login.spec.ts checks it).
+export const config = { matcher: ["/admin/:path*"] };

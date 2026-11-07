@@ -10,8 +10,9 @@ export type LoginState =
   | { result: "error"; message: string };
 
 /**
- * Asks Auth.js for a Login link. An address not on the staff list gets the same answer as a sent
- * link, so the page does not show who is a Staff admin.
+ * Asks Auth.js for a Login link. Every valid address gets the same answer, also when Auth.js fails
+ * (for example the database is down), so the page never shows who is a Staff admin. The email
+ * itself goes out after the response (src/auth/index.ts).
  */
 export async function requestMagicLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = normalizeEmail(String(formData.get("email") ?? ""));
@@ -21,10 +22,7 @@ export async function requestMagicLink(_prev: LoginState, formData: FormData): P
     await signIn("resend", { email, redirect: false, redirectTo: "/admin" });
   } catch (error) {
     if (!(error instanceof AuthError)) throw error;
-    if (error.type !== "AccessDenied") {
-      console.error("[auth] Login link failed:", error.type);
-      return { result: "error", message: "We could not send the link. Try again later." };
-    }
+    if (error.type !== "AccessDenied") console.error("[auth] Login link request failed:", error.type);
   }
   return { result: "sent", email };
 }
