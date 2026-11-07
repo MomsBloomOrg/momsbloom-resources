@@ -131,7 +131,6 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
-            {params.unavailable && <p role="status">That resource isn&apos;t available anymore.</p>}
             <ResultLine results={results} />
             {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
             <a

@@ -168,7 +168,7 @@ and the style of the existing screens.
 | Program with no address | No distance and no pin. The card shows its format (Virtual, Phone) instead of an address. |
 | Organization with one Program | The detail view hides "More from ...". |
 | Website is not a real URL | Hide the Website link. Some rows hold a page title instead of a URL. |
-| Unknown or Inactive Program link | Show the results with a small note: "That resource isn't available anymore." |
+| Unknown or Inactive Program link | Show a small note, "That resource isn't available anymore.", and a "Back to results" link. |
 | Status Needs review | Show it normally. Nothing changes for families. |
 
 ## Accessibility (WCAG 2.1 AA)
