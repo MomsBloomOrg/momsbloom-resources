@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
-import { parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
+import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
@@ -238,7 +238,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
       {program.lastVerified && (
         <p className="mt-4 text-sm text-muted">Last verified {verified.format(new Date(program.lastVerified))}</p>
       )}
-      <ResizeReporter />
+      <ResizeReporter share={shareSearch(query)} program={program.id} />
     </main>
   );
 }

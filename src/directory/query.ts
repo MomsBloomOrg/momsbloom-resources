@@ -144,6 +144,11 @@ export function serializeDirectoryQuery(query: DirectoryQuery): string {
   return params.toString();
 }
 
+/** The query for the host page URL (ADR 0005): no `zip`, `near`, or `r` (analytics sees that URL; `r` means nothing without them) and no `n` ("Show more" pages). */
+export function shareSearch(query: DirectoryQuery): string {
+  return serializeDirectoryQuery({ ...query, zip: null, near: null, radius: null, pages: 1 });
+}
+
 /** True when any filter checkbox or the Organization filter is active (the chips row shows). */
 export function hasActiveFilters(query: DirectoryQuery): boolean {
   return query.org !== null || FACET_KEYS.some((facet) => query.filters[facet].length > 0);

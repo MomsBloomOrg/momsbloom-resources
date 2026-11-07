@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { FileText, SlidersHorizontal } from "lucide-react";
-import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
+import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
@@ -200,7 +200,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
           </div>
         </div>
       </DirectoryLive>
-      <ResizeReporter />
+      <ResizeReporter share={shareSearch(query)} />
     </main>
   );
 }
