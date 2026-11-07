@@ -103,7 +103,7 @@ The tables are defined in `src/db/schema.ts`. After you change that file, run `p
 | `AUTH_URL` | Local and Playwright only (`http://localhost:3000`). Do not set it on Vercel: there Auth.js uses the request host, so each Preview sends links to itself. |
 | `RESEND_API_KEY` | Resend key. Empty: the Login link prints in the `pnpm dev` log (refused on Vercel). |
 | `EMAIL_FROM` | The From address. Default `"MomsBloom Resources" <no-reply@momsbloom.org>`. |
-| `ADMIN_EMAILS` | The Staff admin allow-list, separated by commas. Remove an address to lock that person out on their next request (their sessions are deleted). On Vercel, a change takes effect only after a redeploy. Never commit real addresses. |
+| `ADMIN_EMAILS` | The Owners, separated by commas: Staff admins who can always log in and cannot be removed in the Admin. Other Staff admins are added on the Admin's Staff admins page. Remove an address here to lock that Owner out on their next request (their sessions are deleted). On Vercel, a change takes effect only after a redeploy. Never commit real addresses. |
 
 Production and Preview on Vercel need `AUTH_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, and `ADMIN_EMAILS`.
 

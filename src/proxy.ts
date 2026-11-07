@@ -3,7 +3,7 @@ import { SESSION_COOKIES } from "@/auth/rules";
 
 /**
  * Optimistic check only: no session cookie means no login, so send the person to /login at once.
- * The real check (session row, ADMIN_EMAILS) is in src/auth/dal.ts, on each page and action.
+ * The real check (session row, allow-list) is in src/auth/dal.ts, on each page and action.
  */
 export function proxy(request: NextRequest) {
   const hasSession = SESSION_COOKIES.some((name) => request.cookies.has(name));

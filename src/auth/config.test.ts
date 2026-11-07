@@ -9,6 +9,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { authSessions, authVerificationTokens, rateLimits, staffAdmins } from "@/db/schema";
 import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
+import { addStaffAdmin, removeStaffAdmin } from "@/admin/staff-admins";
 import { clientIp } from "@/rate-limit";
 import { buildAuthConfig, findStaffAdmin } from "./config";
 import type { Mailer, MagicLinkMessage } from "./mailer";
@@ -16,6 +17,7 @@ import type { Mailer, MagicLinkMessage } from "./mailer";
 const ORIGIN = "http://localhost:3000";
 const STAFF = "staff@example.org";
 const ENV = { ADMIN_EMAILS: `${STAFF}, second@example.org` };
+const ADDED = "added@example.org";
 
 describe("Auth.js wiring", () => {
   let db: Db;
@@ -40,8 +42,8 @@ describe("Auth.js wiring", () => {
   }
 
   /** Posts the email form to the Auth.js route with a CSRF token, as `/api/auth/signin/resend` receives it. */
-  async function requestLink(email: string, { ip, database = db }: { ip?: string; database?: Db } = {}) {
-    const res = await handle(new Request(`${ORIGIN}/api/auth/csrf`), { database });
+  async function requestLink(email: string, { ip, database = db, env = ENV }: { ip?: string; database?: Db; env?: typeof ENV } = {}) {
+    const res = await handle(new Request(`${ORIGIN}/api/auth/csrf`), { database, env });
     const { csrfToken } = (await res.json()) as { csrfToken: string };
     const cookie = res.headers
       .getSetCookie()
@@ -55,7 +57,7 @@ describe("Auth.js wiring", () => {
         headers,
         body: new URLSearchParams({ email, csrfToken, callbackUrl: `${ORIGIN}/admin` }),
       }),
-      { database },
+      { database, env },
     );
   }
 
@@ -140,6 +142,65 @@ describe("Auth.js wiring", () => {
     expect(await session.json()).toBeNull();
   });
 
+  it("a first-login Owner row whose address left ADMIN_EMAILS (added_at null) gets no new link", async () => {
+    await requestLink("second@example.org");
+    await handle(new Request(sent[0].url));
+    const [row] = await db.select().from(staffAdmins);
+    expect(row.addedAt).toBeNull();
+
+    await requestLink("second@example.org", { env: { ADMIN_EMAILS: STAFF } });
+    expect(sent).toHaveLength(1);
+    expect(await count(authVerificationTokens)).toBe(0);
+    expect(await findStaffAdmin(db, row.id, { ADMIN_EMAILS: STAFF })).toBeNull();
+    expect(await count(authSessions)).toBe(0);
+  });
+
+  describe("an added Staff admin", () => {
+    beforeEach(async () => {
+      expect(await addStaffAdmin(db, ADDED, ENV)).toMatchObject({ ok: true });
+    });
+
+    it("gets one token and one email", async () => {
+      const res = await requestLink("Added@Example.org");
+      expect(res.status).toBe(302);
+      expect(await count(authVerificationTokens)).toBe(1);
+      expect(sent.map((m) => m.to)).toEqual([ADDED]);
+    });
+
+    it("logs in with the link and keeps the same row", async () => {
+      const [before] = await db.select().from(staffAdmins);
+      await requestLink(ADDED);
+      const res = await handle(new Request(sent[0].url));
+      expect(res.headers.get("location")).toBe(`${ORIGIN}/admin`);
+      const rows = await db.select().from(staffAdmins);
+      expect(rows.map((r) => r.id)).toEqual([before.id]);
+      expect(rows[0].emailVerified).toBeInstanceOf(Date);
+      expect(await findStaffAdmin(db, before.id, ENV)).toEqual({ id: before.id, email: ADDED });
+    });
+
+    it("once removed, fails the DAL check, has no sessions, and an open Login link is refused", async () => {
+      await requestLink(ADDED);
+      const login = await handle(new Request(sent[0].url));
+      const [added] = await db.select().from(staffAdmins);
+      await requestLink(ADDED); // an open link that is not used yet
+      expect(await count(authSessions)).toBe(1);
+
+      await requestLink(STAFF);
+      await handle(new Request(sent[2].url));
+      const owner = (await db.select().from(staffAdmins).where(eq(staffAdmins.email, STAFF)))[0];
+      expect(await removeStaffAdmin(db, owner.id, added.id, ENV)).toMatchObject({ ok: true });
+
+      expect(await findStaffAdmin(db, added.id, ENV)).toBeNull();
+      expect(await db.select().from(authSessions).where(eq(authSessions.userId, added.id))).toEqual([]);
+      const cookie = login.headers.getSetCookie().find((c) => c.startsWith("authjs.session-token="))!.split(";")[0];
+      const session = await handle(new Request(`${ORIGIN}/api/auth/session`, { headers: { cookie } }));
+      expect(await session.json()).toBeNull();
+      const late = await handle(new Request(sent[1].url));
+      expect(late.headers.get("location")).toContain("error=");
+      expect(await db.select().from(staffAdmins).where(eq(staffAdmins.email, ADDED))).toEqual([]);
+    });
+  });
+
   it("sessions last 7 days", async () => {
     await requestLink(STAFF);
     await handle(new Request(sent[0].url));
@@ -220,6 +281,15 @@ describe("Auth.js wiring", () => {
       expect(limited.status).toBe(first.status);
       expect(limited.headers.get("location")).toBe(first.headers.get("location"));
       expect(lines).toEqual(["[auth] Magic link not sent: rate limit (email)."]);
+    });
+
+    it("an added Staff admin has the same limit: the 11th request gets no email and no token", async () => {
+      await addStaffAdmin(db, ADDED, ENV);
+      for (let i = 0; i < 10; i++) await requestLink(ADDED);
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
+      await requestLink(ADDED);
+      expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
+      expect(await count(authVerificationTokens)).toBe(10);
     });
 
     it("the 21st request from one IP is refused; another IP still works", async () => {

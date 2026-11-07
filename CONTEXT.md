@@ -30,9 +30,10 @@ to translate, and bugs from "I thought you meant..." go away.
 | **Distance** | Straight-line miles from the family's ZIP code (or location) to the Program. Programs that are virtual only, or have no coordinates, have no Distance and are never hidden by the distance filter. |
 | **Directory** | The public part of the app: search, filters, results, and the Program detail page. |
 | **Program detail** | The page for one Program. Shows the Organization ("Part of ..."), the actions (Call, Directions, Website), Contacts, insurance and cost, languages, and the Organization's other Programs. |
-| **Staff admin** | One of the three MomsBloom staff members who can log in and change the data. All three have the same rights. Families never log in. |
+| **Staff admin** | A MomsBloom staff member who can log in and change the data: an Owner, or a person that a Staff admin added in the Admin (Staff admins page). All have the same rights. Families never log in. |
+| **Owner** | A Staff admin whose address is in the `ADMIN_EMAILS` setting. Only the developer changes this list. An Owner can always log in and cannot be removed in the Admin. |
 | **Admin** | The part of the app where Staff admins work. Not visible to families, and no website may show it in an iframe. |
-| **Login link** | The email that a Staff admin gets to log in. Only addresses on the allow-list can get one. See [ADR 0003](docs/adr/0003-admin-login-by-email-link-first.md). |
+| **Login link** | The email that a Staff admin gets to log in. Only Owners and the Staff admins added in the Admin can get one. See [ADR 0003](docs/adr/0003-admin-login-by-email-link-first.md). |
 | **Embed** | The Directory as shown inside the momsbloom.org/resources page: an iframe that `public/embed.js` adds. The Embed never shows the MomsBloom site header, because Squarespace shows it. |
 | **Host page** | The Squarespace page that holds the Embed (momsbloom.org/resources). |
 | **Seed import** | The one-time load of the MomsBloom spreadsheet into the database. After it, the database is the source of truth and Staff admins edit in the Admin. See [docs/specs/data-import.md](docs/specs/data-import.md). |

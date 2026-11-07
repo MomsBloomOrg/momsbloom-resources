@@ -1,7 +1,7 @@
 /** Admin login without a database: the proxy redirect, the login page, and its frame headers. */
 import { expect, test } from "@playwright/test";
 
-for (const path of ["/admin", "/admin/settings"]) {
+for (const path of ["/admin", "/admin/settings", "/admin/staff-admins"]) {
   test(`${path} without a session cookie redirects to /login`, async ({ request }) => {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status()).toBe(307);

@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/admin", label: "Organizations", match: ["/admin", "/admin/organizations", "/admin/programs"] },
   { href: "/admin/documents", label: "Documents", match: ["/admin/documents"] },
   { href: "/admin/settings", label: "Settings", match: ["/admin/settings"] },
+  { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"] },
 ];
 
 /**

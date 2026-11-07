@@ -20,7 +20,10 @@ to-do list. Until a design exists:
 
 ## Who and how they log in
 
-- Three Staff admins, all with the same rights. There are no roles.
+- Staff admins all have the same rights. There are no roles. The **Owners** are the addresses in
+  `ADMIN_EMAILS`. Any Staff admin can add another Staff admin on `/admin/staff-admins` (no email
+  is sent; the person logs in at `/login`), and remove an added one. Nobody can remove an Owner or
+  themselves. A removed Staff admin is logged out at their next request.
 - They log in with a **Login link** sent by email through Resend ([ADR 0003](../adr/0003-admin-login-by-email-link-first.md)).
   Only email addresses on the allow-list can get a link. A person not on the list sees the same
   "Check your email" message, so the page never tells a stranger which addresses are allowed.
@@ -42,8 +45,9 @@ to-do list. Until a design exists:
 | `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
 | `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
 | `/admin/settings` | Filter options: one card for each Facet (see "Facet values" below). |
+| `/admin/staff-admins` | **Staff admins**: the Owners and the added Staff admins, an add form, and Remove (with a confirm step) for an added Staff admin that is not you. |
 
-The nav is **Organizations, Documents, Settings**. IDs in the Admin are database integers (`12`), as in
+The nav is **Organizations, Documents, Settings, Staff admins**. IDs in the Admin are database integers (`12`), as in
 [CONTEXT.md](../../CONTEXT.md).
 
 ### Program form
@@ -133,6 +137,9 @@ Who it serves, Cost, and Service format.
 
 - [ ] An address on the allow-list gets a Login link and can log in. Any other address sees the
       same message and gets no email.
+- [ ] An address added on the Staff admins page can log in. A removed one is logged out at the next
+      request, and its open Login link no longer works.
+- [ ] An Owner has no Remove button, and you cannot remove yourself.
 - [ ] Opening any `/admin` page, or sending any save request, without a login is refused.
 - [ ] A staff member can add an Organization, add a Program to it, and see the Program in the
       Directory on the next page load.
