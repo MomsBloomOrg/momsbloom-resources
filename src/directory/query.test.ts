@@ -39,6 +39,8 @@ describe("parseDirectoryQuery", () => {
     );
     expect(query).toMatchObject({ zip: null, radius: null, sort: null, pages: 1, org: null, near: null });
     expect(query.filters.category).toEqual(["yoga"]);
+    expect(parseDirectoryQuery(new URLSearchParams("org=a%26b")).org).toBeNull();
+    expect(parseDirectoryQuery(new URLSearchParams(`org=${"1".repeat(21)}`)).org).toBeNull();
   });
 
   it("rounds a location to 2 decimals, so the URL never holds an exact address", () => {
