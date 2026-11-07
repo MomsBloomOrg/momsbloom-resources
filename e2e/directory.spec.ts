@@ -230,10 +230,22 @@ test.describe("sort-dropdown", () => {
     await expect(sort(page).locator("option:checked")).toHaveText("Nearest");
     await sort(page).selectOption({ label: "A to Z" });
     await expect(page).toHaveURL(/sort=az/);
+    await expect(sort(page)).toHaveValue("az");
     const names = await programCards(page).getByRole("heading").allTextContents();
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     await sort(page).selectOption({ label: "Nearest" });
     await expect(page).not.toHaveURL(/sort=/);
+    await expect(sort(page)).toHaveValue("");
+  });
+
+  test("sort-select-follows-url: the select keeps the choice after a chip click (the live layer replaces history, so there is no Back step)", async ({ page }) => {
+    await page.goto("/embed?q=yoga&zip=49508&lang=spanish");
+    await sort(page).selectOption({ label: "A to Z" });
+    await expect(page).toHaveURL(/sort=az/);
+    await expect(sort(page)).toHaveValue("az");
+    await page.getByRole("link", { name: /Clear all/ }).first().click();
+    await expect(page).not.toHaveURL(/lang=/);
+    await expect(sort(page)).toHaveValue("az");
   });
 
   test("sort-no-location-options: no Nearest without a location", async ({ page }) => {

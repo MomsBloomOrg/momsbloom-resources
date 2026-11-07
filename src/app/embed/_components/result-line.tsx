@@ -42,6 +42,8 @@ export function ResultToolbar({ results, children }: { results: DirectoryResults
       <label className="flex min-w-0 items-center gap-1 text-sm max-md:flex-1">
         <span className="text-muted max-md:sr-only">Sort:</span>
         <select
+          // Keyed: a new sort remounts it, so the browser never keeps a stale choice after Back or a chip click.
+          key={results.sort}
           name="sort"
           form={DIRECTORY_FORM_ID}
           defaultValue={valueOf(results.sort)}

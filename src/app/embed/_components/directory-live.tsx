@@ -29,9 +29,6 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
   // After a link click (a chip, Clear all) or Back, the server sends new `defaultChecked` values, but
   // the browser keeps what the family last clicked. Copy the server's values into the inputs.
   useEffect(() => {
-    rootRef.current?.querySelectorAll<HTMLSelectElement>("select").forEach((select) => {
-      select.value = Array.from(select.options).find((option) => option.defaultSelected)?.value ?? "";
-    });
     rootRef.current?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
       if (input.type === "checkbox" || input.type === "radio") input.checked = input.defaultChecked;
       // A half-typed ZIP is not in the URL; keep it so the family can finish typing.
