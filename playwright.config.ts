@@ -19,7 +19,8 @@ export default defineConfig({
       timeout: 300_000,
       reuseExistingServer: false,
       // Let the fake host page frame /embed (production allows only momsbloom.org and Squarespace).
-      env: { EMBED_EXTRA_FRAME_ANCESTORS: HOST },
+      // DIRECTORY_TEST_ERRORS lets /embed?fail=1 show the error screen.
+      env: { EMBED_EXTRA_FRAME_ANCESTORS: HOST, DIRECTORY_TEST_ERRORS: "1" },
     },
     {
       command: `node e2e/host-server.mjs ${HOST_PORT} ${APP}`,

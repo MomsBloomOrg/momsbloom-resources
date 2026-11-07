@@ -3,6 +3,7 @@ import {
   clearFilters,
   EMPTY_QUERY,
   hasActiveFilters,
+  isBadZip,
   parseDirectoryQuery,
   removeFilter,
   serializeDirectoryQuery,
@@ -73,5 +74,14 @@ describe("chips and checkboxes", () => {
     expect(hasActiveFilters(query)).toBe(true);
     expect(hasActiveFilters(cleared)).toBe(false);
     expect(cleared).toMatchObject({ q: "yoga", zip: "49508", pages: 1 });
+  });
+});
+
+describe("isBadZip", () => {
+  it("is false for empty, blank, and 5 digits (trimmed)", () => {
+    for (const zip of ["", "  ", "49301", " 49301 "]) expect(isBadZip(zip)).toBe(false);
+  });
+  it("is true for anything else", () => {
+    for (const zip of ["495", "493011", "4930a", "49 301"]) expect(isBadZip(zip)).toBe(true);
   });
 });

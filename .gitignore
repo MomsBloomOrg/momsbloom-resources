@@ -46,3 +46,6 @@ tmp/
 # Resource data exports (contain internal notes and contact emails; this repo is public)
 *.xlsx
 *.csv
+
+# Next creates this on dev/typegen
+AGENTS.md

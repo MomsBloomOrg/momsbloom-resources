@@ -12,7 +12,7 @@ import { facetValues, TEST_SNAPSHOT } from "./test-fixtures";
 import type { DirectoryProgram, DirectorySnapshot, PostalAddress } from "./types";
 
 /** True while the data is made up. The page shows a "Sample data" note. */
-export const IS_SAMPLE_DATA = true;
+export { IS_SAMPLE_DATA } from "./sample-flag";
 
 const address = (street: string, zip: string, suite: string | null = null): PostalAddress => ({
   street,

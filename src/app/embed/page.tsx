@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { SlidersHorizontal } from "lucide-react";
-import { clearFilters, hasActiveFilters, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
+import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
-import { getDirectorySnapshot, IS_SAMPLE_DATA } from "@/directory/snapshot";
+import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { ActiveChips } from "./_components/active-chips";
+import { DirectoryHeader } from "./_components/directory-header";
 import { DirectoryLive } from "./_components/directory-live";
 import { DocumentCard } from "./_components/document-card";
 import { activeFilterCount, FilterColumn } from "./_components/filter-column";
@@ -32,8 +33,11 @@ export const metadata: Metadata = {
  * The element with id EMBED_ROOT_ID is the one that ResizeReporter measures. Keep all content inside it.
  */
 export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
+  const params = await searchParams;
+  // Test-only switch for the error screen (e2e). Vercel never sets the env var.
+  if (process.env.DIRECTORY_TEST_ERRORS === "1" && params.fail === "1") throw new Error("Test error");
   const snapshot = getDirectorySnapshot();
-  const results = searchDirectory(snapshot, parseDirectoryQuery(await searchParams));
+  const results = searchDirectory(snapshot, parseDirectoryQuery(params));
   const { query } = results;
 
   const labels = new Map(snapshot.facets.flatMap((facet) => facet.values.map((value) => [value.key, value.label])));
@@ -41,6 +45,13 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   const search = serializeDirectoryQuery(query);
   const clearAllHref = hasActiveFilters(query) ? `?${serializeDirectoryQuery(clearFilters(query))}` : null;
   const organizationName = snapshot.programs.find((program) => program.organization.id === query.org)?.organization.name ?? null;
+  const widenHref =
+    results.origin && typeof results.radius === "number" && results.radius < 25
+      ? `?${serializeDirectoryQuery({ ...query, radius: 25, pages: 1 })}`
+      : null;
+  // parseDirectoryQuery drops a ZIP that is not 5 digits; show the ZIP message for it (DirectoryLive sends it only on an explicit search).
+  const rawZip = typeof params.zip === "string" ? params.zip : "";
+  const zipInvalid = isBadZip(rawZip);
   const filterCount = activeFilterCount(query);
 
   const cards = (list: ProgramResult[]) => (
@@ -61,23 +72,11 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
 
   return (
     <main id={EMBED_ROOT_ID} className="mx-auto w-full max-w-6xl px-4 py-8">
-      <header className="text-center">
-        <p className="text-sm font-bold uppercase tracking-wide text-muted">Located in Kent County</p>
-        <h1 className="mt-1 text-3xl font-extrabold md:text-4xl">Postpartum Resources</h1>
-        <p className="mx-auto mt-3 max-w-xl text-muted">
-          Search local help for pregnancy and the first year after birth. Filter by what&apos;s near you, what your
-          insurance covers, and the support type you need.
-        </p>
-        {IS_SAMPLE_DATA && (
-          <p className="mx-auto mt-3 w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-bold">
-            Sample data: these programs are made up while the directory is being built.
-          </p>
-        )}
-      </header>
+      <DirectoryHeader />
 
       <DirectoryLive>
         <div className="mt-6">
-          <SearchBar query={query} zipNotFound={results.zipNotFound} />
+          <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
         <div className="mt-8 grid gap-6 md:grid-cols-[17rem_1fr]">
           <div className="order-last md:order-first">
@@ -107,7 +106,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
               <h2 id="programs-heading" className="text-xl font-extrabold">
                 {results.origin ? "Places near you" : "Programs"}
               </h2>
-              {results.totalPrograms === 0 ? <NoResults keyword={query.q} /> : cards(nearby)}
+              {results.totalPrograms === 0 ? <NoResults keyword={query.q} clearFiltersHref={clearAllHref} widenHref={widenHref} /> : cards(nearby)}
             </section>
             {virtual.length > 0 && (
               <section aria-labelledby="virtual-heading" className="flex flex-col gap-4">
