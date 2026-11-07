@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getCurrentStaffAdmin } from "@/auth/dal";
 import { signOutAction } from "./actions";
+import { AdminNavLinks } from "./_components/admin-nav-links";
 
 export const metadata: Metadata = {
   title: "Admin — MomsBloom Resource Directory",
@@ -27,7 +28,7 @@ async function AdminUser() {
 
 /**
  * The Admin shell. Each page checks the login itself with `requireStaffAdmin()`; this layout does
- * not. Nav links come with the Admin pages.
+ * not. The nav links are static text, so they show before the login check.
  */
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
@@ -39,6 +40,11 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           </Link>
           <Suspense fallback={<div className="h-6" />}>
             <AdminUser />
+          </Suspense>
+        </div>
+        <div className="mx-auto w-full max-w-5xl">
+          <Suspense fallback={<div className="h-11" />}>
+            <AdminNavLinks />
           </Suspense>
         </div>
       </header>
