@@ -35,3 +35,10 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
+
+/* The mobile filter sheet slides up (FilterSheet uses it only with motion-safe, so reduced motion: no slide). */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}

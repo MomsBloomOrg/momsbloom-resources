@@ -91,13 +91,15 @@ export function FilterColumn({
   const radiusChecked = origin ? String(results.radius) : query.radius === null ? null : String(query.radius);
 
   return (
-    <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm">
-      <div className="flex items-center justify-between">
+    <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm group-open/sheet:rounded-none group-open/sheet:border-0">
+      {/* In the sheet: a fixed header bar (FilterSheet puts its close button on it). */}
+      <div className="flex items-center justify-between group-open/sheet:sticky group-open/sheet:top-0 group-open/sheet:z-10 group-open/sheet:-mx-5 group-open/sheet:-mt-5 group-open/sheet:border-b group-open/sheet:border-line group-open/sheet:bg-surface group-open/sheet:px-5 group-open/sheet:py-4">
         <h2 id="filters-heading" className="text-lg font-bold">
           Filters
         </h2>
         {clearAllHref && (
-          <a href={clearAllHref} className="text-sm font-bold text-primary-text underline">
+          // In the sheet, the footer has Clear all.
+          <a href={clearAllHref} className="text-sm font-bold text-primary-text underline group-open/sheet:hidden">
             Clear all
           </a>
         )}
@@ -137,7 +139,7 @@ export function FilterColumn({
   );
 }
 
-/** How many filter values are checked, for the mobile "Filters (n)" link. */
+/** How many filter values are checked, for the mobile "Filters (n)" button. */
 export function activeFilterCount(query: DirectoryQuery): number {
   return Object.values(query.filters).reduce((sum, values) => sum + values.length, 0) + (query.org ? 1 : 0);
 }

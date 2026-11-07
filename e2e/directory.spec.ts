@@ -3,6 +3,7 @@
  * If the sample data changes, the numbers here change too.
  */
 import { expect, type Page, test } from "@playwright/test";
+import { HOST } from "./fixture";
 
 const resultLine = (page: Page) => page.locator("[aria-live=polite]");
 const programCards = (page: Page) => page.locator("section[aria-labelledby=programs-heading] > ul > li");
@@ -133,4 +134,69 @@ test("zip-not-five-digits-url: /embed?zip=495 shows the ZIP message too", async 
   await page.goto("/embed?zip=495");
   await expect(page.locator("#zip-not-found")).toContainText("We don't recognize that ZIP");
   await expect(page.getByRole("textbox", { name: "ZIP code" })).toHaveValue("495");
+});
+
+test.describe("mobile-filter-sheet", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  const filtersLink = (page: Page) => page.getByRole("link", { name: /^Filters/ });
+
+  test("sheet-in-host-viewport: in the iframe, the sheet opens on the visible screen, not at the iframe bottom", async ({ page }) => {
+    await page.goto(HOST);
+    const frame = page.frameLocator("iframe[data-momsbloom-embed]");
+    const link = frame.getByRole("link", { name: /^Filters/ });
+    await link.waitFor();
+    await expect(frame.getByRole("link", { name: /^View details/ }).first()).toBeVisible();
+    await page.mouse.wheel(0, 1000);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+    await link.click();
+    const dialog = frame.getByRole("dialog", { name: "Filters" });
+    await expect(dialog).toBeVisible();
+    // Main-page coordinates. Poll: the sheet slides up first.
+    const box = () => dialog.boundingBox().then((b) => b!);
+    await expect.poll(async () => { const b = await box(); return b.y + b.height; }).toBeLessThanOrEqual(845);
+    expect((await box()).y).toBeGreaterThanOrEqual(0);
+    expect((await box()).height).toBeGreaterThan(400);
+  });
+
+  test("sheet-open-filter-close: the sheet filters, shows the count, and closes", async ({ page }) => {
+    await page.goto("/embed");
+    await filtersLink(page).click();
+    const dialog = page.getByRole("dialog", { name: "Filters" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Close filters" })).toBeFocused();
+    await dialog.getByRole("checkbox", { name: /^Spanish/ }).check();
+    await expect(resultLine(page)).toHaveText("6 results");
+    await dialog.getByRole("button", { name: "Show 6 results" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
+  });
+
+  test("sheet-focus-return: focus stays in the sheet; Escape returns it to Filters", async ({ page }) => {
+    await page.goto("/embed");
+    await filtersLink(page).click();
+    const dialog = page.getByRole("dialog", { name: "Filters" });
+    await expect(dialog).toBeVisible();
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.press("Tab");
+      // After the last control, a native modal lets focus go to the browser UI (activeElement is <body>) and then
+      // back into the dialog. It never reaches the page behind the sheet.
+      const active = await dialog.evaluate((el) => el.contains(document.activeElement) || document.activeElement === document.body);
+      expect(active).toBe(true);
+    }
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(filtersLink(page)).toBeFocused();
+  });
+
+  test.describe("sheet-no-js-mobile", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("without JavaScript, Filters jumps to the column", async ({ page }) => {
+      await page.goto("/embed");
+      await filtersLink(page).click();
+      await expect(page).toHaveURL(/#filters$/);
+      await expect(page.getByRole("heading", { name: "Filters", exact: true })).toBeInViewport();
+      await expect(page.getByRole("checkbox", { name: /^Spanish/ })).toBeVisible();
+    });
+  });
 });
