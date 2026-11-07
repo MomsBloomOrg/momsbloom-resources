@@ -1,5 +1,6 @@
 "use client";
 
+import { NOT_PLACED } from "@/admin/geocode";
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import type { OrganizationInput, StatusOption } from "@/admin/organizations";
 import { Field, Notice, buttonClass, inputClass } from "../../_components/ui";
@@ -33,6 +34,8 @@ export function OrganizationForm({
     if (state.status === "saved") savedStatus.current = submittedStatus.current;
   }, [state]);
   const errors = state.status === "invalid" ? state.errors : {};
+  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
+  const notice = state.status === "saved" ? state.notice : organization?.streetAddress && organization.latitude == null && organization.longitude == null ? NOT_PLACED : undefined;
   const o = organization;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -129,6 +132,7 @@ export function OrganizationForm({
       </Field>
 
       {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
+      {notice && <Notice tone="warning" role="status">{notice}</Notice>}
       {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
 
       <div className="flex flex-wrap gap-3">

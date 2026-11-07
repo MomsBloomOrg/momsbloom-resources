@@ -121,13 +121,13 @@ Who it serves, Cost, and Service format.
 - **Check input on the server.** The browser checks are for convenience; the server must check
   again (required fields, URL format, IDs that exist). Never trust what the browser sends.
 
-> **Open question: map coordinates for a new or changed address.** Distance and the map need a
-> latitude and longitude for each address. The spreadsheet has them for 35 of 45 Organizations.
-> Recommendation: when a staff member saves an address, the server asks the free US Census
-> geocoder (`geocoding.geo.census.gov`, no key, no account) for the coordinates and saves them. If
-> it finds nothing, the form shows "We couldn't place this address on the map" and lets the staff
-> member type the coordinates. The other option is to have staff type coordinates from Google Maps
-> every time, which they will forget.
+- **Map coordinates (decided).** Distance and the map need a latitude and longitude for each
+  address. When staff save a new or changed street address and did not edit the coordinates, the
+  server asks the US Census geocoder (`geocoding.geo.census.gov`, no key, 5 s timeout) and saves the
+  result. If it finds nothing, the save still works, the coordinates become blank, and the form shows
+  "We couldn't place this address on the map. Type the coordinates, or leave them blank." Staff can
+  always type coordinates. A Program with a blank street address keeps blank coordinates
+  (Inheritance). Only the Census sees the address.
 
 ## Acceptance checklist
 

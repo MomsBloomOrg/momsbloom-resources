@@ -1,5 +1,6 @@
 "use client";
 
+import { NOT_PLACED } from "@/admin/geocode";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } from "@/admin/programs";
 import { Field, Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
@@ -69,6 +70,8 @@ export function ProgramForm({
   const [categoryIds, setCategoryIds] = useState<number[]>(program?.categoryIds ?? []);
   const [acceptanceId, setAcceptanceId] = useState(String(program?.insuranceAcceptanceId ?? ""));
   const errors = state.status === "invalid" ? state.errors : {};
+  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
+  const notice = state.status === "saved" ? state.notice : program?.streetAddress && program.latitude == null && program.longitude == null ? NOT_PLACED : undefined;
   const p = program;
   const org: OrganizationOption | undefined = options.organizations.find((o) => String(o.id) === orgId);
   const acceptsYes = options.insuranceAcceptanceOptions.find((o) => String(o.id) === acceptanceId)?.name.trim().toLowerCase() === "yes";
@@ -276,6 +279,7 @@ export function ProgramForm({
       </Field>
 
       {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
+      {notice && <Notice tone="warning" role="status">{notice}</Notice>}
       {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
 
       <div className="flex flex-wrap gap-3">
