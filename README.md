@@ -5,17 +5,17 @@ A resource directory for [momsbloom.org](https://momsbloom.org), where organizat
 ## Architecture
 
 ```
-GitHub (code) ──▶ GitHub Action ──▶ Build ──▶ Vercel (host)
-                                                  │
-                                    resources.momsbloom.org
-                                                  │
-                         embedded in ──▶ Squarespace (momsbloom.org)
+GitHub (code) ──▶ Vercel (build + host)
+                         │
+               resources.momsbloom.org
+                         │
+    embedded in ──▶ Squarespace (momsbloom.org)
 ```
 
 | Concern | Service |
 | --- | --- |
 | Source code | GitHub |
-| CI / build | GitHub Actions |
+| CI / build | Vercel (builds each push) |
 | Hosting | Vercel |
 | Framework | Next.js |
 | UI | React + TypeScript |
@@ -47,7 +47,7 @@ Users (identified by email)
 - [Neon](https://neon.tech/) for the database
 - [Resend](https://resend.com/) for email
 - [Vercel](https://vercel.com/) for hosting
-- [GitHub Actions](https://github.com/features/actions) for CI/CD
+- Vercel's GitHub integration for builds and deploys
 
 This repo is public, so never commit passwords, connection strings, or the resource spreadsheet.
 
@@ -129,19 +129,16 @@ Before you open a pull request, run `pnpm lint && pnpm typecheck && pnpm test`.
 ## Deployment
 
 1. Push to GitHub.
-2. A GitHub Action runs and builds the project.
-3. The build is deployed to Vercel and served at `resources.momsbloom.org`.
-4. Squarespace (`momsbloom.org`) embeds the deployed app.
+2. Vercel sees the push, builds the project, and deploys it. A push to `main` goes live at `resources.momsbloom.org`. A pull request gets its own preview link.
+3. Squarespace (`momsbloom.org`) embeds the deployed app.
+
+Why Vercel and not a GitHub Action: see [ADR 0002](docs/adr/0002-vercel-deploys-from-github.md).
 
 Set the same environment variables in the Vercel project settings.
 
 ## Put it online (one-time setup)
 
 These steps are done once, by someone with access to the Vercel and Squarespace accounts.
-
-Open question for the team: the Deployment section above describes a GitHub Action that builds and
-deploys. The steps below use the Vercel GitHub integration instead, which deploys each push and gives
-each pull request a preview link. We will record the choice in an ADR.
 
 ### 1. Connect Vercel to GitHub
 
@@ -180,4 +177,8 @@ each pull request a preview link. We will record the choice in an ADR.
 ## Project documents
 
 - `docs/intent/repo-init.md`: what this repo set out to do, and for whom.
-- More to come: `CONTEXT.md` (the words we use), `docs/adr/` (decisions and why), and `docs/specs/`.
+- `docs/adr/`: decisions and why we made them (ADR = Architecture Decision Record). Read these before you change how the app is built, deployed, or logged in to.
+  - [0001 pnpm is the package manager](docs/adr/0001-pnpm-is-the-package-manager.md)
+  - [0002 Vercel deploys from GitHub](docs/adr/0002-vercel-deploys-from-github.md)
+  - [0003 Admin login by email link first](docs/adr/0003-admin-login-by-email-link-first.md)
+- More to come: `CONTEXT.md` (the words we use) and `docs/specs/`.
