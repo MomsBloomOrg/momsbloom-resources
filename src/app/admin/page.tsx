@@ -75,7 +75,14 @@ export default async function OrganizationsPage({ searchParams }: PageProps<"/ad
 
   return (
     <>
-      <PageHeader title="Organizations" />
+      <PageHeader
+        title="Organizations"
+        actions={
+          <Link href="/admin/organizations/new" className={buttonClass("primary", "sm")}>
+            New Organization
+          </Link>
+        }
+      />
       <Card>
         <form action="/admin" method="get" role="search" className="mb-4 flex flex-wrap items-end gap-3">
           <div className="min-w-0 flex-1">

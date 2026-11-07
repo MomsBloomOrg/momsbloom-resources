@@ -1,0 +1,159 @@
+"use client";
+
+import { startTransition, useActionState, useState, type FormEvent, type ReactNode } from "react";
+import type { OrganizationInput, StatusOption } from "@/admin/organizations";
+import { Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
+import { saveOrganizationAction, type OrganizationFormState } from "../actions";
+
+const IDLE: OrganizationFormState = { status: "idle" };
+
+function Field({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className={labelClass}>
+        {label}
+      </label>
+      {children}
+      {hint && (
+        <p id={`${id}-hint`} className={hintClass}>
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p id={`${id}-error`} role="alert" className="text-sm font-semibold text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The Organization form. `organization` is empty on the "new" page. The form is submitted with
+ * `onSubmit`, not `<form action>`: React 19 would reset the fields after the action, and the staff
+ * member would lose the text of a refused save.
+ */
+export function OrganizationForm({
+  id,
+  organization,
+  statuses,
+  programCount,
+}: {
+  id?: number;
+  organization?: OrganizationInput;
+  statuses: StatusOption[];
+  programCount: number;
+}) {
+  const [state, dispatch, pending] = useActionState(saveOrganizationAction, IDLE);
+  const [statusId, setStatusId] = useState(String(organization?.statusId ?? statuses[0]?.id ?? ""));
+  const errors = state.status === "invalid" ? state.errors : {};
+  const o = organization;
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    // The button that was clicked, so `intent=verify` reaches the action.
+    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
+    if (data.get("intent") !== "verify" && id !== undefined && String(organization?.statusId) !== statusId) {
+      const target = statuses.find((s) => String(s.id) === statusId);
+      if (target && !target.showOnSite && programCount > 0) {
+        const n = `${programCount} Program${programCount === 1 ? "" : "s"}`;
+        if (!window.confirm(`This hides its ${n} from families. Save anyway?`)) return;
+      }
+    }
+    startTransition(() => dispatch(data));
+  }
+
+  const text = (name: keyof OrganizationInput, label: string, extra: { hint?: string; type?: string; inputMode?: "decimal" } = {}) => (
+    <Field id={`org-${name}`} label={label} hint={extra.hint} error={errors[name]}>
+      <input
+        id={`org-${name}`}
+        name={name}
+        type={extra.type ?? "text"}
+        inputMode={extra.inputMode}
+        defaultValue={(o?.[name] as string | number | null | undefined) ?? ""}
+        aria-invalid={errors[name] ? true : undefined}
+        aria-describedby={[extra.hint && `org-${name}-hint`, errors[name] && `org-${name}-error`].filter(Boolean).join(" ") || undefined}
+        className={inputClass}
+      />
+    </Field>
+  );
+
+  const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (o?.lastVerified ?? "");
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <input type="hidden" name="id" value={id ?? ""} />
+      {text("name", "Name")}
+      <Field id="org-about" label="About" error={errors.about}>
+        <textarea id="org-about" name="about" rows={4} defaultValue={o?.about ?? ""} className={inputClass} />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {text("website", "Website", { hint: "Starts with https://", type: "url" })}
+        {text("email", "Email", { type: "email" })}
+        {text("phone", "Phone", { type: "tel" })}
+        {text("county", "County")}
+        {text("streetAddress", "Street address")}
+        {text("suite", "Suite")}
+        {text("city", "City")}
+        {text("state", "State")}
+        {text("zip", "ZIP")}
+        <span />
+        {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
+        {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="org-statusId" label="Status" error={errors.statusId}>
+          <select
+            id="org-statusId"
+            name="statusId"
+            value={statusId}
+            onChange={(e) => setStatusId(e.target.value)}
+            className={inputClass}
+          >
+            {statuses.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.showOnSite ? "" : " (hidden from families)"}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field id="org-lastVerified" label="Last verified" error={errors.lastVerified}>
+          {/* key: a new value from "Mark verified" replaces what the input shows. */}
+          <input
+            key={lastVerified}
+            id="org-lastVerified"
+            name="lastVerified"
+            type="date"
+            defaultValue={lastVerified}
+            className={inputClass}
+          />
+        </Field>
+      </div>
+      <Field id="org-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
+        <textarea
+          id="org-internalNotes"
+          name="internalNotes"
+          rows={3}
+          defaultValue={o?.internalNotes ?? ""}
+          aria-describedby="org-internalNotes-hint"
+          className={inputClass}
+        />
+      </Field>
+
+      {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
+      {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
+
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={pending} className={buttonClass("primary")}>
+          {id === undefined ? "Create Organization" : "Save"}
+        </button>
+        {id !== undefined && (
+          <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>
+            Mark verified
+          </button>
+        )}
+      </div>
+    </form>
+  );
+}
