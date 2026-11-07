@@ -55,8 +55,9 @@ never deleted (they become Inactive). Build work: issue #38.
 | `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
 | `/admin/settings/[facet]` | Filter options: one page for each Facet (see "Facet values" below). |
 | `/admin/staff-admins` | **Staff admins**: the Owners and the added Staff admins, an add form, and Remove (with a confirm step) for an added Staff admin that is not you. |
+| `/admin/content` | **Website content**: the text of the help box ("Can't find what you need?"): heading, body with a `{phone}` token, phone, button label, button link (`https://` only). A blank field shows the default. A save reloads the Directory. |
 
-The nav is **Organizations, Documents, Settings, Staff admins**. IDs in the Admin are database integers (`12`), as in
+The nav is **Organizations, Documents, Settings, Content, Staff admins**. IDs in the Admin are database integers (`12`), as in
 [CONTEXT.md](../../CONTEXT.md).
 
 ### Program form

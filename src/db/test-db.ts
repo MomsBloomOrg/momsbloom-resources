@@ -27,6 +27,7 @@ const MIGRATION_TABLES = new Set<unknown>([
   schema.authVerificationTokens,
   schema.rateLimits,
   schema.customFields,
+  schema.siteContent,
 ]);
 const directoryTables = Object.fromEntries(Object.entries(schema).filter(([, table]) => !MIGRATION_TABLES.has(table)));
 
