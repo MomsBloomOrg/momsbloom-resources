@@ -109,7 +109,7 @@ export function ProgramCard({
         {(program.phone || website) && (
           <p className="flex flex-wrap items-center gap-x-4">
             {program.phone && (
-              <a href={telHref(program.phone)} className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6">
+              <a href={telHref(program.phone)} data-event="program_call" data-program-id={program.id} className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6">
                 <Phone aria-hidden="true" className="size-4" />
                 {program.phone}
               </a>
@@ -117,6 +117,8 @@ export function ProgramCard({
             {website && (
               <a
                 href={website}
+                data-event="program_website"
+                data-program-id={program.id}
                 target="_blank"
                 rel="noopener"
                 className="flex min-h-11 items-center gap-2 font-bold text-primary-text underline md:min-h-6"

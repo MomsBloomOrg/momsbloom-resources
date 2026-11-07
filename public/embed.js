@@ -16,6 +16,9 @@
  *    On load, the mbr- keys in the page URL go into the iframe URL. Other page keys are never read
  *    or changed. The page URL changes with replaceState, so the Back button does not step through
  *    each filter.
+ * 5. It listens for "event" messages (ADR 0006). If the page has its own gtag() (Squarespace GA4),
+ *    a valid event from the allow-list below goes to gtag("event", name, params). With no gtag, the
+ *    event is dropped. This file never loads Google code and never sets a cookie.
  *
  * This file is plain JavaScript (no TypeScript, no build step) because the browser loads it directly
  * from Squarespace. The message names and checks are a copy of src/embed/protocol.ts.
@@ -27,6 +30,9 @@
   var RESIZE = "momsbloom-resources:resize";
   var SCROLL = "momsbloom-resources:scroll";
   var LOCATION = "momsbloom-resources:location";
+  var EVENT = "momsbloom-resources:event";
+  // The event names and the parameter keys that may pass (a copy of ANALYTICS_EVENTS in protocol.ts).
+  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id"],"program_call":["program_id"],"program_directions":["program_id"],"program_website":["program_id"],"document_download":["document_id"]};
   var MAX_HEIGHT = 50000;
   var MAX_SEARCH = 2000;
   var MAX_VALUE = 100;
@@ -35,6 +41,22 @@
   var PROGRAM_KEY = HOST_PREFIX + "program";
   var PROGRAM_ID = /^[A-Za-z0-9-]{1,40}$/;
   var MOUNTED = "data-momsbloom-mounted";
+
+  /** The gtag params from a message: allow-listed keys only, or null when anything is wrong. */
+  function eventParams(name, raw) {
+    if (!Object.prototype.hasOwnProperty.call(EVENTS, name)) return null;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    var out = {};
+    var keys = Object.keys(raw);
+    for (var i = 0; i < keys.length; i++) {
+      var value = raw[keys[i]];
+      if (EVENTS[name].indexOf(keys[i]) < 0) return null;
+      var ok = typeof value === "string" ? value.length <= MAX_VALUE : typeof value === "number" && isFinite(value) && value >= 0;
+      if (!ok) return null;
+      out[keys[i]] = value;
+    }
+    return out;
+  }
 
   function isEmbedScript(script) {
     try {
@@ -135,6 +157,12 @@
         if (typeof top !== "number" || !isFinite(top) || top < 0 || top > MAX_HEIGHT) return;
         var y = iframe.getBoundingClientRect().top + top;
         if (y < 0 || y > window.innerHeight) window.scrollBy(0, y);
+      } else if (data.type === EVENT) {
+        var params = typeof data.name === "string" ? eventParams(data.name, data.params) : null;
+        if (!params || typeof window.gtag !== "function") return;
+        try {
+          window.gtag("event", data.name, params);
+        } catch {} // the page's own analytics must never break the Directory
       } else if (data.type === LOCATION) {
         if (typeof data.search !== "string" || data.search.length > MAX_SEARCH) return;
         if (data.program !== null && !(typeof data.program === "string" && PROGRAM_ID.test(data.program))) return;

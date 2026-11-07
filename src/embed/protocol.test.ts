@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { LOCATION_MESSAGE, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { ANALYTICS_EVENTS, EVENT_MESSAGE, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -51,6 +51,43 @@ describe("readEmbedMessage", () => {
   });
 });
 
+describe("event messages", () => {
+  const good = { type: EVENT_MESSAGE, name: "directory_search", params: { search_term: "yoga", result_count: 4 } };
+
+  it("accepts a good event", () => {
+    expect(readEmbedMessage(good)).toEqual(good);
+    expect(readEmbedMessage({ type: EVENT_MESSAGE, name: "program_view", params: { program_id: "P-101" } })).not.toBeNull();
+  });
+
+  it.each([
+    ["an unknown name", { ...good, name: "purchase" }],
+    ["a name from the object prototype", { ...good, name: "toString" }],
+    ["an extra param key", { ...good, params: { search_term: "yoga", zip: "49508" } }],
+    ["a param key that belongs to another event", { ...good, params: { program_id: "P-1" } }],
+    ["a long string", { ...good, params: { search_term: "a".repeat(101) } }],
+    ["a count that is NaN", { ...good, params: { result_count: Number.NaN } }],
+    ["a negative count", { ...good, params: { result_count: -1 } }],
+    ["a param that is an object", { ...good, params: { search_term: { a: 1 } } }],
+    ["no params", { type: EVENT_MESSAGE, name: "directory_search" }],
+  ])("refuses an event with %s", (_name, data) => {
+    expect(readEmbedMessage(data)).toBeNull();
+  });
+});
+
+describe("safeKeyword", () => {
+  it.each([
+    ["yoga", "yoga"],
+    ["  yoga  ", "yoga"],
+    ["jane@example.com", "(redacted)"],
+    ["616-555-1234", "(redacted)"],
+    ["49508", "(redacted)"],
+    ["doula 49508", "(redacted)"],
+    ["a".repeat(150), "a".repeat(100)],
+  ])("turns %j into %j", (input, output) => {
+    expect(safeKeyword(input)).toBe(output);
+  });
+});
+
 describe("public/embed.js agrees with protocol.ts", () => {
   const script = readFileSync("public/embed.js", "utf8");
 
@@ -62,5 +99,11 @@ describe("public/embed.js agrees with protocol.ts", () => {
   it("has the same Program ID pattern and message names", () => {
     expect(script).toContain(`var PROGRAM_ID = ${PROGRAM_ID_PATTERN};`);
     expect(script).toContain(`"${LOCATION_MESSAGE}"`);
+    expect(script).toContain(`"${EVENT_MESSAGE}"`);
+  });
+
+  it("has the same event names and parameter keys", () => {
+    const match = script.match(/var EVENTS = (\{[\s\S]*?\});/);
+    expect(JSON.parse(match![1])).toEqual(ANALYTICS_EVENTS);
   });
 });
