@@ -38,6 +38,8 @@ sessions that last 7 days.
   removal deletes the row, its sessions, and its open Login links at once, with no redeploy.
   Nobody can remove an Owner or themselves in the Admin, so the Admin always keeps a Staff admin,
   and the developer can always get back in through `ADMIN_EMAILS`.
+- Keep at least one Owner in `ADMIN_EMAILS`; it is the way back in. (Two added Staff admins can
+  remove each other at the same time.)
 - A row that an Owner's first login made has `added_at` null. When that address leaves
   `ADMIN_EMAILS`, the row no longer allows a login.
 - Email links can be abused. The app limits link requests for an allowed address: **20 per hour per

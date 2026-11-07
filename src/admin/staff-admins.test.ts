@@ -75,6 +75,11 @@ describe("Staff admins", () => {
     const added = await rowOf("added@example.org");
 
     expect(await removeStaffAdmin(db, added.id, added.id, ENV)).toEqual({ ok: false, error: "You cannot remove yourself. Ask another Staff admin." });
+    // The same id in capitals is still you (Postgres matches a uuid in any letter case).
+    expect(await removeStaffAdmin(db, added.id, added.id.toUpperCase(), ENV)).toEqual({
+      ok: false,
+      error: "You cannot remove yourself. Ask another Staff admin.",
+    });
     expect(await removeStaffAdmin(db, added.id, owner.id, ENV)).toEqual({
       ok: false,
       error: "You cannot remove an Owner. Owners are set by the developer.",

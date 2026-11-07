@@ -72,17 +72,18 @@ export async function removeStaffAdmin(
   env: Env = process.env,
 ): Promise<StaffAdminResult<{ email: string }>> {
   if (typeof targetId !== "string" || !UUID.test(targetId)) return NOT_FOUND;
-  if (targetId === actorId) return refuse("You cannot remove yourself. Ask another Staff admin.");
   return db.transaction(async (tx) => {
     const [row] = await tx
-      .select({ email: staffAdmins.email })
+      .select({ id: staffAdmins.id, email: staffAdmins.email })
       .from(staffAdmins)
       .where(eq(staffAdmins.id, targetId))
       .for("update");
     if (!row) return NOT_FOUND;
+    // Compare the database id, not the form text: Postgres matches a uuid in any letter case.
+    if (row.id === actorId) return refuse("You cannot remove yourself. Ask another Staff admin.");
     if (isStaffEmail(row.email, env)) return refuse("You cannot remove an Owner. Owners are set by the developer.");
     await tx.delete(authVerificationTokens).where(eq(authVerificationTokens.identifier, row.email));
-    await tx.delete(staffAdmins).where(eq(staffAdmins.id, targetId));
+    await tx.delete(staffAdmins).where(eq(staffAdmins.id, row.id));
     return { ok: true, value: { email: row.email } } as const;
   });
 }
