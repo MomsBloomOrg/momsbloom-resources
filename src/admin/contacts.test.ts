@@ -22,7 +22,12 @@ describe("Contacts of a Program", () => {
   };
 
   it("parse trims, turns blanks into null, and reads the checkbox", () => {
-    expect(parse({ title: "  ", showOnWebsite: "on" })).toMatchObject({ name: "Sam Example", title: null, showOnWebsite: true });
+    expect(parse({ title: "  ", phone: "616.555.0100", showOnWebsite: "on" })).toMatchObject({
+      name: "Sam Example",
+      title: null,
+      phone: "(616) 555-0100",
+      showOnWebsite: true,
+    });
     expect(parse({}).showOnWebsite).toBe(false);
   });
 

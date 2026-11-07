@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatText, supportTags, type LabelOf } from "./program-card";
+import { formatText, supportTags, telHref, type LabelOf } from "./program-card";
 import { facetValues } from "@/directory/test-fixtures";
 
 const labelOf: LabelOf = (facet, key) => `${facet}:${key}`;
@@ -26,5 +26,19 @@ describe("supportTags", () => {
       { id: "category-1", label: "Therapist" },
       { id: "subcategory-4", label: "Yoga" },
     ]);
+  });
+});
+
+describe("telHref", () => {
+  it("uses +1 for a displayed US number and drops its extension", () => {
+    expect(telHref("(616) 555-0100 x12")).toBe("tel:+16165550100");
+  });
+
+  it("keeps an explicit international country code", () => {
+    expect(telHref("+44 20 7946 0958")).toBe("tel:+442079460958");
+  });
+
+  it("does not turn a short service number into a US ten-digit number", () => {
+    expect(telHref("211")).toBe("tel:211");
   });
 });

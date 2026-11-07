@@ -4,6 +4,7 @@ import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 import type { CustomValues } from "@/custom-fields/types";
+import { checkPhone } from "./phone";
 import {
   FIX_FIELDS,
   GONE,
@@ -79,6 +80,7 @@ export function parseProgramInput(data: FormData): AdminResult<ProgramInput> {
   const out: Record<string, unknown> = {};
   parseName(raw, errors, out);
   parseTextFields(raw, TEXT_FIELDS, errors, out);
+  checkPhone(raw.phone, errors, out);
   parseSharedFields(raw, errors, out);
 
   out.description = str(raw, "description");
