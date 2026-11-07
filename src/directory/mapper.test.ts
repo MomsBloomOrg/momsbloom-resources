@@ -171,6 +171,35 @@ describe("toDirectorySnapshot", () => {
     expect(snapshot.facets[1].values).toEqual([{ key: "5", label: "Support groups", parentKey: "2" }]);
     expect(snapshot.programs[0].facetValues).toMatchObject({ category: ["2"], subcategory: ["5"], language: ["1"], cost: ["4"] });
   });
+
+  it("leaves hidden Facet values (and the Subcategories of a hidden Category) out of the filters, not out of the records", () => {
+    const snapshot = toDirectorySnapshot(
+      rows({
+        categories: [
+          { id: 1, name: "Basic needs", sortOrder: 1 },
+          { id: 2, name: "Mental health", sortOrder: 2, hidden: true },
+        ],
+        subcategories: [
+          { id: 5, categoryId: 2, name: "Support groups", sortOrder: 1 },
+          { id: 6, categoryId: 1, name: "Diapers", sortOrder: 1, hidden: true },
+          { id: 7, categoryId: 1, name: "Food", sortOrder: 2 },
+        ],
+        languages: [
+          { id: 1, name: "English", sortOrder: 1 },
+          { id: 2, name: "Spanish", sortOrder: 2, hidden: true },
+        ],
+        programs: [program({ id: 1 })],
+        programCategories: [{ programId: 1, categoryId: 2 }],
+        programLanguages: [{ programId: 1, languageId: 2 }],
+      }),
+    );
+    const labels = (key: string) => snapshot.facets.find((f) => f.key === key)?.values.map((v) => v.label);
+    expect(labels("category")).toEqual(["Basic needs"]);
+    expect(labels("subcategory")).toEqual(["Food"]);
+    expect(labels("language")).toEqual(["English"]);
+    expect(snapshot.programs[0].facetValues).toMatchObject({ category: ["2"], language: ["2"] });
+  });
+
   it("leaves out a Document whose link is not a URL", () => {
     const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE };
     const snapshot = toDirectorySnapshot(

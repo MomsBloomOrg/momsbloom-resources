@@ -22,7 +22,8 @@ import {
 } from "./types";
 
 type Row<T extends { $inferSelect: unknown }> = T["$inferSelect"];
-type ListRow = { id: number; name: string; sortOrder: number };
+// `hidden`: staff hid the value (Admin settings). Optional, because the fixed lists (insurance acceptance) have none.
+type ListRow = { id: number; name: string; sortOrder: number; hidden?: boolean };
 type PlaceFields = "streetAddress" | "suite" | "city" | "state" | "zip" | "latitude" | "longitude" | "phone" | "website";
 
 export interface DirectoryRows {
@@ -79,6 +80,8 @@ const FACET_LABELS: Record<FacetKey, string> = {
 const IN_PERSON = "in person";
 const VIRTUAL = "virtual";
 const COMBINED = "in person and virtual";
+/** The Service format names that this file reads (lower case). The Admin refuses to rename them. */
+export const SERVICE_FORMAT_NAMES_READ: readonly string[] = [IN_PERSON, VIRTUAL, COMBINED];
 
 const ACCEPTS_INSURANCE: Record<string, DirectoryProgram["acceptsInsurance"]> = {
   yes: "yes",
@@ -120,9 +123,10 @@ function addressOf(place: Place): { address: PostalAddress; location: LatLng | n
   };
 }
 
-/** Facet values in the order staff set (sort_order). */
+/** Facet values in the order staff set (sort_order). Hidden values are left out: records keep their keys. */
 function values<T extends ListRow>(rows: readonly T[], parentKey?: (row: T) => string): FacetValue[] {
-  return [...rows]
+  return rows
+    .filter((row) => !row.hidden)
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((row) => (parentKey ? { key: String(row.id), label: row.name, parentKey: parentKey(row) } : { key: String(row.id), label: row.name }));
 }
@@ -224,9 +228,14 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
     }];
   });
 
+  const hiddenCategories = new Set(rows.categories.filter((category) => category.hidden).map((category) => category.id));
   const facetValueLists: Record<FacetKey, FacetValue[]> = {
     category: values(rows.categories),
-    subcategory: values(rows.subcategories, (row) => String(row.categoryId)),
+    // A Subcategory of a hidden Category is hidden too (else the filter column shows it alone).
+    subcategory: values(
+      rows.subcategories.filter((sub) => !hiddenCategories.has(sub.categoryId)),
+      (row) => String(row.categoryId),
+    ),
     insurance: values(rows.insurancePlans),
     cost: values(rows.costOptions),
     language: values(rows.languages),

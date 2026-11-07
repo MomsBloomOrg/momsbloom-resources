@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-// Documents and Settings point at pages that later slices build.
+// Documents points at a page that a later slice builds.
 const LINKS = [
   { href: "/admin", label: "Organizations", match: ["/admin", "/admin/organizations", "/admin/programs"] },
   { href: "/admin/documents", label: "Documents", match: ["/admin/documents"] },

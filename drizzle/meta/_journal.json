@@ -15,6 +15,13 @@
       "when": 1794069423335,
       "tag": "0001_crazy_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794072980792,
+      "tag": "0002_facet_value_hidden",
+      "breakpoints": true
     }
   ]
 }
