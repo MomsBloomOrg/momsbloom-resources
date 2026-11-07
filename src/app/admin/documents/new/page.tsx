@@ -11,6 +11,7 @@ export const instant = false;
 export default async function NewDocumentPage() {
   await requireStaffAdmin();
   const options = await getDocumentFormOptions(getDb());
+  const uploadPrefix = process.env.VERCEL_ENV === "production" ? "documents/" : "preview/documents/";
   return (
     <>
       <PageHeader
@@ -22,7 +23,7 @@ export default async function NewDocumentPage() {
         }
       />
       <Card>
-        <DocumentForm options={options} />
+        <DocumentForm options={options} uploadPrefix={uploadPrefix} />
       </Card>
     </>
   );
