@@ -3,9 +3,9 @@
 Staff admins can add their own fields to Programs, Organizations, Contacts, and Documents, for
 example "Parking" or "Doula on staff", without a developer and without a database change.
 
-**Status: in the Admin, local database only.** Staff can add fields and fill in answers on the Program
-and Organization pages (below). Families can't see custom fields yet: the Directory and Program detail
-pages don't use them, and the database change (migration 0004) has not been run on Neon.
+**Status: live in the Admin.** Staff can add fields and fill in answers on the Program and Organization
+pages (below). The database change (migration 0004) is on Neon. Families can't see custom fields yet:
+the Directory and Program detail pages don't use them.
 
 ## The idea: a field is a question, each record has its own answer
 
@@ -115,7 +115,6 @@ action checks the login first (`requireStaffAdmin`).
 
 ### Still to do
 
-- Run the migration on Neon (`pnpm db:migrate` with the Neon `DATABASE_URL`).
 - Load the fields and the public answers in `src/directory/snapshot.ts` and `mapper.ts`.
 - Add the custom filters to the URL state in `src/directory/query.ts` and to `searchDirectory`.
 - Program detail: show `publicCustomValues`.
