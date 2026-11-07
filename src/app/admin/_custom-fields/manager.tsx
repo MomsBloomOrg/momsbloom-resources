@@ -32,7 +32,7 @@ export async function CustomFieldsManager({ db, entity }: { db: Db; entity: Admi
           answers: fill them in above, under &ldquo;More details&rdquo;.
         </p>
         <details className="group">
-          <summary className="cursor-pointer font-semibold text-primary-text underline decoration-1 underline-offset-2 hover:text-primary-hover">
+          <summary className="cursor-pointer font-semibold text-primary-hover underline decoration-1 underline-offset-2 hover:text-ink">
             Manage the {active.length} {one} field{active.length === 1 ? "" : "s"}
           </summary>
           <div className="mt-4 flex flex-col gap-6">

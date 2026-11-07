@@ -33,7 +33,8 @@ export function buttonClass(variant: ButtonVariant = "secondary", size: keyof ty
   return `${BUTTON_BASE} ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]}`;
 }
 
-export const linkClass = "text-primary-text underline decoration-1 underline-offset-2 hover:text-primary-hover";
+/** Links sit on `field` panels, where `primary-text` is below 4.5:1, so they use `primary-hover` (about 6:1). */
+export const linkClass = "text-primary-hover underline decoration-1 underline-offset-2 hover:text-ink";
 export const inputClass =
   "w-full rounded-3xl border border-muted bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
