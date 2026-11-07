@@ -16,7 +16,7 @@ import { NoResults } from "./no-results";
 import { addressText, detailsHref, organizationHref, ProgramCard, type LabelOf } from "./program-card";
 import { ProgramMap, type MapProgram } from "./program-map";
 import { ResizeReporter } from "./resize-reporter";
-import { ResultLine } from "./result-line";
+import { ResultSummary, ResultToolbar } from "./result-line";
 import { SearchBar } from "./search-bar";
 import { ShowMore } from "./show-more";
 
@@ -119,26 +119,37 @@ export async function Directory({ params, embed = false }: { params: Record<stri
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
-            <ResultLine results={results} />
-            {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
-            <a
-              href="#filters"
-              data-action="open-filters"
-              aria-haspopup="dialog"
-              className="flex min-h-11 w-fit items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold md:hidden"
-            >
-              <SlidersHorizontal aria-hidden="true" className="size-4" />
-              Filters
-              {filterCount > 0 && (
-                <span className="rounded-full bg-primary-text px-2 text-sm text-white">
-                  {filterCount}
-                  <span className="sr-only"> active</span>
-                </span>
+            {/* One toolbar grid. Mobile order (CSS `order`, one copy of each element): toolbar, chips, count. */}
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div className="order-3 md:order-1">
+                <ResultSummary results={results} />
+              </div>
+              <div className="order-1 min-w-0 md:order-2">
+                <ResultToolbar results={results}>
+                  {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
+                  <a
+                    href="#filters"
+                    data-action="open-filters"
+                    aria-haspopup="dialog"
+                    className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold md:hidden"
+                  >
+                    <SlidersHorizontal aria-hidden="true" className="size-4" />
+                    Filters
+                    {filterCount > 0 && (
+                      <span className="rounded-full bg-primary-text px-2 text-sm text-white">
+                        {filterCount}
+                        <span className="sr-only"> active</span>
+                      </span>
+                    )}
+                  </a>
+                </ResultToolbar>
+              </div>
+              {clearAllHref && (
+                <div className="order-2 md:order-3 md:col-span-2">
+                  <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
+                </div>
               )}
-            </a>
-            {clearAllHref && (
-              <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
-            )}
+            </div>
 
             {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
             <div className={mapView ? "grid gap-4 lg:grid-cols-[20rem_1fr]" : "contents"}>

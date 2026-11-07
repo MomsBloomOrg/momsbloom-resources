@@ -80,7 +80,11 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - Radius options: 5, 10, 25, Any. The default is Any. The Distance group shows only when a location is known.
 - Distance applies to Programs only. Programs that are virtual only, or have no coordinates, show
   in a "Virtual and phone" group and are never hidden by the radius. Documents always show.
-- Sort options: Nearest (the default when a ZIP code is set), A to Z, Recently verified.
+- Sort is one dropdown ("Sort: Nearest"): Nearest (the default when a location is set), A to Z,
+  Recently verified. The default option sends no `sort` in the URL. Without a location there is no
+  Nearest option, so A to Z is the default. Without JavaScript, a "Sort" button applies the choice.
+- On a phone, one toolbar row holds "Filters (n)", the other view ("Map" or "List View"), and the sort
+  dropdown. The result count sits under the filter chips.
 
 ## Results
 
