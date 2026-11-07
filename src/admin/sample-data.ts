@@ -9,6 +9,8 @@ import type { Db } from "@/db/types";
 export interface SampleIds {
   statuses: { active: number; needsReview: number; inactive: number };
   organizations: { riverbend: number; cedar: number; lakeshore: number };
+  /** Sample Mom and Baby Yoga (Riverbend): Mental health, with the Support groups Subcategory. */
+  yogaProgram: number;
 }
 
 export async function insertSampleData(db: Db): Promise<SampleIds> {
@@ -24,7 +26,18 @@ export async function insertSampleData(db: Db): Promise<SampleIds> {
   const [riverbend, cedar, lakeshore] = await db
     .insert(t.organizations)
     .values([
-      { name: "Sample Riverbend Health", statusId: active.id, lastVerified: "2026-09-15", email: "info@example.org", city: "Grand Rapids" },
+      {
+        name: "Sample Riverbend Health",
+        statusId: active.id,
+        lastVerified: "2026-09-15",
+        email: "info@example.org",
+        phone: "616-555-0100",
+        website: "https://example.org",
+        streetAddress: "100 Example Ave NE",
+        city: "Grand Rapids",
+        state: "MI",
+        zip: "49503",
+      },
       { name: "Sample Cedar Family Center", statusId: needsReview.id, lastVerified: "2025-11-02", city: "Wyoming" },
       { name: "Sample Lakeshore Support", statusId: inactive.id, lastVerified: null, city: "Kentwood" },
     ])
@@ -35,6 +48,11 @@ export async function insertSampleData(db: Db): Promise<SampleIds> {
     .values([{ name: "Mental health", sortOrder: 1 }, { name: "Lactation and feeding", sortOrder: 2 }])
     .returning({ id: t.categories.id });
   await db.insert(t.languages).values([{ name: "English", sortOrder: 1 }, { name: "Spanish", sortOrder: 2 }]);
+  await db.insert(t.insuranceAcceptanceOptions).values([
+    { name: "Yes", sortOrder: 1 },
+    { name: "No", sortOrder: 2 },
+    { name: "Not applicable", sortOrder: 3 },
+  ]);
 
   const programRows = await db
     .insert(t.programs)
@@ -77,5 +95,6 @@ export async function insertSampleData(db: Db): Promise<SampleIds> {
   return {
     statuses: { active: active.id, needsReview: needsReview.id, inactive: inactive.id },
     organizations: { riverbend: riverbend.id, cedar: cedar.id, lakeshore: lakeshore.id },
+    yogaProgram: programRows[0].id,
   };
 }
