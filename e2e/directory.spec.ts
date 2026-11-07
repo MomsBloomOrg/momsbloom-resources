@@ -62,6 +62,25 @@ test("zip-5mi-keeps-virtual: a 5 mi radius never hides virtual Programs", async 
   await expect(page.getByRole("heading", { name: "Baby-and-me yoga" })).toHaveCount(0);
 });
 
+test("no-location: no Nearest sort, no Distance group, no miles", async ({ page }) => {
+  await page.goto("/embed?q=yoga");
+  await expect(resultLine(page)).toHaveText('2 results for "yoga"');
+  const sort = page.getByRole("navigation", { name: "Sort" });
+  await expect(sort.getByRole("link", { name: "Nearest" })).toHaveCount(0);
+  await expect(sort.getByRole("link", { name: "A to Z" })).toHaveAttribute("aria-current", "true");
+  await expect(page.getByRole("group", { name: /Distance/ })).toHaveCount(0);
+  await expect(page.getByRole("article")).not.toHaveCount(0);
+  await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/)).toHaveCount(0);
+});
+
+test("zip-location: Nearest is current, Distance group shows, cards show miles", async ({ page }) => {
+  await page.goto("/embed?q=yoga&zip=49508");
+  await expect(resultLine(page)).toContainText("near 49508");
+  await expect(page.getByRole("navigation", { name: "Sort" }).getByRole("link", { name: "Nearest" })).toHaveAttribute("aria-current", "true");
+  await expect(page.getByRole("group", { name: /Distance/ })).toBeVisible();
+  await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/).first()).toBeVisible();
+});
+
 test("show-more-adds-ten: Show more adds the next page of Programs", async ({ page }) => {
   await page.goto("/embed");
   await expect(programCards(page)).toHaveCount(10);

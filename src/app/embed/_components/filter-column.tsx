@@ -2,7 +2,7 @@ import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { customFilterGroups } from "@/custom-fields/filter";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
-import { customFilterUrlKey, FACET_URL_KEYS, type DirectoryQuery } from "@/directory/query";
+import { customFilterUrlKey, FACET_URL_KEYS, RADIUS_MILES, type DirectoryQuery } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import type { FacetDefinition, FacetKey, FacetValue } from "@/directory/types";
 import { DIRECTORY_FORM_ID } from "./search-bar";
@@ -24,7 +24,7 @@ export function FilterColumn({
   results: DirectoryResults;
   clearAllHref: string | null;
 }) {
-  const { query, counts, customCounts } = results;
+  const { query, counts, customCounts, origin } = results;
 
   /** One checkbox row, or null when its count is 0 and it is not checked (spec: hide, do not grey out). */
   const row = (facet: FacetKey, value: FacetValue, indent = false): ReactNode =>
@@ -119,6 +119,28 @@ export function FilterColumn({
           </a>
         )}
       </div>
+      {origin && (
+        <fieldset>
+          <legend className="font-bold">Distance{query.zip ? ` from ${query.zip}` : ""}</legend>
+          <div className="mt-2 grid grid-cols-4 rounded-full bg-background p-1">
+            {[...RADIUS_MILES.map(String), "any"].map((value) => (
+              <label key={value} className="relative">
+                <input
+                  type="radio"
+                  form={DIRECTORY_FORM_ID}
+                  name="r"
+                  value={value}
+                  defaultChecked={String(results.radius) === value}
+                  className="peer absolute inset-0 opacity-0"
+                />
+                <span className="flex min-h-11 items-center justify-center rounded-full text-sm peer-checked:bg-surface peer-checked:font-bold peer-checked:shadow peer-focus-visible:ring-2 peer-focus-visible:ring-primary-text md:min-h-8">
+                  {value === "any" ? "Any" : `${value} mi`}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       {groups}
       {customGroups}
       <noscript>

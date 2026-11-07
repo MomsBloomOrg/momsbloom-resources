@@ -77,7 +77,7 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
   1 km), so the URL never holds an exact home address. `near` is never copied to the host page URL
   (see "Sharing a link").
 - Distance is a straight line (the "haversine" formula), in miles, with one decimal: "0.8 mi".
-- Radius options: 5, 10, 25, Any. The default is Any until a ZIP code is entered, then 10.
+- Radius options: 5, 10, 25, Any. The default is Any. The Distance group shows only when a location is known.
 - Distance applies to Programs only. Programs that are virtual only, or have no coordinates, show
   in a "Virtual and phone" group and are never hidden by the radius. Documents always show.
 - Sort options: Nearest (the default when a ZIP code is set), A to Z, Recently verified.
@@ -100,10 +100,10 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - Mobile: the mobile list frame (`5:353`) has the same heading as desktop. The mobile map frame
   (`95:1903`) still shows a small green "POSTPARTUM RESOURCE DIRECTORY" label above the heading
   "Find support that fits your family". Follow the list frame until the designer confirms.
-- **Open question:** Figma has a "No distance" version of the list view
-  (`desktop-directory-list-no-distance.png`): no ZIP code field, no Distance filter, no List/Map
-  toggle, and "Sort: A-Z". It does not say when it applies (before a ZIP code is entered, or always,
-  if we drop distance).
+- **No location yet (decided):** hide the Distance filter group and the miles on cards. Sort is A to Z
+  (no "Nearest"). Keep the ZIP code field and the List/Map toggle. The Figma "No distance" frames
+  (`desktop-directory-list-no-distance.png`) show the list without those; follow them for the
+  missing Distance group and miles only.
 
 ## Program detail
 
