@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { parseId } from "@/admin/organizations";
 import { getProgramFormOptions } from "@/admin/programs";
 import { listActiveFields } from "@/custom-fields/form";
-import { Card, PageHeader, linkClass } from "../../_components/ui";
+import { linkClass } from "../../_components/ui";
 import { ProgramForm } from "../_components/program-form";
 
 /** Block on the login check (cacheComponents): the page is never prerendered without it. */
@@ -19,18 +19,16 @@ export default async function NewProgramPage({ searchParams }: PageProps<"/admin
   const organization = options.organizations.find((o) => o.id === orgId);
 
   return (
-    <>
-      <PageHeader
-        title="New Program"
-        back={
-          <Link href={organization ? `/admin/organizations/${organization.id}` : "/admin"} className={linkClass}>
-            Back to {organization?.name ?? "Organizations"}
-          </Link>
-        }
-      />
-      <Card>
-        <ProgramForm organizationId={organization?.id} options={options} customFields={customFields} />
-      </Card>
-    </>
+    <ProgramForm
+      organizationId={organization?.id}
+      options={options}
+      customFields={customFields}
+      title="New Program"
+      back={
+        <Link href={organization ? `/admin/organizations/${organization.id}` : "/admin"} className={linkClass}>
+          Back to {organization?.name ?? "Organizations"}
+        </Link>
+      }
+    />
   );
 }

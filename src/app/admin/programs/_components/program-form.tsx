@@ -1,17 +1,21 @@
 "use client";
 
 import { NOT_PLACED } from "@/admin/geocode";
-import { startTransition, useActionState, useState, type FormEvent } from "react";
+import { ChevronDown, X } from "lucide-react";
+import { startTransition, useActionState, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } from "@/admin/programs";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
-import { Field, Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
+import { Card, Field, Notice, PageHeader, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
 import { lastGoodPin } from "../../_components/last-good-pin";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
 const IDLE: ProgramFormState = { status: "idle" };
 const errorClass = "text-sm font-semibold text-red-700";
 const checkRowClass = "flex min-h-9 items-center gap-2";
+// Must match PROGRAM_LISTS in src/admin/programs.ts: a list missing here silently drops its saved checks.
+const CHIP_LISTS = ["categoryIds", "subcategoryIds", "insurancePlanIds", "languageIds", "audienceIds"] as const;
+const chipOptions = (name: string, list: Option[]): ChipOption[] => list.map((o) => ({ name, id: o.id, label: o.name }));
 
 /** A group of checkboxes that sends one `name` value per checked box. */
 export function Checks({
@@ -21,7 +25,6 @@ export function Checks({
   options,
   checked,
   error,
-  hidden,
 }: {
   name: string;
   legend: string;
@@ -29,10 +32,9 @@ export function Checks({
   options: Option[];
   checked: number[];
   error?: string;
-  hidden?: boolean;
 }) {
   return (
-    <fieldset hidden={hidden} disabled={hidden} className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
+    <fieldset className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
       <legend className={labelClass}>{legend}</legend>
       {hint && <p className={hintClass}>{hint}</p>}
       <div className="grid gap-x-4 sm:grid-cols-2">
@@ -52,11 +54,110 @@ export function Checks({
   );
 }
 
+/** The heading of a form card: smaller than the Card default, as in the Edit Resource design. */
+export const sectionTitle = (title: string) => <span className="text-xl font-semibold text-muted">{title}</span>;
+
+/** One checkbox of a ChipSelect. It sends `name=id` when checked. */
+export interface ChipOption {
+  name: string;
+  id: number;
+  label: string;
+  /** A Subcategory under its Category. */
+  indent?: boolean;
+}
+
+const chipKey = (o: ChipOption) => `${o.name}:${o.id}`;
+
+/**
+ * A multi-select: a removable chip for each checked option, above a native `<details>` list of real
+ * checkboxes. The panel is inline (not a popup), so it needs no focus trap or combobox role. The
+ * parent keeps `checked` (keys `name:id`), so a check survives while its option is not rendered, and
+ * an option that is not rendered is not sent.
+ */
+export function ChipSelect({
+  id,
+  legend,
+  hint,
+  options,
+  checked,
+  onToggle,
+  error,
+}: {
+  id: string;
+  legend: string;
+  hint?: string;
+  options: ChipOption[];
+  checked: ReadonlySet<string>;
+  onToggle: (key: string, on: boolean) => void;
+  error?: string;
+}) {
+  const summary = useRef<HTMLElement>(null);
+  const chips = options.filter((o) => checked.has(chipKey(o)));
+  const nested = options.some((o) => o.indent);
+  const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ") || undefined;
+  return (
+    <fieldset className="flex flex-col gap-1" aria-describedby={describedBy}>
+      <legend className={labelClass}>{legend}</legend>
+      {hint && (
+        <p id={`${id}-hint`} className={hintClass}>
+          {hint}
+        </p>
+      )}
+      <div className="rounded-lg border border-muted/70 bg-surface">
+        {chips.length > 0 && (
+          <ul className="flex flex-wrap gap-2 px-4 pt-2.5" aria-label={`Selected ${legend.toLowerCase()}`}>
+            {chips.map((o) => (
+              <li key={chipKey(o)} className="inline-flex items-center gap-1 rounded-full bg-secondary-soft py-0.5 pl-3 pr-1 text-sm text-ink">
+                {o.label}
+                <button
+                  type="button"
+                  aria-label={`Remove ${o.label}`}
+                  onClick={() => {
+                    onToggle(chipKey(o), false);
+                    summary.current?.focus();
+                  }}
+                  className="rounded-full p-1 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-text"
+                >
+                  <X size={14} aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <details className="group">
+          <summary
+            ref={summary}
+            aria-label={`Choose ${legend.toLowerCase()}`}
+            className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-text [&::-webkit-details-marker]:hidden"
+          >
+            Choose…
+            <ChevronDown size={18} aria-hidden className="transition-transform group-open:rotate-180" />
+          </summary>
+          <div className={`grid gap-x-4 border-t border-line px-4 py-2 ${nested ? "" : "sm:grid-cols-2"}`}>
+            {options.map((o) => (
+              <label key={chipKey(o)} className={`${checkRowClass} ${o.indent ? "ml-7" : nested ? "font-semibold" : ""}`}>
+                <input type="checkbox" name={o.name} value={o.id} checked={checked.has(chipKey(o))} onChange={(e) => onToggle(chipKey(o), e.target.checked)} />
+                {o.label}
+              </label>
+            ))}
+          </div>
+        </details>
+      </div>
+      {error && (
+        <p id={`${id}-error`} role="alert" className={errorClass}>
+          {error}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
 /**
  * The Program form. `program` is empty on the "new" page. Submitted with `onSubmit`, not
  * `<form action>`: React 19 would reset the fields after the action, and a refused save would lose
  * the text. Blank address, phone, and website fields show the Organization's value as the
- * placeholder (Inheritance).
+ * placeholder (Inheritance). The form holds the page header, so the top and bottom Save send the
+ * same data.
  */
 export function ProgramForm({
   id,
@@ -64,6 +165,10 @@ export function ProgramForm({
   organizationId,
   options,
   customFields,
+  title,
+  back,
+  actions,
+  children,
 }: {
   id?: number;
   program?: ProgramInput;
@@ -72,10 +177,26 @@ export function ProgramForm({
   options: ProgramFormOptions;
   /** The active Program custom fields, in order. */
   customFields: readonly CustomFieldDefinition[];
+  title: string;
+  back?: ReactNode;
+  /** Header actions before the Status select, for example "View on site". */
+  actions?: ReactNode;
+  /** The end of the Admin card, for example "Last changed". */
+  children?: ReactNode;
 }) {
   const [state, dispatch, pending] = useActionState(saveProgramAction, IDLE);
   const [orgId, setOrgId] = useState(String(program?.organizationId ?? organizationId ?? ""));
-  const [categoryIds, setCategoryIds] = useState<number[]>(program?.categoryIds ?? []);
+  // Every chip checkbox, as `name:id`. Kept while a group is not rendered, so a Category off/on or Accepts insurance No/Yes brings the checks back.
+  const [checked, setChecked] = useState<ReadonlySet<string>>(
+    () => new Set(CHIP_LISTS.flatMap((name) => (program?.[name] ?? []).map((v) => `${name}:${v}`))),
+  );
+  const onToggle = (key: string, on: boolean) =>
+    setChecked((old) => {
+      const next = new Set(old);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   const [acceptanceId, setAcceptanceId] = useState(String(program?.insuranceAcceptanceId ?? ""));
   const errors = state.status === "invalid" ? state.errors : {};
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
@@ -144,167 +265,211 @@ export function ProgramForm({
   );
 
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (p?.lastVerified ?? "");
+  // A Subcategory is listed (and sent) only while its Category is checked.
+  const categoryOptions = options.categories.flatMap((c): ChipOption[] => [
+    { name: "categoryIds", id: c.id, label: c.name },
+    ...(checked.has(`categoryIds:${c.id}`)
+      ? options.subcategories.filter((s) => s.categoryId === c.id).map((s) => ({ name: "subcategoryIds", id: s.id, label: s.name, indent: true }))
+      : []),
+  ]);
+  const saveLabel = id === undefined ? "Create Program" : "Save Changes";
+  /** The save result. `live` gives the boxes their roles; the copy by the bottom Save has none, so a screen reader reads it once. */
+  const notices = (live: boolean) => (
+    <>
+      {state.status === "saved" && <Notice tone="success" role={live ? "status" : undefined}>{state.message}</Notice>}
+      {notice && <Notice tone="warning" role={live ? "status" : undefined}>{notice}</Notice>}
+      {state.status === "invalid" && <Notice tone="error" role={live ? "alert" : undefined}>{state.message}</Notice>}
+    </>
+  );
 
   return (
-    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-5">
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-6">
       <input type="hidden" name="id" value={id ?? ""} />
-      <Field id="program-organizationId" label="Organization" error={errors.organizationId}>
-        <select
-          id="program-organizationId"
-          name="organizationId"
-          value={orgId}
-          onChange={(e) => setOrgId(e.target.value)}
-          aria-describedby={describedBy("organizationId")}
-          className={inputClass}
-        >
-          <option value="">Select an Organization</option>
-          {options.organizations.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-      {text("name", "Program name")}
-      <Field id="program-description" label="Description" error={errors.description}>
-        <textarea
-          id="program-description"
-          name="description"
-          rows={4}
-          defaultValue={p?.description ?? ""}
-          aria-describedby={describedBy("description")}
-          className={inputClass}
-        />
-      </Field>
-      {text("searchKeywords", "Search keywords", {
-        hint: "Words a parent might type that are not in the name or description, for example PPD, baby blues, nursing.",
-      })}
-
-      <fieldset className="flex flex-col gap-1" aria-describedby={errors.categoryIds || errors.subcategoryIds ? "categories-error" : undefined}>
-        <legend className={labelClass}>Categories</legend>
-        <p className={hintClass}>Check at least one. Subcategories show under each checked Category.</p>
-        {options.categories.map((c) => {
-          const on = categoryIds.includes(c.id);
-          const subs = options.subcategories.filter((s) => s.categoryId === c.id);
-          return (
-            <div key={c.id}>
-              <label className={checkRowClass}>
-                <input
-                  type="checkbox"
-                  name="categoryIds"
-                  value={c.id}
-                  checked={on}
-                  onChange={(e) => setCategoryIds((ids) => (e.target.checked ? [...ids, c.id] : ids.filter((x) => x !== c.id)))}
-                />
-                <span className="font-semibold">{c.name}</span>
+      <div>
+        <PageHeader
+          title={title}
+          back={back}
+          actions={
+            <div className="flex flex-wrap items-center gap-3">
+              {actions}
+              <label htmlFor="program-statusId" className="sr-only">
+                Status
               </label>
-              {subs.length > 0 && (
-                <fieldset hidden={!on} disabled={!on} className="ml-7 grid gap-x-4 sm:grid-cols-2" aria-label={`Subcategories of ${c.name}`}>
-                  {subs.map((s) => (
-                    <label key={s.id} className={checkRowClass}>
-                      <input type="checkbox" name="subcategoryIds" value={s.id} defaultChecked={p?.subcategoryIds.includes(s.id)} />
-                      {s.name}
-                    </label>
-                  ))}
-                </fieldset>
-              )}
+              <select
+                id="program-statusId"
+                name="statusId"
+                defaultValue={String(p?.statusId ?? options.statuses[0]?.id ?? "")}
+                aria-describedby={describedBy("statusId")}
+                className="min-h-9 rounded-full border border-muted/70 bg-secondary-soft px-4 py-1.5 text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
+              >
+                {options.statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.showOnSite ? "" : " (hidden from families)"}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" disabled={pending} className={buttonClass("primary")}>
+                {saveLabel}
+              </button>
             </div>
-          );
-        })}
-        {(errors.categoryIds || errors.subcategoryIds) && (
-          <p id="categories-error" role="alert" className={errorClass}>
-            {errors.categoryIds ?? errors.subcategoryIds}
+          }
+        />
+        {errors.statusId && (
+          <p id="program-statusId-error" role="alert" className={`${errorClass} mb-4`}>
+            {errors.statusId}
           </p>
         )}
-      </fieldset>
+        <div className="flex flex-col gap-3">{notices(true)}</div>
+      </div>
 
-      <fieldset className="flex flex-col gap-4">
-        <legend className={labelClass}>Address and contact</legend>
-        <p className={hintClass}>Leave a field blank to use the Organization&apos;s value, shown in grey.</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("streetAddress", "Street address", { inherit: "streetAddress" })}
-          {text("suite", "Suite", { inherit: "suite" })}
-          {text("city", "City", { inherit: "city" })}
-          {text("state", "State", { inherit: "state" })}
-          {text("zip", "ZIP", { inherit: "zip" })}
-          {text("phone", "Phone", { type: "tel", inherit: "phone" })}
-          {text("website", "Website", { type: "url", hint: "Starts with https://", inherit: "website" })}
-          <span />
-          {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634", inherit: "latitude" })}
-          {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
+      <Card title={sectionTitle("Title")}>
+        <div className="flex flex-col gap-5">
+          <Field id="program-organizationId" label="Organization" error={errors.organizationId}>
+            <select
+              id="program-organizationId"
+              name="organizationId"
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              aria-describedby={describedBy("organizationId")}
+              className={inputClass}
+            >
+              <option value="">Select an Organization</option>
+              {options.organizations.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {text("name", "Program name")}
         </div>
-      </fieldset>
+      </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {select("serviceFormatId", "Service format", options.serviceFormats, "Not set")}
-        {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
-        {select("costOptionId", "Cost", options.costOptions, "Not set")}
-        <Field id="program-insuranceAcceptanceId" label="Accepts insurance" error={errors.insuranceAcceptanceId}>
-          <select
-            id="program-insuranceAcceptanceId"
-            name="insuranceAcceptanceId"
-            value={acceptanceId}
-            onChange={(e) => setAcceptanceId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Unknown</option>
-            {options.insuranceAcceptanceOptions.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <Card title={sectionTitle("Location & Hours")}>
+        <div className="flex flex-col gap-5">
+          <p className={hintClass}>Leave an address, phone, or website field blank to use the Organization&apos;s value, shown in grey.</p>
+          {text("streetAddress", "Street address", { inherit: "streetAddress" })}
+          <div className="grid gap-4 sm:grid-cols-4">
+            {text("suite", "Suite", { inherit: "suite" })}
+            {text("city", "City", { inherit: "city" })}
+            {text("state", "State", { inherit: "state" })}
+            {text("zip", "ZIP", { inherit: "zip" })}
+          </div>
+          {text("website", "Website", { type: "url", hint: "Starts with https://", inherit: "website" })}
+          {text("phone", "Phone", { type: "tel", inherit: "phone" })}
+          {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
+          {select("serviceFormatId", "How you'll connect", options.serviceFormats, "Not set")}
+          <ChipSelect
+            id="program-categories"
+            legend="Categories"
+            hint="Choose at least one. Subcategories show under each checked Category."
+            options={categoryOptions}
+            checked={checked}
+            onToggle={onToggle}
+            error={errors.categoryIds ?? errors.subcategoryIds}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634", inherit: "latitude" })}
+            {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
+          </div>
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("About")}>
+        <div className="flex flex-col gap-5">
+          <Field id="program-description" label="About" error={errors.description}>
+            <textarea
+              id="program-description"
+              name="description"
+              rows={6}
+              defaultValue={p?.description ?? ""}
+              aria-describedby={describedBy("description")}
+              className={inputClass}
+            />
+          </Field>
+          {text("searchKeywords", "Search keywords", {
+            hint: "Words a parent might type that are not in the name or description, for example PPD, baby blues, nursing.",
+          })}
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Insurance & Cost")}>
+        <div className="flex flex-col gap-5">
+          <Field id="program-insuranceAcceptanceId" label="Accepts insurance" error={errors.insuranceAcceptanceId}>
+            <select
+              id="program-insuranceAcceptanceId"
+              name="insuranceAcceptanceId"
+              value={acceptanceId}
+              onChange={(e) => setAcceptanceId(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Unknown</option>
+              {options.insuranceAcceptanceOptions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {acceptsYes && (
+            <ChipSelect
+              id="program-insurancePlanIds"
+              legend="Insurance plans accepted"
+              options={chipOptions("insurancePlanIds", options.insurancePlans)}
+              checked={checked}
+              onToggle={onToggle}
+              error={errors.insurancePlanIds}
+            />
+          )}
+          {select("costOptionId", "Cost", options.costOptions, "Not set")}
+          <Field id="program-eligibilityNotes" label="Eligibility notes" error={errors.eligibilityNotes}>
+            <textarea id="program-eligibilityNotes" name="eligibilityNotes" rows={3} defaultValue={p?.eligibilityNotes ?? ""} className={inputClass} />
+          </Field>
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Who it serves")}>
+        <div className="flex flex-col gap-5">
+          <ChipSelect id="program-languageIds" legend="Languages" options={chipOptions("languageIds", options.languages)} checked={checked} onToggle={onToggle} error={errors.languageIds} />
+          <ChipSelect id="program-audienceIds" legend="Who it serves" options={chipOptions("audienceIds", options.audiences)} checked={checked} onToggle={onToggle} error={errors.audienceIds} />
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Admin")}>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-end gap-3">
+            <Field id="program-lastVerified" label="Last verified" error={errors.lastVerified}>
+              {/* key: a new value from "Mark verified" replaces what the input shows. */}
+              <input key={lastVerified} id="program-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
+            </Field>
+            {id !== undefined && (
+              <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>
+                Mark verified
+              </button>
+            )}
+          </div>
+          <Field id="program-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
+            <textarea
+              id="program-internalNotes"
+              name="internalNotes"
+              rows={3}
+              defaultValue={p?.internalNotes ?? ""}
+              aria-describedby="program-internalNotes-hint"
+              className={inputClass}
+            />
+          </Field>
+          <CustomFieldInputs idPrefix="program" fields={customFields} values={p?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
+          {children}
+        </div>
+      </Card>
+
+      <div aria-hidden="true" className="flex flex-col gap-3">
+        {notices(false)}
       </div>
-      <Checks name="insurancePlanIds" legend="Insurance plans accepted" options={options.insurancePlans} checked={p?.insurancePlanIds ?? []} error={errors.insurancePlanIds} hidden={!acceptsYes} />
-      <Checks name="languageIds" legend="Languages" options={options.languages} checked={p?.languageIds ?? []} error={errors.languageIds} />
-      <Checks name="audienceIds" legend="Who it serves" options={options.audiences} checked={p?.audienceIds ?? []} error={errors.audienceIds} />
-      <Field id="program-eligibilityNotes" label="Eligibility notes" error={errors.eligibilityNotes}>
-        <textarea id="program-eligibilityNotes" name="eligibilityNotes" rows={3} defaultValue={p?.eligibilityNotes ?? ""} className={inputClass} />
-      </Field>
-      <CustomFieldInputs idPrefix="program" fields={customFields} values={p?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="program-statusId" label="Status" error={errors.statusId}>
-          <select id="program-statusId" name="statusId" defaultValue={String(p?.statusId ?? options.statuses[0]?.id ?? "")} className={inputClass}>
-            {options.statuses.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {s.showOnSite ? "" : " (hidden from families)"}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field id="program-lastVerified" label="Last verified" error={errors.lastVerified}>
-          {/* key: a new value from "Mark verified" replaces what the input shows. */}
-          <input key={lastVerified} id="program-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
-        </Field>
-      </div>
-      <Field id="program-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
-        <textarea
-          id="program-internalNotes"
-          name="internalNotes"
-          rows={3}
-          defaultValue={p?.internalNotes ?? ""}
-          aria-describedby="program-internalNotes-hint"
-          className={inputClass}
-        />
-      </Field>
-
-      {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
-      {notice && <Notice tone="warning" role="status">{notice}</Notice>}
-      {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
-
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={pending} className={buttonClass("primary")}>
-          {id === undefined ? "Create Program" : "Save"}
-        </button>
-        {id !== undefined && (
-          <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>
-            Mark verified
-          </button>
-        )}
-      </div>
+      <button type="submit" disabled={pending} className={`${buttonClass("primary")} w-full max-w-sm self-center`}>
+        {saveLabel}
+      </button>
     </form>
   );
 }

@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import type { ContactRow } from "@/admin/contacts";
 import { Badge, Card, EmptyState, Field, Notice, buttonClass, inputClass } from "../../../_components/ui";
+import { sectionTitle } from "../../_components/program-form";
 import { saveContactAction, type ContactFormState } from "./contact-actions";
 
 const IDLE: ContactFormState = { status: "idle" };
@@ -79,7 +80,7 @@ export function ContactsSection({ programId, contacts }: { programId: number; co
   // Counts good adds. A new key remounts the "Add contact" form (empty fields), so the notice lives here.
   const [addKey, setAddKey] = useState(0);
   return (
-    <Card title="Contacts" className="mt-6">
+    <Card title={sectionTitle("Contacts")}>
       <p className="mb-4 text-sm text-muted">Only Contacts marked &quot;Show on website&quot; are shown to families.</p>
       {contacts.length === 0 && <EmptyState>No Contacts yet.</EmptyState>}
       <ul className="flex flex-col gap-4">
