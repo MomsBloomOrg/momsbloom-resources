@@ -16,8 +16,9 @@ export interface CurrentStaffAdmin {
 }
 
 /**
- * The logged-in Staff admin, or null. Reads the session and the row on every request, and checks
- * `ADMIN_EMAILS` again, so an address removed from the list is locked out on its next request.
+ * The logged-in Staff admin, or null. Reads the session and the row on every request, and checks the
+ * allow-list again (Owners on `ADMIN_EMAILS`, plus Staff admins added in the Admin), so a removed
+ * address is locked out on its next request.
  *
  * `connection()` first: `auth()` makes a CSRF token with `crypto.getRandomValues()` on every call,
  * which is an unstable value in a prerender, so the session read must wait for the request.

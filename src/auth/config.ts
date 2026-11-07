@@ -1,12 +1,12 @@
 /**
  * The Auth.js config: Staff admin login by Login link (ADR 0003), with database sessions. Only
- * addresses on `ADMIN_EMAILS` get through. No Next.js imports, so the integration test can run it
- * with the plain `Auth()` handler on PGlite.
+ * Owners (addresses on `ADMIN_EMAILS`) and Staff admins added in the Admin get through. No Next.js
+ * imports, so the integration test can run it with the plain `Auth()` handler on PGlite.
  */
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { AuthConfig } from "@auth/core";
 import { AuthError } from "@auth/core/errors";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import Resend from "@auth/core/providers/resend";
 import { authSessions, authVerificationTokens, staffAdmins } from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -56,9 +56,28 @@ export interface AuthDeps {
 export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 /**
- * The Staff admin for a session's user id, or null when the row is gone or its address is no longer
- * on `ADMIN_EMAILS`. The DAL calls it on every request. A removed address also loses all its
- * sessions, so adding it back later does not bring an old session back.
+ * True when the address is on the allow-list: an Owner (on `ADMIN_EMAILS`) or a Staff admin added in
+ * the Admin (a `staff_admins` row with `added_at` set). The lookup runs for every address, so a
+ * stranger's request takes the same path as a Staff admin's.
+ */
+export async function isAllowedEmail(
+  db: Db,
+  email: string | null | undefined,
+  env: Record<string, string | undefined> = process.env,
+): Promise<boolean> {
+  const normalized = normalizeEmail(email ?? "");
+  const [added] = await db
+    .select({ id: staffAdmins.id })
+    .from(staffAdmins)
+    .where(and(eq(staffAdmins.email, normalized), isNotNull(staffAdmins.addedAt)));
+  return added !== undefined || isStaffEmail(normalized, env);
+}
+
+/**
+ * The Staff admin for a session's user id, or null when the row is gone or it is no longer allowed:
+ * not an Owner and not added in the Admin (a first-login Owner row whose address left `ADMIN_EMAILS`).
+ * The DAL calls it on every request. A refused row also loses all its sessions, so adding it back
+ * later does not bring an old session back. A removed Staff admin has no row (sessions cascade).
  */
 export async function findStaffAdmin(
   db: Db,
@@ -66,11 +85,11 @@ export async function findStaffAdmin(
   env: Record<string, string | undefined> = process.env,
 ): Promise<{ id: string; email: string } | null> {
   const [row] = await db
-    .select({ id: staffAdmins.id, email: staffAdmins.email })
+    .select({ id: staffAdmins.id, email: staffAdmins.email, addedAt: staffAdmins.addedAt })
     .from(staffAdmins)
     .where(eq(staffAdmins.id, id));
   if (!row) return null;
-  if (isStaffEmail(row.email, env)) return row;
+  if (row.addedAt !== null || isStaffEmail(row.email, env)) return { id: row.id, email: row.email };
   await db.delete(authSessions).where(eq(authSessions.userId, row.id));
   return null;
 }
@@ -124,8 +143,8 @@ export function buildAuthConfig({
         },
         async sendVerificationRequest({ identifier, url }) {
           // The signIn callback already refused other addresses; this is a second guard.
-          if (!isStaffEmail(identifier, env)) {
-            throw new Error("Refused to send a Login link to an address not on ADMIN_EMAILS.");
+          if (!(await isAllowedEmail(db, identifier, env))) {
+            throw new Error("Refused to send a Login link to an address not on the Staff admin list.");
           }
           const loginUrl = new URL(LOGIN_PATH, url).toString();
           // The token insert before this call is awaited; the send is not, so the answer is the same
@@ -144,7 +163,7 @@ export function buildAuthConfig({
       /**
        * Runs before Auth.js makes a token and sends the email, and again when the link is used.
        *
-       * (1) An address not on `ADMIN_EMAILS` is refused. At the link request, the refusal returns the
+       * (1) An address not on the allow-list (`isAllowedEmail`) is refused. At the link request, the refusal returns the
        * same redirect as a sent link (no token, no email, no rate-limit write), so the response does
        * not show who is a Staff admin. At the link click, the person has proved the address, so a
        * refusal is a plain `false` (AccessDenied).
@@ -154,7 +173,7 @@ export function buildAuthConfig({
        */
       async signIn({ user, email }) {
         const linkRequest = email?.verificationRequest === true;
-        if (!isStaffEmail(user.email, env)) {
+        if (!(await isAllowedEmail(db, user.email, env))) {
           console.warn("[auth] Refused sign-in: not on the Staff admin list.");
           return linkRequest ? VERIFY_REQUEST_PATH : false;
         }

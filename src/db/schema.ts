@@ -361,7 +361,8 @@ export const programAudiences = pgTable("program_audiences", {
 
 // ---------------------------------------------------------------------------------------------
 // Admin login (Auth.js). Written here, not pulled: the column names follow @auth/drizzle-adapter.
-// A Staff admin row is made at the first login of an address on ADMIN_EMAILS (src/auth/config.ts).
+// A Staff admin row is made at the first login of an Owner (an address on ADMIN_EMAILS), or when a
+// Staff admin adds an address in the Admin (src/admin/staff-admins.ts; then `added_at` is set).
 // No accounts table: the email link is the only login (ADR 0003), and Auth.js's email flow never
 // reads or writes accounts.
 
@@ -372,6 +373,9 @@ export const staffAdmins = pgTable("staff_admins", {
 	emailVerified: timestamp("email_verified", { withTimezone: true, mode: 'date' }),
 	image: text(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+	// Set when a Staff admin adds the address in the Admin. Null for a row that an Owner's first login
+	// made: that row is allowed only while its address is on ADMIN_EMAILS.
+	addedAt: timestamp("added_at", { withTimezone: true, mode: 'date' }),
 }, (table) => [
 	check("staff_admins_email_lowercase", sql`${table.email} = lower(${table.email})`),
 ]);

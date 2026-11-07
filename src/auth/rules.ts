@@ -29,7 +29,7 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
- * The Staff admin allow-list: `ADMIN_EMAILS`, separated by commas or whitespace. Each entry is
+ * The Owners: `ADMIN_EMAILS`, separated by commas or whitespace. Each entry is
  * normalized; an entry that is not a valid email is dropped.
  */
 export function staffAllowList(env: Env = process.env): Set<string> {
@@ -37,7 +37,10 @@ export function staffAllowList(env: Env = process.env): Set<string> {
   return new Set(entries.filter(isValidEmail));
 }
 
-/** True when the email is on `ADMIN_EMAILS`. Only these people get or use a Login link. */
+/**
+ * True when the email is an Owner (on `ADMIN_EMAILS`). The full allow-list also has the Staff admins
+ * added in the Admin: see `isAllowedEmail` in ./config.ts.
+ */
 export function isStaffEmail(email: string | null | undefined, env: Env = process.env): boolean {
   return email != null && staffAllowList(env).has(normalizeEmail(email));
 }
