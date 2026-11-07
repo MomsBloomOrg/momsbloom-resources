@@ -13,6 +13,7 @@ import { saveProgramAction, type ProgramFormState } from "../actions";
 const IDLE: ProgramFormState = { status: "idle" };
 const errorClass = "text-sm font-semibold text-red-700";
 const checkRowClass = "flex min-h-9 items-center gap-2";
+// Must match PROGRAM_LISTS in src/admin/programs.ts: a list missing here silently drops its saved checks.
 const CHIP_LISTS = ["categoryIds", "subcategoryIds", "insurancePlanIds", "languageIds", "audienceIds"] as const;
 const chipOptions = (name: string, list: Option[]): ChipOption[] => list.map((o) => ({ name, id: o.id, label: o.name }));
 
@@ -24,7 +25,6 @@ export function Checks({
   options,
   checked,
   error,
-  hidden,
 }: {
   name: string;
   legend: string;
@@ -32,10 +32,9 @@ export function Checks({
   options: Option[];
   checked: number[];
   error?: string;
-  hidden?: boolean;
 }) {
   return (
-    <fieldset hidden={hidden} disabled={hidden} className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
+    <fieldset className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
       <legend className={labelClass}>{legend}</legend>
       {hint && <p className={hintClass}>{hint}</p>}
       <div className="grid gap-x-4 sm:grid-cols-2">
@@ -128,6 +127,7 @@ export function ChipSelect({
         <details className="group">
           <summary
             ref={summary}
+            aria-label={`Choose ${legend.toLowerCase()}`}
             className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-4 py-2.5 text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-text [&::-webkit-details-marker]:hidden"
           >
             Choose…
@@ -464,7 +464,9 @@ export function ProgramForm({
         </div>
       </Card>
 
-      {notices(false)}
+      <div aria-hidden="true" className="flex flex-col gap-3">
+        {notices(false)}
+      </div>
       <button type="submit" disabled={pending} className={`${buttonClass("primary")} w-full max-w-sm self-center`}>
         {saveLabel}
       </button>
