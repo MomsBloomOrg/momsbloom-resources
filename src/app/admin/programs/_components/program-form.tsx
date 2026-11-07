@@ -21,6 +21,7 @@ export function Checks({
   options,
   checked,
   error,
+  hidden,
 }: {
   name: string;
   legend: string;
@@ -28,9 +29,10 @@ export function Checks({
   options: Option[];
   checked: number[];
   error?: string;
+  hidden?: boolean;
 }) {
   return (
-    <fieldset className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
+    <fieldset hidden={hidden} disabled={hidden} className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
       <legend className={labelClass}>{legend}</legend>
       {hint && <p className={hintClass}>{hint}</p>}
       <div className="grid gap-x-4 sm:grid-cols-2">
@@ -196,15 +198,15 @@ export function ProgramForm({
                 />
                 <span className="font-semibold">{c.name}</span>
               </label>
-              {on && subs.length > 0 && (
-                <div className="ml-7 grid gap-x-4 sm:grid-cols-2" role="group" aria-label={`Subcategories of ${c.name}`}>
+              {subs.length > 0 && (
+                <fieldset hidden={!on} disabled={!on} className="ml-7 grid gap-x-4 sm:grid-cols-2" aria-label={`Subcategories of ${c.name}`}>
                   {subs.map((s) => (
                     <label key={s.id} className={checkRowClass}>
                       <input type="checkbox" name="subcategoryIds" value={s.id} defaultChecked={p?.subcategoryIds.includes(s.id)} />
                       {s.name}
                     </label>
                   ))}
-                </div>
+                </fieldset>
               )}
             </div>
           );
@@ -254,9 +256,7 @@ export function ProgramForm({
           </select>
         </Field>
       </div>
-      {acceptsYes && (
-        <Checks name="insurancePlanIds" legend="Insurance plans accepted" options={options.insurancePlans} checked={p?.insurancePlanIds ?? []} error={errors.insurancePlanIds} />
-      )}
+      <Checks name="insurancePlanIds" legend="Insurance plans accepted" options={options.insurancePlans} checked={p?.insurancePlanIds ?? []} error={errors.insurancePlanIds} hidden={!acceptsYes} />
       <Checks name="languageIds" legend="Languages" options={options.languages} checked={p?.languageIds ?? []} error={errors.languageIds} />
       <Checks name="audienceIds" legend="Who it serves" options={options.audiences} checked={p?.audienceIds ?? []} error={errors.audienceIds} />
       <Field id="program-eligibilityNotes" label="Eligibility notes" error={errors.eligibilityNotes}>
