@@ -21,6 +21,7 @@ Host: Code for Good WM (https://codeforgoodwm.org)
 Team members: add your name here in a PR if you want credit.
 Sam Buck
 Jaxon Bell
+Gryffen Bell
 
 /* THANKS */
 Code for Good WM
