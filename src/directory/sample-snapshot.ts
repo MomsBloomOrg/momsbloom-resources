@@ -6,6 +6,7 @@
  * phone numbers.
  */
 import { facetValues, TEST_SNAPSHOT } from "./test-fixtures";
+import type { CustomFieldDefinition, CustomValues } from "@/custom-fields/types";
 import type { DirectoryProgram, DirectorySnapshot, PostalAddress } from "./types";
 
 const address = (street: string, zip: string, suite: string | null = null): PostalAddress => ({
@@ -195,10 +196,47 @@ const SAMPLE_PROGRAMS: DirectoryProgram[] = [
   }),
 ];
 
+// Custom fields, so the e2e tests see the "More details" cards and a custom filter group.
+const sampleField = (fields: Pick<CustomFieldDefinition, "id" | "entity" | "label" | "type"> & Partial<CustomFieldDefinition>): CustomFieldDefinition => ({
+  helpText: null,
+  options: [],
+  sortOrder: Number(fields.id),
+  showOnWebsite: true,
+  filterable: false,
+  archived: false,
+  ...fields,
+});
+const PARKING = sampleField({
+  id: "1",
+  entity: "program",
+  label: "Parking",
+  type: "choice",
+  filterable: true,
+  options: [
+    { key: "1", label: "Free lot", hidden: false },
+    { key: "2", label: "Street", hidden: false },
+  ],
+});
+const ENTRANCE = sampleField({ id: "2", entity: "organization", label: "Accessible entrance", type: "text" });
+const PROGRAM_CUSTOM: Record<string, CustomValues> = {
+  "P-001": { [PARKING.id]: "1" },
+  "P-003": { [PARKING.id]: "2" },
+  "P-101": { [PARKING.id]: "1" },
+};
+const ORGANIZATION_CUSTOM: Record<string, CustomValues> = {
+  "O-001": { [ENTRANCE.id]: "Ramp at the side door" },
+};
+const withCustom = (program: DirectoryProgram): DirectoryProgram => ({
+  ...program,
+  custom: PROGRAM_CUSTOM[program.id] ?? {},
+  organizationCustom: ORGANIZATION_CUSTOM[program.organization.id] ?? {},
+});
+
 export const SAMPLE_SNAPSHOT: DirectorySnapshot = {
   ...TEST_SNAPSHOT,
+  customFields: [PARKING, ENTRANCE],
   programs: [
     ...TEST_SNAPSHOT.programs.map((program) => ({ ...program, ...ORGANIZATION_DETAILS[program.organization.id] })),
     ...SAMPLE_PROGRAMS,
-  ],
+  ].map(withCustom),
 };

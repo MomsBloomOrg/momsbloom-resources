@@ -10,7 +10,8 @@
  * 3. It listens for "scroll" messages: the iframe asks the page to scroll to a point in the iframe,
  *    but only when that point is out of view.
  * 4. It listens for "location" messages, so that a link copied from the browser bar shows the same
- *    results (ADR 0005). The iframe sends its filters (never `near` or `n`) and the open Program.
+ *    results (ADR 0005). The iframe sends its filters (never `near` or `n`; custom field filters are
+ *    `cf<id>`) and the open Program.
  *    With one Embed on the page, they go into the page URL with the prefix "mbr-" (mbr-q=yoga,
  *    mbr-program=P-101), so they never clash with Squarespace's own keys (Squarespace uses ?q=).
  *    On load, the mbr- keys in the page URL go into the iframe URL. Other page keys are never read
@@ -39,6 +40,9 @@
   var MAX_SEARCH = 2000;
   var MAX_VALUE = 100;
   var KEYS = ["q", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
+  // Custom field filters (cf12=1): a copy of HOST_CUSTOM_KEY in protocol.ts.
+  var CUSTOM_KEY = /^cf\d{1,9}$/;
+  var MAX_CUSTOM_KEYS = 20;
   var HOST_PREFIX = "mbr-";
   var PROGRAM_KEY = HOST_PREFIX + "program";
   var PROGRAM_ID = /^[A-Za-z0-9-]{1,40}$/;
@@ -87,10 +91,21 @@
     return list;
   }
 
+  /** The custom filter keys (without the prefix) found in params, at most MAX_CUSTOM_KEYS. */
+  function customKeys(params, prefix) {
+    var keys = [];
+    params.forEach(function (_value, name) {
+      if (name.indexOf(prefix) !== 0) return;
+      var key = name.slice(prefix.length);
+      if (CUSTOM_KEY.test(key) && keys.indexOf(key) < 0 && keys.length < MAX_CUSTOM_KEYS) keys.push(key);
+    });
+    return keys;
+  }
+
   /** Only the filter keys, in a new URLSearchParams. */
   function filterParams(params, prefix) {
     var out = new URLSearchParams();
-    KEYS.forEach(function (key) {
+    KEYS.concat(customKeys(params, prefix)).forEach(function (key) {
       params.getAll(prefix + key).forEach(function (value) {
         if (value.length > MAX_VALUE) return; // the server ignores long values; keep the URL short
         out.append(key, value);
@@ -102,7 +117,7 @@
   /** Writes the filters and the Program into the page URL. Never touches keys without our prefix. */
   function writeHostUrl(search, program) {
     var url = new URL(window.location.href);
-    KEYS.forEach(function (key) {
+    KEYS.concat(customKeys(url.searchParams, HOST_PREFIX)).forEach(function (key) {
       url.searchParams.delete(HOST_PREFIX + key);
     });
     url.searchParams.delete(PROGRAM_KEY);

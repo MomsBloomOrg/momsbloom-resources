@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { FACET_URL_KEYS } from "@/directory/query";
-import { EVENT_MESSAGE, MAX_PARAM_LENGTH, safeKeyword } from "@/embed/protocol";
+import { EVENT_MESSAGE, HOST_CUSTOM_KEY, MAX_PARAM_LENGTH, safeKeyword } from "@/embed/protocol";
 
 /** Wait this long after the last change before a search counts, so "yo", "yog", "yoga" send one event. */
 const SETTLE_MS = 1_000;
@@ -74,7 +74,8 @@ export function AnalyticsReporter({
     const onChange = (event: Event) => {
       const input = event.target;
       if (!(input instanceof HTMLInputElement) || input.type !== "checkbox" || !input.checked) return;
-      const group = facetOf.get(input.name);
+      // Custom field filters report their URL key (cf12) as the group, like the Facets report theirs.
+      const group = facetOf.get(input.name) ?? (HOST_CUSTOM_KEY.test(input.name) ? input.name : undefined);
       if (group) send("directory_filter", { filter_group: group, filter_value: input.value.slice(0, MAX_PARAM_LENGTH) });
     };
     document.addEventListener("click", onClick);

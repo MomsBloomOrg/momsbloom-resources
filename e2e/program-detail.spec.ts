@@ -62,7 +62,7 @@ test("mobile-actions-first: on a phone, the Call button is above About", async (
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/embed/programs/P-001");
   const call = await page.getByRole("link", { name: /^Call/ }).boundingBox();
-  const about = await page.getByRole("heading", { name: "About" }).boundingBox();
+  const about = await page.getByRole("heading", { name: "About", exact: true }).boundingBox();
   expect(call!.y).toBeLessThan(about!.y);
 });
 
