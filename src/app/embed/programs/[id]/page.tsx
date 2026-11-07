@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
 import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
-import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
 import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
@@ -16,7 +14,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+/** Block on the server and send the full HTML, so the page works without JavaScript (cacheComponents). */
+export const instant = false;
+
 const MORE_LIMIT = 3;
+const backLink = "flex min-h-11 w-fit items-center gap-2 font-bold text-primary-text min-[900px]:min-h-6";
 const card = "rounded-2xl border border-line bg-surface p-5";
 const heading = "text-base font-extrabold";
 const pill = "flex min-h-11 items-center gap-2 rounded-full border px-4 font-bold min-[900px]:min-h-10";
@@ -39,7 +41,8 @@ function Field({ name, children }: { name: string; children: React.ReactNode }) 
 /**
  * The detail view of one Program (docs/specs/public-directory.md, "Program detail"), no-map design.
  * Two columns from 900 px; below that one column with the actions on top. Unknown or Inactive IDs are
- * not in the snapshot: they go back to the results with a note.
+ * not in the snapshot: they show a note and a link back to the results. An inline page, not redirect():
+ * with cacheComponents the response has started, so a redirect needs JavaScript.
  *
  * Keep all content inside EMBED_ROOT_ID: ResizeReporter measures it. `data-scroll-top` makes the host page
  * scroll to the top of the iframe when the page opens.
@@ -48,9 +51,20 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
   const [{ id }, rawQuery] = await Promise.all([params, searchParams]);
   const query = parseDirectoryQuery(rawQuery);
   const search = serializeDirectoryQuery(query);
-  const snapshot = getDirectorySnapshot();
+  const snapshot = await getDirectorySnapshot();
   const program = snapshot.programs.find((candidate) => candidate.id === id);
-  if (!program) redirect(`/embed?${search ? `${search}&` : ""}unavailable=1`);
+  if (!program) {
+    return (
+      <main id={EMBED_ROOT_ID} data-scroll-top="" className="mx-auto w-full max-w-6xl px-4 py-6">
+        <p role="status">That resource isn&apos;t available anymore.</p>
+        <a href={`/embed${search ? `?${search}` : ""}`} className={`${backLink} mt-4`}>
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          Back to results
+        </a>
+        <ResizeReporter share={shareSearch(query)} />
+      </main>
+    );
+  }
 
   const findLabel = facetLabelLookup(snapshot.facets);
   const labelOf: LabelOf = (facet, key) => findLabel(facet, key) ?? key;
@@ -100,12 +114,9 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
 
   return (
     <main id={EMBED_ROOT_ID} data-scroll-top="" className="mx-auto w-full max-w-6xl px-4 py-6">
-      {IS_SAMPLE_DATA && (
-        <p className="mb-4 text-sm text-muted">Sample data: these programs are made up while the directory is being built.</p>
-      )}
       <a
         href={`/embed?${search}#program-${program.id}`}
-        className="flex min-h-11 w-fit items-center gap-2 font-bold text-primary-text min-[900px]:min-h-6"
+        className={backLink}
       >
         <ArrowLeft aria-hidden="true" className="size-4" />
         {query.q ? `Back to results for “${query.q}”` : "Back to results"}

@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+/** Block on the server and send the full HTML, so the page works without JavaScript (cacheComponents). */
+export const instant = false;
+
 /**
  * The Directory list view, shown in an iframe on momsbloom.org/resources by `public/embed.js`.
  *
@@ -41,7 +44,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   const params = await searchParams;
   // Test-only switch for the error screen (e2e). Vercel never sets the env var.
   if (process.env.DIRECTORY_TEST_ERRORS === "1" && params.fail === "1") throw new Error("Test error");
-  const snapshot = getDirectorySnapshot();
+  const snapshot = await getDirectorySnapshot();
   const results = searchDirectory(snapshot, parseDirectoryQuery(params));
   const { query } = results;
 
@@ -128,7 +131,6 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
-            {params.unavailable && <p role="status">That resource isn&apos;t available anymore.</p>}
             <ResultLine results={results} />
             {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
             <a

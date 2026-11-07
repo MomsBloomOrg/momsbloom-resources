@@ -1,5 +1,8 @@
 # Spec: Seed import (spreadsheet to database)
 
+> **Done outside this repo.** The team ran the import outside GitHub, to keep real data out of this
+> public repo. No import script is in the repo. This spec stays as the record of the mapping rules.
+
 How the MomsBloom spreadsheet gets into the database, one time. Capitalized terms are defined in
 [CONTEXT.md](../../CONTEXT.md).
 

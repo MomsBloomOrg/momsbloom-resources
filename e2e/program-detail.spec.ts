@@ -45,12 +45,18 @@ test("more-from-hidden-single: More from shows only for an Organization with oth
   await expect(page.getByRole("link", { name: /^See all \d+ programs at Riverbend Health/ })).toHaveAttribute("href", "/embed?org=O-001");
 });
 
-test("unknown-program-note: an unknown Program goes to the results with a note", async ({ page }) => {
-  await page.goto("/embed/programs/P-999?q=yoga");
-  await expect(page).toHaveURL(/\/embed\?q=yoga&unavailable=1$/);
-  await expect(page.getByRole("status").filter({ hasText: "That resource isn't available anymore." })).toBeVisible();
-  await expect(resultLine(page)).toHaveText('2 results for "yoga"');
-});
+for (const javaScriptEnabled of [true, false]) {
+  test.describe(`unknown-program-note (JavaScript ${javaScriptEnabled ? "on" : "off"})`, () => {
+    test.use({ javaScriptEnabled });
+    test("an unknown Program shows a note and a link back to the same results", async ({ page }) => {
+      await page.goto("/embed/programs/P-999?q=yoga");
+      await expect(page.getByRole("status").filter({ hasText: "That resource isn't available anymore." })).toBeVisible();
+      await page.getByRole("link", { name: "Back to results" }).click();
+      await expect(page).toHaveURL(/\/embed\?q=yoga$/);
+      await expect(resultLine(page)).toHaveText('2 results for "yoga"');
+    });
+  });
+}
 
 test("mobile-actions-first: on a phone, the Call button is above About", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

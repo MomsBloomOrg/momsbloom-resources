@@ -1,6 +1,4 @@
-import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
-
-/** Title, intro, and the "Sample data" note. Shared by the page and the error screen so the header does not jump. */
+/** Title and intro. Shared by the page and the error screen so the header does not jump. */
 export function DirectoryHeader() {
   return (
     <header className="text-center">
@@ -10,11 +8,6 @@ export function DirectoryHeader() {
         Search local help for pregnancy and the first year after birth. Filter by what&apos;s near you, what your
         insurance covers, and the support type you need.
       </p>
-      {IS_SAMPLE_DATA && (
-        <p className="mx-auto mt-3 w-fit rounded-full bg-primary-soft px-3 py-1 text-xs font-bold">
-          Sample data: these programs are made up while the directory is being built.
-        </p>
-      )}
     </header>
   );
 }

@@ -16,15 +16,15 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `design-captures` | Done (screenshots; Figma is view-only for us). | [docs/design](design/README.md) |
 | `context-and-specs` | Done | [CONTEXT.md](../CONTEXT.md), [docs/specs](specs/) |
 | `directory-core-functions` | Done. Search, filters, counts, distance, sorting, pages, Michigan ZIP centers; 53 unit tests. | `src/directory/` |
-| `database-schema` | In progress (another developer) | `src/db/schema.ts` |
+| `database-schema` | Done. The team made the tables in the database; `schema.ts` is pulled from it (`drizzle-kit pull`), with `drizzle/` as the migration baseline. | `src/db/schema.ts`, `drizzle/` |
 | `directory-list-view` | Done (list view, desktop and mobile, on sample data with a "Sample data" note). Next: mobile filter sheet, Program detail, empty and error states. | `src/app/embed/`, `src/directory/snapshot.ts`, `e2e/directory.spec.ts` |
 | `directory-empty-error-states` | Done. Error screen with "Try again", "Clear filters" and "Widen to 25 mi" buttons, ZIP message for a ZIP that is not 5 digits. | `src/app/embed/`, `e2e/directory.spec.ts` |
 | `program-detail-page` | Done. `/embed/programs/[id]` (no-map design, two columns from 900 px), "More from" list, unknown Program redirects to results with a note, new `scroll` embed message. | `src/app/embed/programs/`, `e2e/program-detail.spec.ts` |
 | `mobile-filter-sheet` | Done. Below 768 px, "Filters" opens a bottom sheet (native `<dialog>`, focus trap, "Show N results"); in the iframe it fills the visible part of the screen. Without JavaScript, the link still jumps to the column. | `src/app/embed/_components/filter-sheet.tsx`, `e2e/directory.spec.ts` |
 | `embed-link-sync` | Done. The iframe posts a `location` message; `embed.js` writes `mbr-` keys (and `mbr-program`) into the host page URL with `replaceState`, and reads them on load. `near` and `n` are never shared. | [ADR 0005](adr/0005-shared-links-through-the-host-page-url.md), `public/embed.js`, `e2e/embed.spec.ts` |
 | `embed-analytics-events` | Done. The iframe posts an `event` message; `embed.js` checks it against an allow-list and calls the host page's `gtag("event", ...)`. Custom dimensions in GA4 are for MomsBloom to register after the deploy. | [ADR 0006](adr/0006-analytics-events-through-the-host-page.md), `src/app/embed/_components/analytics-reporter.tsx`, `e2e/analytics.spec.ts` |
-| `directory-snapshot-loader` | Blocked on the schema. Cached loader + mapper (tables → `DirectorySnapshot`), `cacheComponents: true`, `updateTag("directory")`. | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
-| `seed-import` | Blocked on the schema. | [data import spec](specs/data-import.md) |
+| `directory-snapshot-loader` | Done. Cached loader (`cacheLife("hours")`) + mapper (tables → `DirectorySnapshot`), `cacheComponents: true`. The Admin adds `updateTag("directory")`. | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
+| `seed-import` | Done (seeded outside the repo). | [data import spec](specs/data-import.md) |
 | `admin-login` | Blocked on the schema (Auth.js tables) and on Resend domain setup. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |
 | `admin-pages` | After `admin-login`. No design yet: plain forms. | [admin spec](specs/admin.md) |
 | `directory-map-view` | Done. List/Map toggle (`view=map`), Leaflet map beside numbered cards, pins for the shown pages; small 200 px map in the detail page Location card (hidden without a location or for virtual-only Programs). | `src/app/embed/_components/program-map.tsx`, `e2e/directory-map.spec.ts`, [public directory spec](specs/public-directory.md) |
@@ -58,11 +58,11 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
 - [x] **Spec fix:** the public directory spec says browser location "stays in the browser". With
       server search, "Use my location" sends `near=lat,lng` (rounded to about 1 km) to our server.
       Update the spec, and say `near` is never copied to the host page URL.
-- [ ] Turn on `cacheComponents: true` in `next.config.ts` with the snapshot loader (not before:
+- [x] Turn on `cacheComponents: true` in `next.config.ts` with the snapshot loader (not before:
       it changes how pages render).
-- [ ] When the schema lands, check it against `src/directory/types.ts` and the data import spec's
+- [x] When the schema lands, check it against `src/directory/types.ts` and the data import spec's
       column list.
-- [ ] Skeleton on first load: add with the snapshot loader, as a Suspense boundary around the results only (the search form stays outside it, so no-JS still works).
+- [x] ~~Skeleton on first load~~ Not done, on purpose: streamed Suspense content stays hidden when JavaScript is off, so it breaks the no-JS promise. The snapshot is cached, and `DirectoryLive` already fades old results.
 - [ ] Test the embed in Safari and on iOS, and when reached from the Squarespace menu.
 - [ ] The README says a Code block also works; only the Embed block was tested.
 - [ ] Ask the designer for the Admin design and the empty, loading, and error states (Designer To Do list).

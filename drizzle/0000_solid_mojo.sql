@@ -1,0 +1,1 @@
+-- Baseline: the tables already exist (pulled from the database). drizzle/meta/0000_snapshot.json holds the schema.
