@@ -7,7 +7,7 @@
  */
 import { facetValues, TEST_SNAPSHOT } from "./test-fixtures";
 import type { CustomFieldDefinition, CustomValues } from "@/custom-fields/types";
-import type { DirectoryProgram, DirectorySnapshot, PostalAddress } from "./types";
+import type { DirectoryOrganization, DirectoryProgram, DirectorySnapshot, PostalAddress } from "./types";
 
 const address = (street: string, zip: string, suite: string | null = null): PostalAddress => ({
   street,
@@ -225,6 +225,7 @@ const PROGRAM_CUSTOM: Record<string, CustomValues> = {
 };
 const ORGANIZATION_CUSTOM: Record<string, CustomValues> = {
   "O-001": { [ENTRANCE.id]: "Ramp at the side door" },
+  "O-005": { [ENTRANCE.id]: "Step-free main door" },
 };
 const withCustom = (program: DirectoryProgram): DirectoryProgram => ({
   ...program,
@@ -232,11 +233,39 @@ const withCustom = (program: DirectoryProgram): DirectoryProgram => ({
   organizationCustom: ORGANIZATION_CUSTOM[program.organization.id] ?? {},
 });
 
-export const SAMPLE_SNAPSHOT: DirectorySnapshot = {
-  ...TEST_SNAPSHOT,
-  customFields: [PARKING, ENTRANCE],
-  programs: [
-    ...TEST_SNAPSHOT.programs.map((program) => ({ ...program, ...ORGANIZATION_DETAILS[program.organization.id] })),
-    ...SAMPLE_PROGRAMS,
-  ].map(withCustom),
+const programs = [
+  ...TEST_SNAPSHOT.programs.map((program) => ({ ...program, ...ORGANIZATION_DETAILS[program.organization.id] })),
+  ...SAMPLE_PROGRAMS,
+].map(withCustom);
+
+// Each Organization's own details: the ones above, Northside, and Westside. The others have only a name.
+const ORGANIZATION_EXTRAS: Record<string, Partial<DirectoryOrganization>> = {
+  ...ORGANIZATION_DETAILS,
+  "O-005": {
+    ...NORTHSIDE_DETAILS,
+    about: "A neighborhood center for families on the north side of Grand Rapids. Checkups, feeding support, and car seat checks in one place.",
+    lastVerified: "2026-10-12",
+  },
+  "O-006": { address: address("22 Sample Rd NW", "49504"), location: { lat: 42.98, lng: -85.71 }, phone: "(616) 555-0190" },
 };
+
+// O-010 has no Programs: its page shows the empty state.
+const EMPTY_ORGANIZATION = { id: "O-010", name: "Eastside Doula Collective" };
+
+/** One per Organization that has a sample Program, plus one with none. */
+const organizations: DirectoryOrganization[] = [
+  ...new Map(programs.map((program) => [program.organization.id, program.organization])).values(),
+  EMPTY_ORGANIZATION,
+].map((org) => ({
+  about: null,
+  phone: null,
+  website: null,
+  address: null,
+  location: null,
+  lastVerified: null,
+  ...org,
+  ...ORGANIZATION_EXTRAS[org.id],
+  custom: ORGANIZATION_CUSTOM[org.id] ?? {},
+}));
+
+export const SAMPLE_SNAPSHOT: DirectorySnapshot = { ...TEST_SNAPSHOT, customFields: [PARKING, ENTRANCE], programs, organizations };

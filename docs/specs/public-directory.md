@@ -113,8 +113,8 @@ See the four `*-detail-*.png` captures.
 - "Back to results" returns to the same results, filters, and scroll position.
 - Mobile: one column, with Call, Directions, and Website at the top. Desktop: two columns, with the
   actions, location, and "More from ..." on the right. Below 900 px wide it becomes one column.
-- "Part of [Organization]" and "See all programs at ..." open the results filtered to that
-  Organization.
+- "Part of [Organization]" opens the Organization detail page. "See all programs at ..." opens the
+  results filtered to that Organization.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
 - "Request an update" follows "Last verified" and links to a form. **Open question:** MomsBloom
@@ -122,15 +122,25 @@ See the four `*-detail-*.png` captures.
 
 ## Organization detail
 
-See `desktop-organization-detail.png` (desktop only so far). Build work: issue #37.
+See `desktop-organization-detail.png` (desktop only in Figma). Route: `/embed/organizations/[id]`.
 
-- The page for one Organization: name, tags, About, and "Programs at [Organization]", a list of its
-  Programs (name, tags, arrow) that open their Program detail.
-- Call, Directions, and Website, then a Location card with a map and the address.
-- "Last verified" and "Request an update" at the bottom. "Back to results" returns to the results.
-- **Open question:** what opens this page. Today "Part of [Organization]" opens the results
-  filtered to that Organization (above). The design's back link reads "Back to results for "hope
-  network"", so a search for an Organization name may lead here too.
+- Opens from the Organization name on a Program card and from "Part of [Organization]" on Program
+  detail. Both keep the results query, so "Back to results" returns to the same results.
+- The page for one Organization: name, tags (the Categories and Subcategories of its visible
+  Programs), About, and "Programs at [Organization]", a list of all its visible Programs (name, tags,
+  arrow) that open their Program detail.
+- "More details": the Organization's custom field answers, public fields only (as on Program detail).
+  Hidden when there are none.
+- Call, Directions, and Website, then a Location card with a map and the address. These use the
+  Organization's own phone, website, and address only, never one from its Programs.
+- "Last verified" at the bottom.
+- Mobile: the Program detail layout. One column below 900 px wide, with the actions at the top.
+- Empty states: no About text, no phone, no website, or no address hides that part. No address and
+  no map point hides the Location card. An Organization with no visible Programs has no Programs
+  card; it shows the "Can't find what you need?" box. An unknown or Inactive Organization shows
+  "That resource isn't available anymore." and "Back to results".
+- A shared link opens the results, not this page (the host page URL has no `mbr-organization=` key).
+- Analytics: `organization_view` (Organization ID). No click events on this page.
 
 ## Sharing a link
 
@@ -214,7 +224,7 @@ and the style of the existing screens.
 
 The site uses Google Analytics 4 (`G-1QJ4VJRFP1`). Events: `directory_search` (keyword, result
 count), `directory_filter` (group, value), `directory_zero_results`, `program_view` (Program ID),
-`program_call`, `program_directions`, `program_website`, `document_download`. Zero-result searches
+`organization_view` (Organization ID), `program_call`, `program_directions`, `program_website`, `document_download`. Zero-result searches
 are the most useful signal: they show which resources are missing. **Never send ZIP codes,
 location, or any free text except the keyword.**
 

@@ -19,15 +19,17 @@ function send(name: string, params: Params) {
 
 /**
  * Runs inside the iframe. Sends the analytics events: the search events on the results page (`search`),
- * `program_view` on the detail page (`programId`), `directory_filter` for a checked Facet value, and the
+ * `program_view` on the detail page (`programId`), `organization_view` on the Organization page (`organizationId`), `directory_filter` for a checked Facet value, and the
  * click events for links with a `data-event` attribute. It returns nothing to draw.
  */
 export function AnalyticsReporter({
   search,
   programId,
+  organizationId,
 }: {
   search?: { q: string; total: number; filters: string };
   programId?: string;
+  organizationId?: string;
 }) {
   // The search key changes when the family searches. A shared link, a reload, or "Back to results" is
   // the start state, not a search, so it sends nothing. A ref (not state) keeps Strict Mode's second effect quiet.
@@ -58,6 +60,10 @@ export function AnalyticsReporter({
   useEffect(() => {
     if (programId) send("program_view", { program_id: programId });
   }, [programId]);
+
+  useEffect(() => {
+    if (organizationId) send("organization_view", { organization_id: organizationId });
+  }, [organizationId]);
 
   useEffect(() => {
     // The host page does not navigate when a link is clicked in the iframe, so nothing can block: no preventDefault, no wait.

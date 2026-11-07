@@ -7,7 +7,7 @@ test("detail-opens-from-card: View details opens the Program with its Organizati
   await page.goto("/embed?q=yoga");
   await page.getByRole("link", { name: "View details for Mom and baby yoga" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Riverbend Health", exact: true })).toHaveAttribute("href", "/embed?org=O-001");
+  await expect(page.getByRole("link", { name: "Riverbend Health", exact: true })).toHaveAttribute("href", "/embed/organizations/O-001?q=yoga");
 });
 
 test("back-keeps-query: Back to results returns to the same results and card", async ({ page }) => {

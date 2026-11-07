@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
-import { publicCustomValues, type ShownCustomValue } from "@/custom-fields/values";
+import { ArrowLeft, Globe, MapPin, Phone, User } from "lucide-react";
+import { publicCustomValues } from "@/custom-fields/values";
 import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
-import { addressText, detailsHref, formatText, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
+import { addressText, formatText, organizationHref, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
+import { CustomField, Field } from "../../_components/detail-fields";
 import { ProgramMap } from "../../_components/program-map";
+import { ProgramRows } from "../../_components/program-rows";
 import { ResizeReporter } from "../../_components/resize-reporter";
 
 export const metadata: Metadata = {
@@ -27,34 +29,6 @@ const pillPlain = `${pill} border-line bg-surface`;
 const link = "flex min-h-11 items-center font-bold text-primary-text underline min-[900px]:min-h-6";
 const verified = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 const insuranceAnswer = { yes: "Yes", no: "No", "not-applicable": "Not applicable" } as const;
-
-/** A label and its value. Hidden when there is no value: never show a missing value as "No". */
-function Field({ name, children }: { name: string; children: React.ReactNode }) {
-  if (!children) return null;
-  return (
-    <div className="mt-3 first:mt-0">
-      <p className="text-sm text-muted">{name}</p>
-      <div>{children}</div>
-    </div>
-  );
-}
-
-/** One custom field answer. Links, phone numbers, and emails are links. */
-function CustomField({ field }: { field: ShownCustomValue }) {
-  const href =
-    field.type === "link" ? webUrl(field.text) : field.type === "phone" ? telHref(field.text) : field.type === "email" ? `mailto:${field.text}` : null;
-  return (
-    <Field name={field.label}>
-      {href ? (
-        <a href={href} {...(field.type === "link" ? { target: "_blank", rel: "noopener" } : {})} className="underline">
-          {field.text}
-        </a>
-      ) : (
-        <span className="whitespace-pre-line">{field.text}</span>
-      )}
-    </Field>
-  );
-}
 
 /**
  * The detail view of one Program (docs/specs/public-directory.md, "Program detail"), no-map design.
@@ -143,7 +117,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
       </a>
       <p className="flex min-h-11 items-center gap-1 text-muted min-[900px]:mt-2 min-[900px]:min-h-6">
         Part of{" "}
-        <a href={orgHref} className="font-bold text-primary-text underline">
+        <a href={organizationHref(organization.id, search)} className="font-bold text-primary-text underline">
           {organization.name}
         </a>
       </p>
@@ -299,21 +273,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
                 More from {organization.name}
               </h2>
               <p className="text-sm text-muted">Other programs at the same organization. Contacts and insurance may differ.</p>
-              <ul className="mt-2">
-                {siblings.slice(0, MORE_LIMIT).map((other) => (
-                  <li key={other.id} className="border-t border-line">
-                    <a href={detailsHref(other.id, search)} className="flex min-h-11 items-center justify-between gap-2 py-2">
-                      <span>
-                        <span className="block">{other.name}</span>
-                        <span className="block text-sm text-muted">
-                          {supportTags(other.facetValues, labelOf).map((tag) => tag.label).join(" · ")}
-                        </span>
-                      </span>
-                      <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-primary-text" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <ProgramRows programs={siblings.slice(0, MORE_LIMIT)} labelOf={labelOf} search={search} />
               <a href={orgHref} className="mt-2 flex min-h-11 items-center font-bold text-primary-text underline min-[900px]:min-h-6">
                 See all {siblings.length + 1} programs at {organization.name}
               </a>

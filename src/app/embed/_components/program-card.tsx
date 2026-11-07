@@ -12,7 +12,7 @@ export function Tag({ children }: { children: string }) {
 
 /** The "Type of support" tags: Categories, then Subcategories. `id` holds the Facet, because Category "1" and Subcategory "1" differ. */
 /** Category and Subcategory tags. A label shows once: a Category and a Subcategory can share a name. */
-export function supportTags(values: FacetValueKeys, labelOf: LabelOf): { id: string; label: string }[] {
+export function supportTags(values: Pick<FacetValueKeys, "category" | "subcategory">, labelOf: LabelOf): { id: string; label: string }[] {
   const tags = (["category", "subcategory"] as const).flatMap((facet) =>
     values[facet].map((key) => ({ id: `${facet}-${key}`, label: labelOf(facet, key) })),
   );
@@ -53,16 +53,23 @@ export function detailsHref(id: string, search: string): string {
   return `/embed/programs/${id}${search ? `?${search}` : ""}`;
 }
 
+/** The detail page of an Organization. `search` as in `detailsHref`. */
+export function organizationHref(id: string, search: string): string {
+  return `/embed/organizations/${id}${search ? `?${search}` : ""}`;
+}
+
 /** One Program in the results (docs/specs/public-directory.md, "Program card"). */
 export function ProgramCard({
   result: { program, distanceMiles },
   labelOf,
   detailsHref,
+  organizationHref,
   number,
 }: {
   result: ProgramResult;
   labelOf: LabelOf;
   detailsHref: string;
+  organizationHref: string;
   /** The pin number on the map (map view only), so card 3 matches pin 3. */
   number?: number;
 }) {
@@ -93,7 +100,9 @@ export function ProgramCard({
               {number}
             </span>
           )}
-          {program.organization.name}
+          <a href={organizationHref} className="underline">
+            {program.organization.name}
+          </a>
         </p>
         {distanceMiles !== null && (
           <p className="flex shrink-0 items-center gap-1">

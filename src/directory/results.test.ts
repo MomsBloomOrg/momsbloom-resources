@@ -38,6 +38,7 @@ describe("keyword", () => {
       programs: [
         { ...TEST_SNAPSHOT.programs[0], id: "12", facetValues: facetValues({ category: ["1"], language: ["1"] }), contacts: [] },
       ],
+      organizations: [],
       documents: [],
       customFields: [],
     };
