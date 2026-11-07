@@ -2,7 +2,7 @@
  * Where the Directory gets its data. Pages call `getDirectorySnapshot()` and nothing else.
  *
  * The public data loads from the database once and is cached (ADR 0004). DIRECTORY_SAMPLE_DATA=1 returns
- * the made-up sample snapshot instead, so the e2e tests need no database. Vercel never sets it.
+ * the made-up sample snapshot instead, so the e2e tests need no database. Production ignores it.
  */
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
@@ -14,7 +14,7 @@ import { SAMPLE_SNAPSHOT } from "./sample-snapshot";
 import type { DirectorySnapshot } from "./types";
 
 export async function getDirectorySnapshot(): Promise<DirectorySnapshot> {
-  if (process.env.DIRECTORY_SAMPLE_DATA === "1") return SAMPLE_SNAPSHOT;
+  if (process.env.DIRECTORY_SAMPLE_DATA === "1" && process.env.VERCEL_ENV !== "production") return SAMPLE_SNAPSHOT;
   return loadDirectorySnapshot();
 }
 

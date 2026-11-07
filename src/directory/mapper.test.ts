@@ -171,6 +171,18 @@ describe("toDirectorySnapshot", () => {
     expect(snapshot.facets[1].values).toEqual([{ key: "5", label: "Support groups", parentKey: "2" }]);
     expect(snapshot.programs[0].facetValues).toMatchObject({ category: ["2"], subcategory: ["5"], language: ["1"], cost: ["4"] });
   });
+  it("leaves out a Document whose link is not a URL", () => {
+    const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE };
+    const snapshot = toDirectorySnapshot(
+      rows({
+        documents: [
+          { ...document, id: 7, title: "Guide", url: "example.org/guide.pdf" },
+          { ...document, id: 8, title: "Bad link", url: "see the front desk" },
+        ],
+      }),
+    );
+    expect(snapshot.documents.map((d) => [d.id, d.pdfUrl])).toEqual([["7", "https://example.org/guide.pdf"]]);
+  });
 });
 
 describe("toWebsite", () => {

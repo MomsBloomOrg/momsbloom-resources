@@ -11,10 +11,12 @@ export function Tag({ children }: { children: string }) {
 }
 
 /** The "Type of support" tags: Categories, then Subcategories. `id` holds the Facet, because Category "1" and Subcategory "1" differ. */
+/** Category and Subcategory tags. A label shows once: a Category and a Subcategory can share a name. */
 export function supportTags(values: FacetValueKeys, labelOf: LabelOf): { id: string; label: string }[] {
-  return (["category", "subcategory"] as const).flatMap((facet) =>
+  const tags = (["category", "subcategory"] as const).flatMap((facet) =>
     values[facet].map((key) => ({ id: `${facet}-${key}`, label: labelOf(facet, key) })),
   );
+  return tags.filter((tag, index) => tags.findIndex((other) => other.label === tag.label) === index);
 }
 
 /** "In person and virtual" when there are two or more formats, else the one format label. */

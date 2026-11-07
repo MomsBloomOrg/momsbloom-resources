@@ -201,9 +201,11 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
   const documentCategories = keysBy(rows.documentCategories, (row) => row.documentId, (row) => row.categoryId);
   const documentSubcategories = keysBy(rows.documentSubcategories, (row) => row.documentId, (row) => row.subcategoryId);
   const documentLanguages = keysBy(rows.documentLanguages, (row) => row.documentId, (row) => row.languageId);
-  const documents: DirectoryDocument[] = rows.documents
-    .filter((document) => shown.has(document.statusId))
-    .map((document) => ({
+  const documents: DirectoryDocument[] = rows.documents.flatMap((document) => {
+    const pdfUrl = toWebsite(document.url);
+    // A Document with no usable link has nothing to download, so it is left out.
+    if (!shown.has(document.statusId) || !pdfUrl) return [];
+    return [{
       id: String(document.id),
       title: document.title,
       description: text(document.description) ?? "",
@@ -217,9 +219,10 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
         whoItServes: [],
         format: [],
       },
-      pdfUrl: document.url,
+      pdfUrl,
       lastVerified: document.lastVerified,
-    }));
+    }];
+  });
 
   const facetValueLists: Record<FacetKey, FacetValue[]> = {
     category: values(rows.categories),
