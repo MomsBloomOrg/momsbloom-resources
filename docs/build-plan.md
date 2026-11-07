@@ -50,7 +50,7 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
 
 ## Follow-ups found during the work
 
-- [ ] **Spec fix:** the public directory spec says browser location "stays in the browser". With
+- [x] **Spec fix:** the public directory spec says browser location "stays in the browser". With
       server search, "Use my location" sends `near=lat,lng` (rounded to about 1 km) to our server.
       Update the spec, and say `near` is never copied to the host page URL.
 - [ ] Turn on `cacheComponents: true` in `next.config.ts` with the snapshot loader (not before:
