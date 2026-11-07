@@ -9,6 +9,7 @@ import { DirectoryHeader } from "./_components/directory-header";
 import { DirectoryLive } from "./_components/directory-live";
 import { DocumentCard } from "./_components/document-card";
 import { activeFilterCount, FilterColumn } from "./_components/filter-column";
+import { FilterSheet } from "./_components/filter-sheet";
 import { HelpBox } from "./_components/help-box";
 import { NoResults } from "./_components/no-results";
 import { detailsHref, ProgramCard } from "./_components/program-card";
@@ -80,14 +81,19 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
         </div>
         <div className="mt-8 grid gap-6 md:grid-cols-[17rem_1fr]">
           <div className="order-last md:order-first">
-            <FilterColumn facets={snapshot.facets} results={results} clearAllHref={clearAllHref} />
+            <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref}>
+              <FilterColumn facets={snapshot.facets} results={results} clearAllHref={clearAllHref} />
+            </FilterSheet>
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
             {params.unavailable && <p role="status">That resource isn&apos;t available anymore.</p>}
             <ResultLine results={results} />
+            {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
             <a
               href="#filters"
+              data-action="open-filters"
+              aria-haspopup="dialog"
               className="flex min-h-11 w-fit items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold md:hidden"
             >
               <SlidersHorizontal aria-hidden="true" className="size-4" />
