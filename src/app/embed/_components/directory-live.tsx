@@ -31,9 +31,13 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
   useEffect(() => {
     rootRef.current?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
       if (input.type === "checkbox" || input.type === "radio") input.checked = input.defaultChecked;
-      else if (input !== document.activeElement) input.value = input.defaultValue;
+      // A half-typed ZIP is not in the URL; keep it so the family can finish typing.
+      else if (input !== document.activeElement && !(input.name === "zip" && input.value && !/^\d{5}$/.test(input.value)))
+        input.value = input.defaultValue;
     });
   }, [searchParams]);
+
+  useEffect(() => () => clearTimeout(debounce.current), []);
 
   const form = () => rootRef.current?.querySelector("form") ?? null;
 

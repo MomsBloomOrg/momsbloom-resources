@@ -15,6 +15,14 @@ test("keyword-narrows: typing a keyword narrows the results (after the debounce)
   await expect(page).toHaveURL(/\?q=yoga$/);
 });
 
+test("a half-typed ZIP does not block the keyword search", async ({ page }) => {
+  await page.goto("/embed");
+  await page.getByRole("textbox", { name: "ZIP code" }).fill("495");
+  await page.getByRole("searchbox", { name: "Keyword" }).fill("yoga");
+  await expect(resultLine(page)).toHaveText('2 results for "yoga"');
+  await expect(page.getByRole("textbox", { name: "ZIP code" })).toHaveValue("495");
+});
+
 test("checkbox-adds-chip: checking a filter adds a chip", async ({ page }) => {
   await page.goto("/embed");
   await page.getByRole("checkbox", { name: /^Spanish/ }).check();

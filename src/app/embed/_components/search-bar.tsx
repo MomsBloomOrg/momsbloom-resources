@@ -14,6 +14,8 @@ export function SearchBar({ query, zipNotFound }: { query: DirectoryQuery; zipNo
       id={DIRECTORY_FORM_ID}
       method="get"
       role="search"
+      // No browser validation: a half-typed ZIP must not block the keyword search. The server ignores a bad ZIP.
+      noValidate
       className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-start md:rounded-full md:bg-surface md:p-2 md:shadow-md"
     >
       {/* Keep the Organization filter and the sort when the family searches again. */}
