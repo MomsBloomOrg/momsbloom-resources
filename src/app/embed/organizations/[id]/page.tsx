@@ -195,7 +195,7 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
         <p className="mt-4 text-sm text-muted">Last verified {verified.format(new Date(organization.lastVerified))}</p>
       )}
       <ResizeReporter share={shareSearch(query)} />
-      <AnalyticsReporter organizationId={organization.id} />
+      <AnalyticsReporter organizationId={organization.id} organizationName={organization.name} />
     </main>
   );
 }

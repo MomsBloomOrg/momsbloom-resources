@@ -33,7 +33,7 @@
   var LOCATION = "momsbloom-resources:location";
   var EVENT = "momsbloom-resources:event";
   // The event names and the parameter keys that may pass (a copy of ANALYTICS_EVENTS in protocol.ts).
-  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id"],"organization_view":["organization_id"],"program_call":["program_id"],"program_directions":["program_id"],"program_website":["program_id"],"document_download":["document_id"]};
+  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id","program_name"],"organization_view":["organization_id","organization_name"],"program_call":["program_id","program_name"],"program_directions":["program_id","program_name"],"program_website":["program_id","program_name"],"document_download":["document_id","document_title"]};
   // A copy of REDACT_STRIP in protocol.ts: ignored before digits are counted in a keyword.
   var REDACT_STRIP = /[\s().\/_-]/g;
   var MAX_HEIGHT = 50000;

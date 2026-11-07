@@ -114,6 +114,7 @@ export function ProgramMap({ programs, compact = false }: { programs: MapProgram
             if (text === "Get directions") {
               a.dataset.event = "program_directions";
               a.dataset.programId = program.id;
+              a.dataset.programName = program.name;
             }
             if (newTab) {
               a.target = "_blank";

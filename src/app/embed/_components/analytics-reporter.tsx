@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { FACET_URL_KEYS } from "@/directory/query";
-import { EVENT_MESSAGE, HOST_CUSTOM_KEY, MAX_PARAM_LENGTH, safeKeyword } from "@/embed/protocol";
+import { EVENT_MESSAGE, HOST_CUSTOM_KEY, MAX_PARAM_LENGTH, eventText, safeKeyword } from "@/embed/protocol";
 
 /** Wait this long after the last change before a search counts, so "yo", "yog", "yoga" send one event. */
 const SETTLE_MS = 1_000;
@@ -25,11 +25,15 @@ function send(name: string, params: Params) {
 export function AnalyticsReporter({
   search,
   programId,
+  programName,
   organizationId,
+  organizationName,
 }: {
   search?: { q: string; total: number; filters: string };
   programId?: string;
+  programName?: string;
   organizationId?: string;
+  organizationName?: string;
 }) {
   // The search key changes when the family searches. A shared link, a reload, or "Back to results" is
   // the start state, not a search, so it sends nothing. A ref (not state) keeps Strict Mode's second effect quiet.
@@ -58,11 +62,13 @@ export function AnalyticsReporter({
   }, [key]);
 
   useEffect(() => {
-    if (programId) send("program_view", { program_id: programId });
+    if (programId) send("program_view", { program_id: programId, ...(programName && { program_name: eventText(programName) }) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [programId]);
 
   useEffect(() => {
-    if (organizationId) send("organization_view", { organization_id: organizationId });
+    if (organizationId) send("organization_view", { organization_id: organizationId, ...(organizationName && { organization_name: eventText(organizationName) }) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 
   useEffect(() => {
@@ -73,8 +79,10 @@ export function AnalyticsReporter({
       if (!link || !name) return;
       const programId = link.getAttribute("data-program-id");
       const documentId = link.getAttribute("data-document-id");
-      if (programId) send(name, { program_id: programId });
-      else if (documentId) send(name, { document_id: documentId });
+      const programName = link.getAttribute("data-program-name");
+      const documentTitle = link.getAttribute("data-document-title");
+      if (programId) send(name, { program_id: programId, ...(programName && { program_name: eventText(programName) }) });
+      else if (documentId) send(name, { document_id: documentId, ...(documentTitle && { document_title: eventText(documentTitle) }) });
     };
     const facetOf = new Map(Object.entries(FACET_URL_KEYS).map(([facet, urlKey]) => [urlKey, facet]));
     const onChange = (event: Event) => {
