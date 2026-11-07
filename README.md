@@ -185,4 +185,8 @@ in an Embed block on MomsBloom's current Squarespace plan, at desktop and phone 
   - [0002 Vercel deploys from GitHub](docs/adr/0002-vercel-deploys-from-github.md)
   - [0003 Admin login by email link first](docs/adr/0003-admin-login-by-email-link-first.md)
 - [`docs/design/`](docs/design/README.md): screenshots of every Figma screen, with notes for developers. Read the "Read this first" list before you build a screen.
-- More to come: `CONTEXT.md` (the words we use) and `docs/specs/`.
+- [`CONTEXT.md`](CONTEXT.md): the words we use (Organization, Program, Facet, ...). Read it first.
+- `docs/specs/`: what to build, with an acceptance checklist in each.
+  - [Public directory](docs/specs/public-directory.md): what families see and do
+  - [Admin](docs/specs/admin.md): what the three staff members do
+  - [Seed import](docs/specs/data-import.md): loading the spreadsheet into the database, one time
