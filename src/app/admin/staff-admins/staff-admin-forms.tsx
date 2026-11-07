@@ -87,7 +87,7 @@ export function StaffAdminTable({ rows }: { rows: StaffAdminRow[] }) {
               <td role="cell" data-label="Kind" className={stackTdClass}>
                 <Badge tone={row.owner ? "good" : "neutral"}>{row.label}</Badge>
               </td>
-              <td role="cell" className={`${stackTdClass} lg:text-right`}>
+              <td role="cell" className={`${stackTdClass} lg:text-right max-lg:empty:hidden`}>
                 {row.removeId === null ? null : confirmId === row.removeId ? (
                   <form action={action} className="flex flex-col gap-2 lg:items-end">
                     <input type="hidden" name="id" value={row.removeId} />
