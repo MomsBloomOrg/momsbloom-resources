@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { FACET_URL_KEYS, RADIUS_MILES, type DirectoryQuery } from "@/directory/query";
+import { FACET_URL_KEYS, type DirectoryQuery } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import type { FacetDefinition, FacetKey, FacetValue } from "@/directory/types";
 import { DIRECTORY_FORM_ID } from "./search-bar";
@@ -8,7 +8,7 @@ import { DIRECTORY_FORM_ID } from "./search-bar";
 const VISIBLE_OPTIONS = 4;
 
 /**
- * Distance, then one fieldset per Facet. The inputs belong to the search form (form=...), so without
+ * One fieldset per Facet. The inputs belong to the search form (form=...), so without
  * JavaScript the "Apply filters" button submits them; with JavaScript, DirectoryLive submits on change.
  */
 export function FilterColumn({
@@ -20,7 +20,7 @@ export function FilterColumn({
   results: DirectoryResults;
   clearAllHref: string | null;
 }) {
-  const { query, counts, origin } = results;
+  const { query, counts } = results;
 
   /** One checkbox row, or null when its count is 0 and it is not checked (spec: hide, do not grey out). */
   const row = (facet: FacetKey, value: FacetValue, indent = false): ReactNode => {
@@ -87,9 +87,6 @@ export function FilterColumn({
       );
     });
 
-  // Radius: no option is checked until a location is known, so the default (10 mi) applies to a new ZIP.
-  const radiusChecked = origin ? String(results.radius) : query.radius === null ? null : String(query.radius);
-
   return (
     <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm group-open/sheet:rounded-none group-open/sheet:border-0">
       {/* In the sheet: a fixed header bar (FilterSheet puts its close button on it). */}
@@ -104,27 +101,6 @@ export function FilterColumn({
           </a>
         )}
       </div>
-      <fieldset>
-        <legend className="font-bold">Distance{query.zip && origin ? ` from ${query.zip}` : ""}</legend>
-        <p className="text-sm text-muted">Applies to location search only.</p>
-        <div className="mt-2 grid grid-cols-4 rounded-full bg-background p-1">
-          {[...RADIUS_MILES.map(String), "any"].map((value) => (
-            <label key={value} className="relative">
-              <input
-                type="radio"
-                form={DIRECTORY_FORM_ID}
-                name="r"
-                value={value}
-                defaultChecked={radiusChecked === value}
-                className="peer absolute inset-0 opacity-0"
-              />
-              <span className="flex min-h-11 items-center justify-center rounded-full text-sm peer-checked:bg-surface peer-checked:font-bold peer-checked:shadow peer-focus-visible:ring-2 peer-focus-visible:ring-primary-text md:min-h-8">
-                {value === "any" ? "Any" : `${value} mi`}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
       {groups}
       <noscript>
         <button

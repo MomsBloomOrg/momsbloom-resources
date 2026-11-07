@@ -98,8 +98,14 @@ describe("distance", () => {
     expect(results.documents).toHaveLength(2);
   });
 
-  it("the radius is 10 miles when a ZIP code is set and no radius is chosen", () => {
+  it("there is no distance limit when a ZIP code is set and no radius is in the link", () => {
     const results = search("zip=49508");
+    expect(results.radius).toBe("any");
+    expect(results.programs.map((r) => r.program.id)).toContain("P-005");
+  });
+
+  it("an old link with a radius still limits the distance", () => {
+    const results = search("zip=49508&r=10");
     expect(results.radius).toBe(10);
     expect(results.programs.map((r) => r.program.id)).toEqual(["P-001", "P-002", "P-003", "P-006", "P-004"]);
   });

@@ -19,8 +19,6 @@ import { documentSearchText, facetLabelLookup, keywordWords, matchesWords, progr
 import { FACET_KEYS, type DirectoryDocument, type DirectoryProgram, type DirectorySnapshot, type LatLng } from "./types";
 import { lookupMichiganZip } from "./zip";
 
-/** The radius when a location is known and the family has not chosen one. */
-export const DEFAULT_RADIUS_MILES: RadiusMiles = 10;
 
 export interface ProgramResult {
   program: DirectoryProgram;
@@ -95,7 +93,8 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
 
   // Step 3: Distance and radius.
   const origin = query.near ?? (query.zip ? lookupMichiganZip(query.zip) : null);
-  const radius = query.radius ?? (origin ? DEFAULT_RADIUS_MILES : "any");
+  // No distance filter in the UI any more: no limit unless an old link still has `r=`.
+  const radius = query.radius ?? "any";
   const placed: ProgramResult[] = [];
   for (const program of matching) {
     if (!origin) {
