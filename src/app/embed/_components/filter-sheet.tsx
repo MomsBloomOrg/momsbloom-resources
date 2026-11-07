@@ -48,19 +48,25 @@ export function FilterSheet({ total, clearAllHref, children }: { total: number; 
   return (
     <dialog
       ref={ref}
-      aria-labelledby="filters-heading"
+      aria-labelledby="filters-sheet-heading"
       // Safari does not focus a tapped link, so the native focus return is not enough.
       onClose={() => document.querySelector<HTMLElement>(TRIGGER)?.focus()}
       className="group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit data-js:not-open:hidden open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] backdrop:bg-ink/60 md:open:mx-auto md:open:max-w-2xl md:open:top-[calc(var(--sheet-top)+2rem)] md:open:h-[min(calc(var(--sheet-height)-4rem),52rem)] md:open:rounded-2xl md:open:shadow-xl md:open:motion-safe:animate-none"
     >
-      <button
-        type="button"
-        onClick={close}
-        aria-label="Close filters"
-        className="absolute top-2 right-2 z-20 hidden size-11 items-center justify-center rounded-full bg-surface group-open/sheet:flex"
-      >
-        <X aria-hidden="true" className="size-6" />
-      </button>
+      {/* The header bar sits above the scrolling list, so the X never covers the scroll bar. */}
+      <div className="hidden shrink-0 items-center justify-between border-b border-line py-2 pr-2 pl-5 group-open/sheet:flex">
+        <h2 id="filters-sheet-heading" className="text-lg font-bold">
+          Filters
+        </h2>
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Close filters"
+          className="flex size-11 items-center justify-center rounded-full hover:bg-background"
+        >
+          <X aria-hidden="true" className="size-6" />
+        </button>
+      </div>
       <div className="group-open/sheet:flex-1 group-open/sheet:overflow-y-auto group-open/sheet:overscroll-contain">{children}</div>
       <div className="hidden items-center gap-4 border-t border-line p-4 group-open/sheet:flex">
         {/* The page's result line is inert behind the modal, so the sheet announces the count itself. */}

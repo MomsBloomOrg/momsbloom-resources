@@ -86,7 +86,7 @@ export function FilterColumn({
       const shown = options.slice(0, VISIBLE_OPTIONS);
       const rest = options.slice(VISIBLE_OPTIONS);
       return (
-        <fieldset key={key} className="border-t border-line pt-4">
+        <fieldset key={key} className="border-t border-line pt-4 group-open/sheet:first-of-type:border-t-0 group-open/sheet:first-of-type:pt-0">
           <legend className="float-left mb-2 w-full font-bold">{label}</legend>
           <div className="clear-left">
             {shown.map((option) => option.node)}
@@ -107,8 +107,8 @@ export function FilterColumn({
 
   return (
     <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm group-open/sheet:rounded-none group-open/sheet:border-0">
-      {/* In the sheet: a fixed header bar (FilterSheet puts its close button on it). */}
-      <div className="flex items-center justify-between group-open/sheet:sticky group-open/sheet:top-0 group-open/sheet:z-10 group-open/sheet:-mx-5 group-open/sheet:-mt-5 group-open/sheet:border-b group-open/sheet:border-line group-open/sheet:bg-surface group-open/sheet:px-5 group-open/sheet:py-4">
+      {/* In the open modal, FilterSheet shows its own header bar (title and close button) above the scrolling list. */}
+      <div className="flex items-center justify-between group-open/sheet:hidden">
         <h2 id="filters-heading" className="text-lg font-bold">
           Filters
         </h2>
