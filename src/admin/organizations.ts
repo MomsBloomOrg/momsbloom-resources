@@ -151,6 +151,12 @@ export function todayInDetroit(now = new Date()): string {
   return now.toLocaleDateString("en-CA", { timeZone: "America/Detroit" });
 }
 
+/** Round trip: `2026-02-31` rolls over to March in Date, so it does not match. */
+const isRealDate = (v: string) => {
+  const d = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+};
+
 const TEXT_FIELDS = [
   ["about", "About", 5000],
   ["phone", "Phone", 50],
@@ -202,7 +208,7 @@ export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput>
 
   const verified = str(raw, "lastVerified");
   out.lastVerified = verified || null;
-  if (verified && (!/^\d{4}-\d{2}-\d{2}$/.test(verified) || Number.isNaN(Date.parse(`${verified}T00:00:00Z`)))) {
+  if (verified && (!/^\d{4}-\d{2}-\d{2}$/.test(verified) || !isRealDate(verified))) {
     errors.lastVerified = "Enter a date.";
   }
 

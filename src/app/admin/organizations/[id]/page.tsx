@@ -50,7 +50,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
       />
       <div className="flex flex-col gap-6">
         <Card title="Organization">
-          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} programCount={programs.length} />
+          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} hiddenProgramCount={programs.filter((p) => p.showOnSite).length} />
         </Card>
 
         <Card

@@ -86,6 +86,11 @@ describe("Organization edit", () => {
     if (!r.ok) expect(Object.keys(r.fieldErrors ?? {}).sort()).toEqual(["email", "lastVerified", "latitude", "name", "statusId", "website"]);
   });
 
+  it("parse refuses an impossible date such as 2026-02-31", () => {
+    expect(parseOrganizationInput(form({ lastVerified: "2026-02-31" })).ok).toBe(false);
+    expect(parseOrganizationInput(form({ lastVerified: "2026-02-28" })).ok).toBe(true);
+  });
+
   it("creates and reads back an Organization with no Programs", async () => {
     const parsed = parseOrganizationInput(form({ internalNotes: "call in May" }));
     if (!parsed.ok) throw new Error("parse");

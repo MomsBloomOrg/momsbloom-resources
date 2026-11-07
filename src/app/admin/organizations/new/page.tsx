@@ -22,7 +22,7 @@ export default async function NewOrganizationPage() {
         }
       />
       <Card>
-        <OrganizationForm statuses={statuses} programCount={0} />
+        <OrganizationForm statuses={statuses} hiddenProgramCount={0} />
       </Card>
     </>
   );

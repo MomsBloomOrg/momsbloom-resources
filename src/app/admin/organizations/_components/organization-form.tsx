@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useState, type FormEvent, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { OrganizationInput, StatusOption } from "@/admin/organizations";
 import { Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
@@ -37,15 +37,22 @@ export function OrganizationForm({
   id,
   organization,
   statuses,
-  programCount,
+  hiddenProgramCount,
 }: {
   id?: number;
   organization?: OrganizationInput;
   statuses: StatusOption[];
-  programCount: number;
+  /** Programs that families see now: the ones a hiding Status would remove. */
+  hiddenProgramCount: number;
 }) {
   const [state, dispatch, pending] = useActionState(saveOrganizationAction, IDLE);
   const [statusId, setStatusId] = useState(String(organization?.statusId ?? statuses[0]?.id ?? ""));
+  // The Status of the last good save: the hide warning compares with this, not with the first page load.
+  const savedStatus = useRef(String(organization?.statusId ?? ""));
+  const submittedStatus = useRef(statusId);
+  useEffect(() => {
+    if (state.status === "saved") savedStatus.current = submittedStatus.current;
+  }, [state]);
   const errors = state.status === "invalid" ? state.errors : {};
   const o = organization;
 
@@ -53,13 +60,14 @@ export function OrganizationForm({
     event.preventDefault();
     // The button that was clicked, so `intent=verify` reaches the action.
     const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
-    if (data.get("intent") !== "verify" && id !== undefined && String(organization?.statusId) !== statusId) {
+    if (data.get("intent") !== "verify" && id !== undefined && savedStatus.current !== statusId) {
       const target = statuses.find((s) => String(s.id) === statusId);
-      if (target && !target.showOnSite && programCount > 0) {
-        const n = `${programCount} Program${programCount === 1 ? "" : "s"}`;
+      if (target && !target.showOnSite && hiddenProgramCount > 0) {
+        const n = `${hiddenProgramCount} Program${hiddenProgramCount === 1 ? "" : "s"}`;
         if (!window.confirm(`This hides its ${n} from families. Save anyway?`)) return;
       }
     }
+    submittedStatus.current = statusId;
     startTransition(() => dispatch(data));
   }
 
@@ -81,7 +89,7 @@ export function OrganizationForm({
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (o?.lastVerified ?? "");
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={id ?? ""} />
       {text("name", "Name")}
       <Field id="org-about" label="About" error={errors.about}>
