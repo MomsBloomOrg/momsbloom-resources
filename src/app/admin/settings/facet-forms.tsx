@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Ellipsis, GripVertical } from "lucide-react";
-import { useActionState, type KeyboardEvent, type ReactNode } from "react";
+import { useActionState, useEffect, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactNode, type SyntheticEvent } from "react";
 import type { AdminFacetValue, FacetKey } from "@/admin/facets";
 import { Badge, buttonClass, inputClass, labelClass } from "../_components/ui";
 import { addFacetValueAction, facetValueRowAction, type FacetFormState } from "./actions";
@@ -47,11 +47,36 @@ export function AddValueForm({ facet, label, categoryId }: { facet: FacetKey; la
   );
 }
 
-/** Closes an open "More actions" menu on Escape and puts the focus back on its button. */
-function closeOnEscape(event: KeyboardEvent<HTMLDetailsElement>) {
-  if (event.key !== "Escape" || !event.currentTarget.open) return;
-  event.currentTarget.open = false;
-  event.currentTarget.querySelector("summary")?.focus();
+/** Closes a "More actions" menu. With `focus`, the focus goes back on its button. */
+function closeMenu(menu: HTMLDetailsElement, focus: boolean) {
+  menu.open = false;
+  if (focus) menu.querySelector("summary")?.focus();
+}
+
+const closeOnEscape = (event: KeyboardEvent<HTMLDetailsElement>) => {
+  if (event.key === "Escape" && event.currentTarget.open) closeMenu(event.currentTarget, true);
+};
+// After a menu item submits; a cancelled Delete (preventDefault) keeps the menu open.
+const closeOnSubmit = (event: FormEvent<HTMLDetailsElement>) => {
+  if (!event.defaultPrevented) closeMenu(event.currentTarget, true);
+};
+// Tab out of the menu. A null relatedTarget (Safari does not focus a clicked button) is left to the pointerdown check.
+const closeOnFocusOut = (event: FocusEvent<HTMLDetailsElement>) => {
+  if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) closeMenu(event.currentTarget, false);
+};
+
+/** Closes the menu on a pointerdown outside it, while it is open. Give `onToggle` to the `<details>`. */
+function useCloseOnOutsidePointer() {
+  const [openMenu, setOpenMenu] = useState<HTMLDetailsElement | null>(null);
+  useEffect(() => {
+    if (!openMenu) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!openMenu.contains(event.target as Node)) closeMenu(openMenu, false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [openMenu]);
+  return (event: SyntheticEvent<HTMLDetailsElement>) => setOpenMenu(event.currentTarget.open ? event.currentTarget : null);
 }
 
 /**
@@ -71,6 +96,7 @@ export function ValueRow({ facet, value, first, last, children }: {
   const [state, action, pending] = useActionState(facetValueRowAction, idle);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: value.id });
   const unused = value.programCount === 0 && value.documentCount === 0;
+  const onMenuToggle = useCloseOnOutsidePointer();
   const hidden = (intent: string) => (
     <>
       <input type="hidden" name="facet" value={facet} />
@@ -119,7 +145,7 @@ export function ValueRow({ facet, value, first, last, children }: {
               {value.hidden ? "Show" : "Hide"}
             </button>
           </form>
-          <details className="relative" onKeyDown={closeOnEscape}>
+          <details onToggle={onMenuToggle} className="relative" onKeyDown={closeOnEscape} onSubmit={closeOnSubmit} onBlur={closeOnFocusOut}>
             <summary aria-label={`More actions for ${value.name}`} className={`${iconButton} list-none [&::-webkit-details-marker]:hidden`}>
               <Ellipsis aria-hidden size={20} />
             </summary>

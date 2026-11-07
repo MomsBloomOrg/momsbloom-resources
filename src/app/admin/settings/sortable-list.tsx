@@ -3,7 +3,8 @@
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent, type UniqueIdentifier } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { ChevronRight } from "lucide-react";
-import { useId,useOptimistic, useState, useTransition } from "react";
+import { unstable_rethrow, useRouter } from "next/navigation";
+import { useId, useOptimistic, useState, useTransition } from "react";
 import type { AdminFacetValue, FacetKey } from "@/admin/facets";
 import { reorderFacetValuesAction, type FacetFormState } from "./actions";
 import { AddValueForm, Message, ValueRow } from "./facet-forms";
@@ -15,7 +16,7 @@ const screenReaderInstructions = {
 
 /**
  * One list of Facet values that staff reorder by drag and drop (mouse, touch, or keyboard). The new
- * order shows at once; if the save is refused, the list goes back and the message shows. For
+ * order shows at once; if the save is refused or fails, the list goes back and the message shows. For
  * Categories, `subcategories` puts each Category's Subcategories in a closed group under it.
  */
 export function SortableValues({ facet, values, categoryId, subcategories }: {
@@ -30,6 +31,7 @@ export function SortableValues({ facet, values, categoryId, subcategories }: {
   const [, startTransition] = useTransition();
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const dndId = useId();
+  const router = useRouter();
 
   const nameOf = (id: UniqueIdentifier) => items.find((v) => v.id === id)?.name ?? "";
   const position = (id: UniqueIdentifier) => `position ${items.findIndex((v) => v.id === id) + 1} of ${items.length}`;
@@ -47,7 +49,15 @@ export function SortableValues({ facet, values, categoryId, subcategories }: {
     const next = arrayMove(items, items.findIndex((v) => v.id === active.id), items.findIndex((v) => v.id === over.id));
     startTransition(async () => {
       setItems(next);
-      setState(await reorderFacetValuesAction(facet, categoryId, next.map((v) => v.id)));
+      try {
+        const result = await reorderFacetValuesAction(facet, categoryId, next.map((v) => v.id));
+        setState(result);
+        // Refused (for example, the list changed): load the saved list again.
+        if (result.result === "error") router.refresh();
+      } catch (error) {
+        unstable_rethrow(error); // Next.js redirects (an expired login) must go through.
+        setState({ result: "error", message: "The new order was not saved. Try again." });
+      }
     });
   }
 
