@@ -8,6 +8,7 @@ import {
   deleteFacetValue,
   listFacetsForAdmin,
   moveFacetValue,
+  reorderFacetValues,
   renameFacetValue,
   setFacetValueHidden,
   type FacetKey,
@@ -117,6 +118,43 @@ describe("Facet values", () => {
     await moveFacetValue(db, { key: "subcategory", id: String(counseling.id), direction: "up" });
     const mine = (await values("subcategory")).filter((v) => v.categoryId === mentalHealth);
     expect(mine.map((v) => v.name)).toEqual(["Counseling", "Support groups"]);
+  });
+
+  it("reorders a whole list at once, and writes sort orders 1..n", async () => {
+    const [english, spanish, arabic] = (await values("language")).map((v) => v.id);
+    expect(await reorderFacetValues(db, { key: "language", ids: [arabic, english, spanish] })).toEqual({ ok: true, value: { count: 3 } });
+    expect((await values("language")).map((v) => v.name)).toEqual(["Arabic", "English", "Spanish"]);
+    const rows = await db.select().from(t.languages);
+    expect(rows.map((r) => [r.id, r.sortOrder]).sort((a, b) => a[1] - b[1])).toEqual([[arabic, 1], [english, 2], [spanish, 3]]);
+    await reorderFacetValues(db, { key: "language", ids: [english, spanish, arabic] });
+  });
+
+  it("refuses an id list that is not exactly the current list, and changes nothing", async () => {
+    const before = (await values("language")).map((v) => v.id);
+    const [a, b, c] = before;
+    const changed = { ok: false, error: "This list changed since you opened it. Reload the page." };
+    expect(await reorderFacetValues(db, { key: "language", ids: [b, a] })).toEqual(changed);
+    expect(await reorderFacetValues(db, { key: "language", ids: [c, b, a, 999999] })).toEqual(changed);
+    expect(await reorderFacetValues(db, { key: "language", ids: [c, b, 999999] })).toEqual(changed);
+    expect(await reorderFacetValues(db, { key: "language", ids: [c, b, b] })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "language", ids: [c, b, "x"] })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "language", ids: [] })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "language", ids: "1,2,3" })).toMatchObject({ ok: false });
+    expect((await values("language")).map((v) => v.id)).toEqual(before);
+  });
+
+  it("reorders Subcategories only inside their own Category", async () => {
+    const mentalHealth = await idOf("category", "Mental health");
+    const feeding = await idOf("category", "Lactation and feeding");
+    const subs = await values("subcategory");
+    const mine = subs.filter((v) => v.categoryId === mentalHealth).map((v) => v.id);
+    const other = subs.find((v) => v.categoryId === feeding)!.id;
+
+    expect(await reorderFacetValues(db, { key: "subcategory", categoryId: feeding, ids: mine })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "subcategory", categoryId: mentalHealth, ids: [...mine, other] })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "subcategory", ids: mine })).toMatchObject({ ok: false });
+    expect(await reorderFacetValues(db, { key: "subcategory", categoryId: mentalHealth, ids: [...mine].reverse() })).toMatchObject({ ok: true });
+    expect((await values("subcategory")).filter((v) => v.categoryId === mentalHealth).map((v) => v.id)).toEqual([...mine].reverse());
   });
 
   it("hides and shows a value; it stays on its Programs", async () => {

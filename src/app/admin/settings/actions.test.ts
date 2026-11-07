@@ -18,11 +18,12 @@ vi.mock("@/admin/facets", () => ({
   addFacetValue: mocks.write,
   renameFacetValue: mocks.write,
   moveFacetValue: mocks.write,
+  reorderFacetValues: mocks.write,
   setFacetValueHidden: mocks.write,
   deleteFacetValue: mocks.write,
 }));
 
-import { addFacetValueAction, facetValueRowAction } from "./actions";
+import { addFacetValueAction, facetValueRowAction, reorderFacetValuesAction } from "./actions";
 
 const idle = { result: "idle" } as const;
 function form(fields: Record<string, string>): FormData {
@@ -39,7 +40,22 @@ describe("Facet value actions", () => {
     await expect(addFacetValueAction(idle, form({ facet: "language", name: "Arabic" }))).rejects.toThrow("NEXT_REDIRECT");
     mocks.requireStaffAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
     await expect(facetValueRowAction(idle, form({ facet: "language", id: "1", intent: "delete" }))).rejects.toThrow("NEXT_REDIRECT");
+    mocks.requireStaffAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+    await expect(reorderFacetValuesAction("language", undefined, [2, 1])).rejects.toThrow("NEXT_REDIRECT");
     expect(mocks.write).not.toHaveBeenCalled();
+    expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+
+  it("reorder passes the list to the domain and reloads the Directory", async () => {
+    expect(await reorderFacetValuesAction("language", undefined, [2, 1])).toEqual({ result: "ok", message: "Saved the new order." });
+    expect(mocks.write).toHaveBeenCalledWith({}, { key: "language", categoryId: undefined, ids: [2, 1] });
+    expect(mocks.updateTag).toHaveBeenCalledWith("directory");
+  });
+
+  it("reorder does not reload when refused or the Facet is unknown", async () => {
+    mocks.write.mockResolvedValueOnce({ ok: false, error: "This list changed since you opened it. Reload the page." });
+    expect((await reorderFacetValuesAction("language", undefined, [1])).result).toBe("error");
+    expect(await reorderFacetValuesAction("statuses", undefined, [1])).toEqual({ result: "error", message: "Unknown action. Reload the page." });
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 

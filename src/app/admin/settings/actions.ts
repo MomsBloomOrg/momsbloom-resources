@@ -6,6 +6,7 @@ import {
   deleteFacetValue,
   isFacetKey,
   moveFacetValue,
+  reorderFacetValues,
   renameFacetValue,
   setFacetValueHidden,
   type FacetResult,
@@ -60,4 +61,11 @@ export async function facetValueRowAction(_prev: FacetFormState, formData: FormD
     default:
       return UNKNOWN;
   }
+}
+
+/** A drag and drop: the new order of one list. `categoryId` is for Subcategories only. */
+export async function reorderFacetValuesAction(facet: unknown, categoryId: unknown, ids: unknown): Promise<FacetFormState> {
+  await requireStaffAdmin();
+  if (!isFacetKey(facet)) return UNKNOWN;
+  return toState(await reorderFacetValues(getDb(), { key: facet, categoryId, ids }), () => "Saved the new order.");
 }

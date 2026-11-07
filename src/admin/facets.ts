@@ -285,6 +285,32 @@ export async function moveFacetValue(db: Db, input: { key: FacetKey; id: unknown
   });
 }
 
+/**
+ * Saves a new order for one list (a drag and drop). `ids` must be exactly the values of the list:
+ * the Facet, or for Subcategories the Subcategories of `categoryId`. Sort orders become 1, 2, 3, ...
+ */
+export async function reorderFacetValues(
+  db: Db,
+  input: { key: FacetKey; categoryId?: unknown; ids: unknown },
+): Promise<FacetResult<{ count: number }>> {
+  const ids = Array.isArray(input.ids) ? input.ids.map((id) => parseId(String(id))) : [];
+  const categoryId = input.key === "subcategory" ? parseId(String(input.categoryId)) : undefined;
+  if (ids.length === 0 || ids.includes(null) || new Set(ids).size !== ids.length || categoryId === null) return NOT_FOUND;
+
+  return db.transaction(async (tx) => {
+    const list = await siblings(tx, input.key, categoryId);
+    if (list.length !== ids.length || list.some((row) => !ids.includes(row.id))) {
+      return refuse("This list changed since you opened it. Reload the page.");
+    }
+    const table = FACETS[input.key].table;
+    const sortOrderOf = new Map(list.map((row) => [row.id, row.sortOrder]));
+    for (const [index, id] of ids.entries()) {
+      if (sortOrderOf.get(id!) !== index + 1) await tx.update(table).set({ sortOrder: index + 1 }).where(eq(table.id, id!));
+    }
+    return { ok: true, value: { count: ids.length } } as const;
+  });
+}
+
 /** Hides or shows a value. A hidden value stays on its records; the Directory filters leave it out. */
 export async function setFacetValueHidden(db: Db, input: { key: FacetKey; id: unknown; hidden: boolean }): Promise<FacetResult<{ name: string }>> {
   const id = parseId(input.id);

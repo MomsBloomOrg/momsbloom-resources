@@ -53,7 +53,7 @@ never deleted (they become Inactive). Build work: issue #38.
 | `/admin/organizations/new`, `/admin/organizations/[id]` | Organization form, then its Programs table and "Add program". |
 | `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
 | `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
-| `/admin/settings` | Filter options: one card for each Facet (see "Facet values" below). |
+| `/admin/settings/[facet]` | Filter options: one page for each Facet (see "Facet values" below). |
 | `/admin/staff-admins` | **Staff admins**: the Owners and the added Staff admins, an add form, and Remove (with a confirm step) for an added Staff admin that is not you. |
 
 The nav is **Organizations, Documents, Settings, Staff admins**. IDs in the Admin are database integers (`12`), as in
@@ -105,12 +105,25 @@ Buttons:
   languages, PDF link (required, a full URL), Status, Last verified, internal notes.
 - The PDF stays where it is today (momsbloom.org). We store the link, not the file.
 
-### Facet values (`/admin/settings`, headed "Filter options")
+### Facet values (`/admin/settings/[facet]`, headed "Filter options")
 
-One section for each **Facet**: Categories (with their Subcategories), Insurance plans, Languages,
-Who it serves, Cost, and Service format.
+One page for each **Facet**: Categories (with their Subcategories), Insurance plans, Languages,
+Who it serves, Cost, and Service format. `/admin/settings` opens Categories. A nav lists the Facets
+with their value counts: a side column on a wide screen, a row that scrolls sideways on a phone.
 
 - Add a value, rename a value, and change the order (the order is the order families see).
+- Each row: the name, the Hidden badge, and the counts on the left. On the right: a drag handle,
+  Hide or Show, and a "More actions" menu (Rename, Move up, Move down, and Delete when nothing uses
+  the value).
+- **Change the order** by drag and drop with a mouse, by touch, or by keyboard (Space or Enter on the
+  handle, the arrow keys, then Space or Enter; Escape cancels). A screen reader hears each position.
+  Move up and Move down in the menu do the same without a drag (WCAG 2.5.7).
+- The new order shows at once. The server saves the whole list in one transaction
+  (`reorderFacetValues`) and refuses a list that is not exactly the current values (another staff
+  member changed it); then the old order comes back with "This list changed since you opened it.
+  Reload the page."
+- Each Category has a closed group with its Subcategories and its "New Subcategory" field.
+  Subcategories move only inside their own Category.
 - Renaming a value changes it everywhere it is used, at once. (Records point to the value, they do
   not copy its text.)
 - To retire a value, hide it. A hidden value stays on the records that have it, but families no
