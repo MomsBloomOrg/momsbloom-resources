@@ -5,6 +5,7 @@ import { searchDirectory, type ProgramResult } from "@/directory/results";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { ActiveChips } from "./_components/active-chips";
+import { AnalyticsReporter } from "./_components/analytics-reporter";
 import { DirectoryHeader } from "./_components/directory-header";
 import { DirectoryLive } from "./_components/directory-live";
 import { DocumentCard } from "./_components/document-card";
@@ -201,6 +202,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
         </div>
       </DirectoryLive>
       <ResizeReporter share={shareSearch(query)} />
+      <AnalyticsReporter search={{ q: query.q, total: results.totalPrograms, filters: Object.values(query.filters).flat().filter((value) => labels.has(value)).join(",") }} />
     </main>
   );
 }

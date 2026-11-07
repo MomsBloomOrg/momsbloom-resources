@@ -15,12 +15,36 @@
  *   on the results page). `embed.js` writes them into the parent page URL (ADR 0005). `search` never
  *   holds `near` or `n`: the family's location must not reach the parent page.
  *
+ * - `event`: one analytics event (ADR 0006). `embed.js` calls the host page's own `gtag("event", ...)`
+ *   for it. Only the names and parameter keys in `ANALYTICS_EVENTS` pass.
+ *
  * Copied from ggrbc/bikegr-calendar.
  */
 
 export const RESIZE_MESSAGE = "momsbloom-resources:resize";
 export const SCROLL_MESSAGE = "momsbloom-resources:scroll";
 export const LOCATION_MESSAGE = "momsbloom-resources:location";
+export const EVENT_MESSAGE = "momsbloom-resources:event";
+/** GA4 cuts a parameter value at 100 characters. */
+export const MAX_PARAM_LENGTH = 100;
+/** Each analytics event, and the parameter keys that it may carry. `embed.js` has a copy. Never a ZIP or a location. */
+export const ANALYTICS_EVENTS: Readonly<Record<string, readonly string[]>> = {
+  directory_search: ["search_term", "result_count"],
+  directory_zero_results: ["search_term", "filters"],
+  directory_filter: ["filter_group", "filter_value"],
+  program_view: ["program_id"],
+  program_call: ["program_id"],
+  program_directions: ["program_id"],
+  program_website: ["program_id"],
+  document_download: ["document_id"],
+};
+/** Characters that `safeKeyword` ignores before it counts digits, so "616-555-1234" and "616/555/1234" count as 10 in a row. Not "," or "+". */
+export const REDACT_STRIP = /[\s().\/_-]/g;
+/** What a keyword may become before it goes to analytics: cut to 100, or "(redacted)" for an email, phone number, or ZIP code. */
+export function safeKeyword(keyword: string): string {
+  const text = keyword.trim().slice(0, MAX_PARAM_LENGTH);
+  return text.includes("@") || /\d{5}/.test(text.replace(REDACT_STRIP, "")) ? "(redacted)" : text;
+}
 /** A longer `search` is surely a bug or an attack; the parent ignores it. */
 export const MAX_SEARCH_LENGTH = 2_000;
 /** In the parent page URL, our keys start with this, so they never clash with Squarespace keys (`?q=`). */
@@ -37,7 +61,8 @@ export const EMBED_ROOT_ID = "momsbloom-embed-root";
 export type EmbedMessage =
   | { type: typeof RESIZE_MESSAGE; height: number }
   | { type: typeof SCROLL_MESSAGE; top: number }
-  | { type: typeof LOCATION_MESSAGE; search: string; program: string | null };
+  | { type: typeof LOCATION_MESSAGE; search: string; program: string | null }
+  | { type: typeof EVENT_MESSAGE; name: string; params: Record<string, string | number> };
 
 /** The message, or null if it is not a valid embed message. Never trust message data. */
 export function readEmbedMessage(data: unknown): EmbedMessage | null {
@@ -56,6 +81,20 @@ export function readEmbedMessage(data: unknown): EmbedMessage | null {
     if (typeof search !== "string" || search.length > MAX_SEARCH_LENGTH) return null;
     if (program !== null && !(typeof program === "string" && PROGRAM_ID_PATTERN.test(program))) return null;
     return { type: LOCATION_MESSAGE, search, program };
+  }
+  if (message.type === EVENT_MESSAGE) {
+    const { name, params } = message;
+    if (typeof name !== "string" || !Object.hasOwn(ANALYTICS_EVENTS, name)) return null;
+    if (typeof params !== "object" || params === null || Array.isArray(params)) return null;
+    const allowed = ANALYTICS_EVENTS[name];
+    const entries = Object.entries(params);
+    for (const [key, value] of entries) {
+      if (!allowed.includes(key)) return null;
+      const ok =
+        typeof value === "string" ? value.length <= MAX_PARAM_LENGTH : typeof value === "number" && Number.isFinite(value) && value >= 0;
+      if (!ok) return null;
+    }
+    return { type: EVENT_MESSAGE, name, params: Object.fromEntries(entries) };
   }
   return null;
 }

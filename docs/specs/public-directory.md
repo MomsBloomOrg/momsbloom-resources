@@ -193,10 +193,13 @@ count), `directory_filter` (group, value), `directory_zero_results`, `program_vi
 are the most useful signal: they show which resources are missing. **Never send ZIP codes,
 location, or any free text except the keyword.**
 
-> **Open question: analytics from inside the iframe (Changed for Option C).** GA on momsbloom.org
-> cannot see clicks inside our iframe. Recommendation: the iframe sends each event to the host page
-> with `postMessage`, and `embed.js` calls the host page's `gtag()`. Then the events land in the
-> same GA4 property as the rest of the site, with no cookies set by our app.
+**Decided ([ADR 0006](../adr/0006-analytics-events-through-the-host-page.md)).** GA on momsbloom.org cannot
+see clicks inside our iframe. So the iframe sends each event to the host page with `postMessage`, and
+`embed.js` calls the host page's `gtag()`. The events land in the same GA4 property as the rest of the
+site, and our app sets no cookie. Parameters: `search_term` (the keyword: cut to 100 characters, and
+`(redacted)` when it has `@` or 5 or more digits), `result_count`, `filters`, `filter_group`,
+`filter_value`, `program_id`, `document_id`. A search is sent 1 second after the results settle, and
+never on the first load of a page.
 
 ## Acceptance checklist
 

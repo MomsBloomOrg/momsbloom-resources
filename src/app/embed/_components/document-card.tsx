@@ -25,6 +25,8 @@ export function DocumentCard({ document, labelOf }: { document: DirectoryDocumen
           <p className="text-muted">{["PDF", values.language.map(labelOf).join(", ")].filter(Boolean).join(" · ")}</p>
           <a
             href={document.pdfUrl}
+            data-event="document_download"
+            data-document-id={document.id}
             target="_blank"
             rel="noopener"
             className="flex min-h-11 items-center gap-1 font-bold text-primary-text md:min-h-6"

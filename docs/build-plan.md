@@ -22,6 +22,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `program-detail-page` | Done. `/embed/programs/[id]` (no-map design, two columns from 900 px), "More from" list, unknown Program redirects to results with a note, new `scroll` embed message. | `src/app/embed/programs/`, `e2e/program-detail.spec.ts` |
 | `mobile-filter-sheet` | Done. Below 768 px, "Filters" opens a bottom sheet (native `<dialog>`, focus trap, "Show N results"); in the iframe it fills the visible part of the screen. Without JavaScript, the link still jumps to the column. | `src/app/embed/_components/filter-sheet.tsx`, `e2e/directory.spec.ts` |
 | `embed-link-sync` | Done. The iframe posts a `location` message; `embed.js` writes `mbr-` keys (and `mbr-program`) into the host page URL with `replaceState`, and reads them on load. `near` and `n` are never shared. | [ADR 0005](adr/0005-shared-links-through-the-host-page-url.md), `public/embed.js`, `e2e/embed.spec.ts` |
+| `embed-analytics-events` | Done. The iframe posts an `event` message; `embed.js` checks it against an allow-list and calls the host page's `gtag("event", ...)`. Custom dimensions in GA4 are for MomsBloom to register after the deploy. | [ADR 0006](adr/0006-analytics-events-through-the-host-page.md), `src/app/embed/_components/analytics-reporter.tsx`, `e2e/analytics.spec.ts` |
 | `directory-snapshot-loader` | Blocked on the schema. Cached loader + mapper (tables → `DirectorySnapshot`), `cacheComponents: true`, `updateTag("directory")`. | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
 | `seed-import` | Blocked on the schema. | [data import spec](specs/data-import.md) |
 | `admin-login` | Blocked on the schema (Auth.js tables) and on Resend domain setup. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |
@@ -37,6 +38,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | Admin login by email link (Resend) first; Microsoft 365 later | [ADR 0003](adr/0003-admin-login-by-email-link-first.md) |
 | Search filters a cached snapshot on the server | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
 | Shared links go through the host page URL (`mbr-` keys) | [ADR 0005](adr/0005-shared-links-through-the-host-page-url.md) |
+| Analytics events go through the host page's `gtag()` | [ADR 0006](adr/0006-analytics-events-through-the-host-page.md) |
 | The spreadsheet is a one-time seed; the database is the source of truth after it | [data import spec](specs/data-import.md) |
 | The embed is an Embed (or Code) block holding `embed.js`, full width | [README](../README.md) "How the embed works" |
 
@@ -46,7 +48,6 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
 
 | Question | Recommendation | Where |
 |---|---|---|
-| Analytics from inside the iframe | The iframe sends events with `postMessage`; `embed.js` calls the host page's `gtag()` (GA4 `G-1QJ4VJRFP1`). | Public directory spec, "Analytics" |
 | Spreadsheet values not on the Lists tab (9 today) | The dry run lists them; `--write` refuses until they are fixed in the spreadsheet. | Data import spec |
 | Map coordinates for new addresses | US Census geocoder on save; staff can type coordinates if it fails. | Admin spec |
 | Lists rows 31 and 32 ("Home Visiting (Hope, add please?)", "Financial Assistance" with no Category) | A person at MomsBloom decides. | Data import spec |
