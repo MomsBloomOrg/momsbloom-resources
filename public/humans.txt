@@ -1,0 +1,33 @@
+        _.-''-._      _.-''-._
+     .-'   o     '-..-'        '-.
+    /       \__        o---.      \          ____ ___  ____  _____   _____ ___  ____
+   |           \___         \      |        / ___/ _ \|  _ \| ____| |  ___/ _ \|  _ \
+   |   o            o-----.  o     |       | |  | | | | | | |  _|   | |_ | | | | |_) |
+   |    \                  \       |       | |__| |_| | |_| | |___  |  _|| |_| |  _ <
+    \    '---.      o       \     /         \____\___/|____/|_____| |_|   \___/|_| \_\
+     '.       \___   \___     o .'              ____  ___   ___  ____
+       '.   o     \      \    .'               / ___|/ _ \ / _ \|  _ \
+         '.  \     o---.    .'                | |  _| | | | | | | | | |
+           '. '---.     o .'                  | |_| | |_| | |_| | |_| |
+             '.    o    .'                     \____|\___/ \___/|____/
+               '.     .'
+                 '. .'                           W E S T   M I C H I G A N
+                   V
+
+/* TEAM */
+Volunteers: Code for Good WM, Weekend for Good 2026 (Nov 6-8, 2026, Ada, Michigan)
+Client: MomsBloom (https://www.momsbloom.org)
+Host: Code for Good WM (https://codeforgoodwm.org)
+Team members: add your name here in a PR if you want credit.
+
+/* THANKS */
+Code for Good WM
+Ludus (event venue)
+MomsBloom staff and families
+
+/* SITE */
+Last update: 2026-11-07
+Language: English
+Standards: HTML, CSS, TypeScript
+Components: Next.js, React, Tailwind CSS, Drizzle ORM, Neon Postgres, Leaflet, OpenStreetMap, Vercel
+Source: https://github.com/MomsBloomOrg/momsbloom-resources

@@ -13,6 +13,8 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "MomsBloom Resource Directory",
   description: "Find support for pregnancy and the postpartum period in Kent County.",
+  // Makes `<link rel="author" href="/humans.txt">` (see public/humans.txt).
+  authors: [{ url: "/humans.txt" }],
 };
 
 // The root layout wraps every page in the app. Each page's content goes in `children`.
