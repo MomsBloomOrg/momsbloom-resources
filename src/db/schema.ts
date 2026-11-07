@@ -137,6 +137,7 @@ export const subcategories = pgTable("subcategories", {
 	categoryId: integer("category_id").notNull(),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.categoryId],
@@ -150,6 +151,7 @@ export const categories = pgTable("categories", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "categories_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("categories_name_unique").on(table.name),
 ]);
@@ -158,6 +160,7 @@ export const languages = pgTable("languages", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "languages_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("languages_name_unique").on(table.name),
 ]);
@@ -166,6 +169,7 @@ export const insurancePlans = pgTable("insurance_plans", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "insurance_plans_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("insurance_plans_name_unique").on(table.name),
 ]);
@@ -174,6 +178,7 @@ export const audiences = pgTable("audiences", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "audiences_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("audiences_name_unique").on(table.name),
 ]);
@@ -182,6 +187,7 @@ export const costOptions = pgTable("cost_options", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "cost_options_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("cost_options_name_unique").on(table.name),
 ]);
@@ -190,6 +196,7 @@ export const serviceFormats = pgTable("service_formats", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "service_formats_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	name: text().notNull(),
 	sortOrder: integer("sort_order").default(0).notNull(),
+	hidden: boolean().default(false).notNull(),
 }, (table) => [
 	unique("service_formats_name_unique").on(table.name),
 ]);

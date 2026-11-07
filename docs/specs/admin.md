@@ -103,6 +103,8 @@ Who it serves, Cost, and Service format.
 - To retire a value, hide it. A hidden value stays on the records that have it, but families no
   longer see it as a filter option. Show how many Programs use each value, so staff know what a
   change affects.
+- Families also stop seeing a hidden value as a label on Program cards and on the Program detail
+  page. Hiding a Category also hides its Subcategories.
 - A value that no record uses can be deleted.
 
 ## Rules

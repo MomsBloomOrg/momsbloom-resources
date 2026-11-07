@@ -1,12 +1,14 @@
 /** Admin login without a database: the proxy redirect, the login page, and its frame headers. */
 import { expect, test } from "@playwright/test";
 
-test("/admin without a session cookie redirects to /login", async ({ request }) => {
-  const res = await request.get("/admin", { maxRedirects: 0 });
-  expect(res.status()).toBe(307);
-  // Next.js may send a relative Location.
-  expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/login");
-});
+for (const path of ["/admin", "/admin/settings"]) {
+  test(`${path} without a session cookie redirects to /login`, async ({ request }) => {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status()).toBe(307);
+    // Next.js may send a relative Location.
+    expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/login");
+  });
+}
 
 for (const path of ["/admin/organizations/new", "/admin/organizations/1"]) {
   test(`${path} without a session cookie redirects to /login`, async ({ request }) => {

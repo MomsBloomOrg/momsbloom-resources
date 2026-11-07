@@ -2,6 +2,7 @@
  * Made-up rows for tests and for the local seed (`pnpm db:seed-sample`). Never real data: this repo is
  * public. Every email uses example.org.
  */
+import { eq } from "drizzle-orm";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 
@@ -49,6 +50,29 @@ export async function insertSampleData(db: Db): Promise<SampleIds> {
     { programId: programRows[0].id, categoryId: mentalHealth.id },
     { programId: programRows[2].id, categoryId: feeding.id },
   ]);
+
+  // More Facet values, for the settings page and the filter column.
+  const [supportGroups] = await db
+    .insert(t.subcategories)
+    .values([
+      { categoryId: mentalHealth.id, name: "Support groups", sortOrder: 1 },
+      { categoryId: mentalHealth.id, name: "Counseling", sortOrder: 2 },
+      { categoryId: feeding.id, name: "Lactation consultants", sortOrder: 1 },
+    ])
+    .returning({ id: t.subcategories.id });
+  await db.insert(t.programSubcategories).values([{ programId: programRows[0].id, subcategoryId: supportGroups.id }]);
+  await db.insert(t.insurancePlans).values([{ name: "Medicaid", sortOrder: 1 }, { name: "Sample Health Plan", sortOrder: 2 }]);
+  await db.insert(t.audiences).values([{ name: "Pregnant people", sortOrder: 1 }, { name: "New parents", sortOrder: 2 }]);
+  const [free] = await db
+    .insert(t.costOptions)
+    .values([{ name: "Free", sortOrder: 1 }, { name: "Sliding scale", sortOrder: 2 }])
+    .returning({ id: t.costOptions.id });
+  await db.insert(t.serviceFormats).values([
+    { name: "In person", sortOrder: 1 },
+    { name: "Virtual", sortOrder: 2 },
+    { name: "In person and virtual", sortOrder: 3 },
+  ]);
+  await db.update(t.programs).set({ costOptionId: free.id }).where(eq(t.programs.id, programRows[0].id));
 
   return {
     statuses: { active: active.id, needsReview: needsReview.id, inactive: inactive.id },
