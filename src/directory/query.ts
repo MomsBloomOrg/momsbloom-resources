@@ -27,7 +27,7 @@ const MAX_CUSTOM_FIELDS = 20;
 
 export const RADIUS_MILES = [5, 10, 25] as const;
 export type RadiusMiles = (typeof RADIUS_MILES)[number];
-/** "any" = no distance limit. Null = not chosen: Any until a location is known, then 10 miles. */
+/** "any" = no distance limit. Null = not chosen: Any. */
 export type Radius = RadiusMiles | "any" | null;
 
 export const SORTS = ["nearest", "az", "verified"] as const;

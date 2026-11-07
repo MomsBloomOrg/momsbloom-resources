@@ -97,7 +97,7 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
 
   // Step 3: Distance and radius.
   const origin = query.near ?? (query.zip ? lookupMichiganZip(query.zip) : null);
-  // No distance filter in the UI any more: no limit unless an old link still has `r=`.
+  // The Distance group shows only with a location; no limit until the family picks a radius.
   const radius = query.radius ?? "any";
   const placed: ProgramResult[] = [];
   for (const program of matching) {
