@@ -1,6 +1,7 @@
 # Analytics events go through the host page
 
 Status: accepted, 2026-11-07.
+Changed 2026-11-07 (#67): record events carry the public name next to the ID.
 
 The site momsbloom.org uses Google Analytics 4 (GA4, `G-1QJ4VJRFP1`). Squarespace loads it. But the
 Directory runs in an iframe, and GA4 on the host page cannot see a click inside an iframe. The spec
@@ -20,9 +21,9 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   - `directory_search`: `search_term`, `result_count`
   - `directory_zero_results`: `search_term`, `filters` (the checked Facet value keys, joined with ",")
   - `directory_filter`: `filter_group` (for example `insurance`), `filter_value` (for example `medicaid`)
-  - `program_view`, `program_call`, `program_directions`, `program_website`: `program_id`
-  - `organization_view`: `organization_id`
-  - `document_download`: `document_id`
+  - `program_view`, `program_call`, `program_directions`, `program_website`: `program_id`, `program_name`
+  - `organization_view`: `organization_id`, `organization_name`
+  - `document_download`: `document_id`, `document_title`
 
   A string is at most 100 characters (the GA4 limit). A number is finite and not negative.
 - **`embed.js` builds the call.** It copies only the allowed keys into a new object. It never passes
@@ -42,8 +43,10 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   "yog", "yoga" send one event. The first load of a page sends nothing: a shared link, a reload, and
   "Back to results" are not new searches. A search is lost if the family leaves the page within 1
   second. If the numbers look low, add a flush on `pagehide`.
-- **IDs only.** Events carry the Program ID or the Document ID, never a name. Staff can look up an
-  ID.
+- **ID and public name.** Record events carry the ID (the stable key) and the public name, so a
+  report is readable without a lookup. A renamed record shows its old name in old reports. Names are
+  business or memorial names that staff enter, not family input, so they are not redacted. They are
+  cut to 100 characters (`eventText`).
 - **No ZIP code and no location.** `zip`, `near`, `r`, and `n` are not event parameters, and no
   event holds them. ADR 0005 keeps them out of the host page URL, because GA4 records that
   URL as `page_location` (the open question `zip-in-page-location` is closed there). The `filters`
@@ -71,8 +74,8 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
 ## Consequences
 
 - **GA4 shows `search_term` at once.** `result_count`, `filter_group`, `filter_value`, `program_id`,
-  `document_id`, and `filters` show in reports only after a person with GA4 admin access on
-  momsbloom.org registers them as custom dimensions (`result_count` as a custom metric). MomsBloom
+  `program_name`, `organization_id`, `organization_name`, `document_id`, `document_title`, and
+  `filters` show in reports only after a person with GA4 admin access on momsbloom.org registers them as custom dimensions (`result_count` as a custom metric). MomsBloom
   does this after the deploy. It is not part of the code.
 - **A typed personal name can reach GA4** as the keyword. This is a known limit.
 - **Change both sides together.** `embed.js` has no build step, so it has its own copy of the

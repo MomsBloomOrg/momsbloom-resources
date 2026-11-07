@@ -16,7 +16,8 @@
  *   holds `near` or `n`: the family's location must not reach the parent page.
  *
  * - `event`: one analytics event (ADR 0006). `embed.js` calls the host page's own `gtag("event", ...)`
- *   for it. Only the names and parameter keys in `ANALYTICS_EVENTS` pass.
+ *   for it. Only the names and parameter keys in `ANALYTICS_EVENTS` pass. Record events carry the ID
+ *   and the public name (`eventText` cuts it to 100).
  *
  * Copied from ggrbc/bikegr-calendar.
  */
@@ -32,13 +33,17 @@ export const ANALYTICS_EVENTS: Readonly<Record<string, readonly string[]>> = {
   directory_search: ["search_term", "result_count"],
   directory_zero_results: ["search_term", "filters"],
   directory_filter: ["filter_group", "filter_value"],
-  program_view: ["program_id"],
-  organization_view: ["organization_id"],
-  program_call: ["program_id"],
-  program_directions: ["program_id"],
-  program_website: ["program_id"],
-  document_download: ["document_id"],
+  program_view: ["program_id", "program_name"],
+  organization_view: ["organization_id", "organization_name"],
+  program_call: ["program_id", "program_name"],
+  program_directions: ["program_id", "program_name"],
+  program_website: ["program_id", "program_name"],
+  document_download: ["document_id", "document_title"],
 };
+/** A record name or title for an event: trimmed and cut to 100 (a longer string drops the whole event). */
+export function eventText(text: string): string {
+  return text.trim().slice(0, MAX_PARAM_LENGTH);
+}
 /** Characters that `safeKeyword` ignores before it counts digits, so "616-555-1234" and "616/555/1234" count as 10 in a row. Not "," or "+". */
 export const REDACT_STRIP = /[\s().\/_-]/g;
 /** What a keyword may become before it goes to analytics: cut to 100, or "(redacted)" for an email, phone number, or ZIP code. */

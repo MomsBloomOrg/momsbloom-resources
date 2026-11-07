@@ -79,7 +79,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
     hasActions && (
       <div className={`flex flex-wrap gap-2 ${className}`}>
         {program.phone && (
-          <a href={telHref(program.phone)} data-event="program_call" data-program-id={program.id} className={`${pill} border-primary-text bg-primary-text text-white`}>
+          <a href={telHref(program.phone)} data-event="program_call" data-program-id={program.id} data-program-name={program.name} className={`${pill} border-primary-text bg-primary-text text-white`}>
             <Phone aria-hidden="true" className="size-4" />
             Call<span className="sr-only"> {program.phone}</span>
           </a>
@@ -88,7 +88,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           <a
             href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place)}`}
             data-event="program_directions"
-            data-program-id={program.id}
+            data-program-id={program.id} data-program-name={program.name}
             target="_blank"
             rel="noopener"
             className={pillPlain}
@@ -98,7 +98,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           </a>
         )}
         {website && (
-          <a href={website} data-event="program_website" data-program-id={program.id} target="_blank" rel="noopener" className={pillPlain}>
+          <a href={website} data-event="program_website" data-program-id={program.id} data-program-name={program.name} target="_blank" rel="noopener" className={pillPlain}>
             <Globe aria-hidden="true" className="size-4" />
             Website{newTab}
           </a>
@@ -157,7 +157,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
                       {contact.title && <p className="text-sm text-muted">{contact.title}</p>}
                       <p className="flex flex-wrap gap-x-4 text-sm">
                         {contact.phone && (
-                          <a href={telHref(contact.phone)} data-event="program_call" data-program-id={program.id} className={link}>
+                          <a href={telHref(contact.phone)} data-event="program_call" data-program-id={program.id} data-program-name={program.name} className={link}>
                             {contact.phone}
                           </a>
                         )}
@@ -245,7 +245,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
             <div className="mt-2">
               <Field name="Address">
                 {place && (
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`} data-event="program_directions" data-program-id={program.id} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline min-[900px]:min-h-6">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`} data-event="program_directions" data-program-id={program.id} data-program-name={program.name} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline min-[900px]:min-h-6">
                     {place}
                     {newTab}
                   </a>
@@ -285,7 +285,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
         <p className="mt-4 text-sm text-muted">Last verified {verified.format(new Date(program.lastVerified))}</p>
       )}
       <ResizeReporter share={shareSearch(query)} program={program.id} />
-      <AnalyticsReporter programId={program.id} />
+      <AnalyticsReporter programId={program.id} programName={program.name} />
     </main>
   );
 }

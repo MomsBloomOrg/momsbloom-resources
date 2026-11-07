@@ -63,12 +63,12 @@ test("detail-events: view, website, and call send events with the Program ID", a
   const frame = frameOf(page);
   await frame.getByRole("link", { name: "View details for Mom and baby yoga" }).click();
   await expect(frame.getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
-  expect(await waitFor(page, "program_view")).toEqual({ program_id: "P-001" });
+  expect(await waitFor(page, "program_view")).toEqual({ program_id: "P-001", program_name: expect.any(String) });
   for (const name of ["program_website", "program_call", "program_directions"]) {
     const link = `a[data-event="${name}"]:visible`; // the page holds two action bars; one is hidden
     await stay(page, link);
     await frame.locator(link).first().click();
-    expect(await waitFor(page, name)).toEqual({ program_id: "P-001" });
+    expect(await waitFor(page, name)).toEqual({ program_id: "P-001", program_name: expect.any(String) });
   }
 });
 
@@ -77,14 +77,14 @@ test("org-view-event: the Organization page sends organization_view with the Org
   const frame = frameOf(page);
   await frame.locator("#program-P-001").getByRole("link", { name: "Riverbend Health", exact: true }).click();
   await expect(frame.getByRole("heading", { level: 1, name: "Riverbend Health" })).toBeVisible();
-  expect(await waitFor(page, "organization_view")).toEqual({ organization_id: "O-001" });
+  expect(await waitFor(page, "organization_view")).toEqual({ organization_id: "O-001", organization_name: expect.any(String) });
 });
 
 test("download-event: Download sends document_download with the Document ID", async ({ page }) => {
   await page.goto(`${HOST}/?mbr-q=yoga`);
   await stay(page, 'a[data-event="document_download"]');
   await frameOf(page).locator('a[data-event="document_download"]').first().click();
-  expect(await waitFor(page, "document_download")).toEqual({ document_id: expect.any(String) });
+  expect(await waitFor(page, "document_download")).toEqual({ document_id: expect.any(String), document_title: expect.any(String) });
 });
 
 test("no-zip-no-location: a ZIP search and Use my location stay out of the events", async ({ page, context }) => {
@@ -148,5 +148,5 @@ test("map-popup-directions-event: Get directions in the map popup sends program_
   }).toPass({ timeout: 15_000 });
   await stay(page, ".leaflet-popup a[data-event]");
   await frameOf(page).getByRole("link", { name: "Get directions" }).first().click();
-  expect(await waitFor(page, "program_directions")).toEqual({ program_id: expect.stringMatching(/^P-/) });
+  expect(await waitFor(page, "program_directions")).toEqual({ program_id: expect.stringMatching(/^P-/), program_name: expect.any(String) });
 });

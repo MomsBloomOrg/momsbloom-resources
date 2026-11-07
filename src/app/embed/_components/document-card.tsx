@@ -27,6 +27,7 @@ export function DocumentCard({ document, labelOf }: { document: DirectoryDocumen
             href={document.pdfUrl}
             data-event="document_download"
             data-document-id={document.id}
+            data-document-title={document.title}
             target="_blank"
             rel="noopener"
             className="flex min-h-11 items-center gap-1 font-bold text-primary-text md:min-h-6"

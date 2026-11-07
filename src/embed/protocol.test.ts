@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ANALYTICS_EVENTS, EVENT_MESSAGE, MAX_PARAM_LENGTH, REDACT_STRIP, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, HOST_CUSTOM_KEY, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { ANALYTICS_EVENTS, EVENT_MESSAGE, MAX_PARAM_LENGTH, REDACT_STRIP, LOCATION_MESSAGE, safeKeyword, eventText, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, HOST_CUSTOM_KEY, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -118,5 +118,16 @@ describe("public/embed.js agrees with protocol.ts", () => {
   it("has the same event names and parameter keys", () => {
     const match = script.match(/var EVENTS = (\{[\s\S]*?\});/);
     expect(JSON.parse(match![1])).toEqual(ANALYTICS_EVENTS);
+  });
+});
+
+describe("record names in events", () => {
+  it("accepts a name next to the ID", () => {
+    const params = { program_id: "P-001", program_name: "Hope House" };
+    expect(readEmbedMessage({ type: EVENT_MESSAGE, name: "program_view", params })).toEqual({ type: EVENT_MESSAGE, name: "program_view", params });
+  });
+  it("eventText trims and cuts to 100", () => {
+    expect(eventText("  Hope House ")).toBe("Hope House");
+    expect(eventText("a".repeat(150))).toHaveLength(MAX_PARAM_LENGTH);
   });
 });
