@@ -51,6 +51,8 @@ export const MAX_SEARCH_LENGTH = 2_000;
 export const HOST_KEY_PREFIX = "mbr-";
 /** The keys that `embed.js` may copy between the iframe URL and the parent page URL. Never `near`, never `n`. */
 export const HOST_QUERY_KEYS = ["q", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"] as const;
+/** Custom field filter keys (`cf12`) may be copied too: the field ids are not known ahead of time. */
+export const HOST_CUSTOM_KEY = /^cf\d{1,9}$/;
 /** What a Program ID may look like. IDs may become integers, so this does not require "P-". */
 export const PROGRAM_ID_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
 /** A larger height is surely a bug or an attack; the parent ignores it. */

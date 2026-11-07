@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ANALYTICS_EVENTS, EVENT_MESSAGE, MAX_PARAM_LENGTH, REDACT_STRIP, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { ANALYTICS_EVENTS, EVENT_MESSAGE, MAX_PARAM_LENGTH, REDACT_STRIP, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, HOST_CUSTOM_KEY, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -98,6 +98,10 @@ describe("public/embed.js agrees with protocol.ts", () => {
   it("has the same key list", () => {
     const match = script.match(/var KEYS = (\[.*?\]);/);
     expect(JSON.parse(match![1])).toEqual([...HOST_QUERY_KEYS]);
+  });
+
+  it("has the same custom filter key pattern", () => {
+    expect(script).toContain(`var CUSTOM_KEY = ${HOST_CUSTOM_KEY};`);
   });
 
   it("has the same Program ID pattern and message names", () => {

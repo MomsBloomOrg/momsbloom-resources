@@ -7,6 +7,8 @@
  * without "Show on website".
  */
 import type * as schema from "@/db/schema";
+import type { CustomFieldDefinition, CustomValues } from "@/custom-fields/types";
+import { onlyPublicValues } from "@/custom-fields/values";
 import {
   FACET_KEYS,
   type DirectoryContact,
@@ -28,7 +30,7 @@ type PlaceFields = "streetAddress" | "suite" | "city" | "state" | "zip" | "latit
 
 export interface DirectoryRows {
   statuses: Pick<Row<typeof schema.statuses>, "id" | "showOnSite">[];
-  organizations: Pick<Row<typeof schema.organizations>, "id" | "name" | "statusId" | PlaceFields>[];
+  organizations: Pick<Row<typeof schema.organizations>, "id" | "name" | "statusId" | "custom" | PlaceFields>[];
   programs: Pick<
     Row<typeof schema.programs>,
     | "id"
@@ -43,6 +45,7 @@ export interface DirectoryRows {
     | "eligibilityNotes"
     | "lastVerified"
     | "statusId"
+    | "custom"
     | PlaceFields
   >[];
   contacts: Pick<Row<typeof schema.contacts>, "programId" | "name" | "title" | "specialty" | "email" | "phone" | "showOnWebsite">[];
@@ -63,6 +66,8 @@ export interface DirectoryRows {
   documentCategories: { documentId: number; categoryId: number }[];
   documentSubcategories: { documentId: number; subcategoryId: number }[];
   documentLanguages: { documentId: number; languageId: number }[];
+  /** Every custom field definition; the mapper keeps the public, active ones. */
+  customFields: readonly CustomFieldDefinition[];
 }
 
 /** The group titles on screen (the same as the sample data). */
@@ -160,6 +165,11 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
   const programLanguages = keysBy(rows.programLanguages, (row) => row.programId, (row) => row.languageId);
   const programAudiences = keysBy(rows.programAudiences, (row) => row.programId, (row) => row.audienceId);
 
+  // Custom fields: only fields shown on the website, not archived. Answers to other fields are dropped here.
+  const customFields = rows.customFields.filter((field) => !field.archived && field.showOnWebsite);
+  const publicValues = (entity: "program" | "organization", values: unknown): CustomValues =>
+    values && typeof values === "object" && !Array.isArray(values) ? onlyPublicValues(customFields, entity, values as CustomValues) : {};
+
   const contacts = new Map<number, DirectoryContact[]>();
   for (const contact of rows.contacts) {
     if (!contact.showOnWebsite) continue;
@@ -199,6 +209,8 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
       eligibilityNotes: text(program.eligibilityNotes),
       lastVerified: program.lastVerified,
       contacts: contacts.get(program.id) ?? [],
+      custom: publicValues("program", program.custom),
+      organizationCustom: publicValues("organization", org.custom),
     });
   }
 
@@ -248,5 +260,5 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
     values: facetValueLists[key],
   }));
 
-  return { programs, documents, facets };
+  return { programs, documents, facets, customFields };
 }

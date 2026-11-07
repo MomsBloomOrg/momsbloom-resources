@@ -113,7 +113,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
         <div className="mt-8 grid gap-6 md:grid-cols-[17rem_1fr]">
           <div className="order-last md:order-first">
             <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref}>
-              <FilterColumn facets={snapshot.facets} results={results} clearAllHref={clearAllHref} />
+              <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
             </FilterSheet>
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
@@ -136,7 +136,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
               )}
             </a>
             {clearAllHref && (
-              <ActiveChips query={query} labelOf={labelOf} organizationName={organizationName} clearAllHref={clearAllHref} />
+              <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
             )}
 
             {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}

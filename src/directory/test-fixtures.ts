@@ -32,11 +32,14 @@ function program(fields: Partial<DirectoryProgram> & Pick<DirectoryProgram, "id"
     eligibilityNotes: null,
     lastVerified: null,
     contacts: [],
+    custom: {},
+    organizationCustom: {},
     ...fields,
   };
 }
 
 export const TEST_SNAPSHOT: DirectorySnapshot = {
+  customFields: [],
   facets: [
     {
       key: "category",

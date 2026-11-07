@@ -12,6 +12,7 @@
  * 5. Apply the filters, sort, and cut out the pages that are shown.
  * 6. Documents: keyword and their three Facets only. Never paged, never limited by distance.
  */
+import { cleanCustomFilters, countCustomFilterValues, matchesCustomFilters } from "@/custom-fields/filter";
 import { distanceMiles, roundMiles } from "./distance";
 import { countFacetValues, DOCUMENT_FACETS, matchesFilters, type FacetCounts } from "./filter";
 import { emptyFilters, PAGE_SIZE, type DirectoryQuery, type RadiusMiles, type Sort } from "./query";
@@ -46,6 +47,8 @@ export interface DirectoryResults {
   documents: DirectoryDocument[];
   /** For each Facet value key: the count to show next to its checkbox. A missing key means 0. */
   counts: FacetCounts;
+  /** Custom filter counts: field id → value key → count. A missing key means 0. */
+  customCounts: Record<string, Record<string, number>>;
 }
 
 // The search text of each record, worked out once per cached snapshot (the records are the same
@@ -82,6 +85,7 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
   const labelOf = facetLabelLookup(snapshot.facets);
   const filters = emptyFilters();
   for (const facet of FACET_KEYS) filters[facet] = query.filters[facet].filter((value) => labelOf(facet, value) !== undefined);
+  const custom = cleanCustomFilters(snapshot.customFields, query.custom);
 
   // Step 2: Organization and keyword.
   const words = keywordWords(query.q);
@@ -108,13 +112,20 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
   }
 
   // Step 4: counts. Step 5: filters, sort, pages.
+  // Facets and custom filters combine with AND, so each side's counts use the programs that pass the other side.
+  const placedPrograms = placed.map((result) => result.program);
   const counts = countFacetValues(
-    placed.map((result) => result.program),
+    placedPrograms.filter((program) => matchesCustomFilters(snapshot.customFields, program.custom, custom)),
     filters,
+  );
+  const customCounts = countCustomFilterValues(
+    snapshot.customFields,
+    placedPrograms.filter((program) => matchesFilters(program.facetValues, filters)),
+    custom,
   );
   const sort: Sort = query.sort === "nearest" && !origin ? "az" : (query.sort ?? (origin ? "nearest" : "az"));
   const filtered = placed
-    .filter((result) => matchesFilters(result.program.facetValues, filters))
+    .filter((result) => matchesFilters(result.program.facetValues, filters) && matchesCustomFilters(snapshot.customFields, result.program.custom, custom))
     .sort(compareResults(sort));
   // With a location, the nearby places always come first, then the "Virtual and phone" group.
   const ordered = origin
@@ -135,7 +146,7 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
           .sort((a, b) => byName(a.title, b.title));
 
   return {
-    query: { ...query, filters },
+    query: { ...query, filters, custom },
     origin,
     zipNotFound: query.zip !== null && query.near === null && origin === null,
     radius,
@@ -145,5 +156,6 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
     hasMore: ordered.length > shown,
     documents,
     counts,
+    customCounts,
   };
 }

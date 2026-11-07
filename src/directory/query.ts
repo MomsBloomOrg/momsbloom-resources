@@ -6,6 +6,7 @@
  *
  * The URL comes from anyone, so reading it never throws: a bad value is dropped.
  */
+import type { CustomFilters } from "@/custom-fields/filter";
 import { FACET_KEYS, type FacetKey, type LatLng } from "./types";
 
 /** The URL key for each Facet. Several values repeat the key: `ins=a&ins=b`. */
@@ -18,6 +19,11 @@ export const FACET_URL_KEYS: Readonly<Record<FacetKey, string>> = {
   whoItServes: "who",
   format: "fmt",
 };
+
+/** The URL key of a custom field filter: "cf" + the field id, for example `cf12=1&cf12=3`. */
+export const customFilterUrlKey = (fieldId: string) => `cf${fieldId}`;
+const CUSTOM_URL_KEY = /^cf(\d{1,9})$/;
+const MAX_CUSTOM_FIELDS = 20;
 
 export const RADIUS_MILES = [5, 10, 25] as const;
 export type RadiusMiles = (typeof RADIUS_MILES)[number];
@@ -45,6 +51,8 @@ export interface DirectoryQuery {
   near: LatLng | null;
   radius: Radius;
   filters: Readonly<Record<FacetKey, readonly string[]>>;
+  /** Custom field filters: field id → checked value keys. Unknown fields are dropped by searchDirectory. */
+  custom: CustomFilters;
   /** Organization ID ("See all programs at ..."), or null. */
   org: string | null;
   /** Null = the default: nearest when a location is known, otherwise A to Z. */
@@ -68,6 +76,7 @@ export const EMPTY_QUERY: DirectoryQuery = {
   near: null,
   radius: null,
   filters: emptyFilters(),
+  custom: {},
   org: null,
   sort: null,
   pages: 1,
@@ -92,6 +101,20 @@ function parseNear(value: string | null): LatLng | null {
   const lng = Number(match[2]);
   if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
   return { lat: roundTo2(lat), lng: roundTo2(lng) };
+}
+
+function parseCustom(input: SearchParamsInput): CustomFilters {
+  const keys = input instanceof URLSearchParams ? [...new Set(input.keys())] : Object.keys(input);
+  const custom: Record<string, string[]> = {};
+  for (const key of keys) {
+    const fieldId = key.match(CUSTOM_URL_KEY)?.[1];
+    if (!fieldId || Object.keys(custom).length >= MAX_CUSTOM_FIELDS) continue;
+    const values = getAll(input, key)
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0 && value.length <= MAX_VALUE_LENGTH);
+    if (values.length > 0) custom[fieldId] = [...new Set(values)].slice(0, MAX_VALUES_PER_FACET);
+  }
+  return custom;
 }
 
 function parseRadius(value: string | null): Radius {
@@ -120,6 +143,7 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
     near: parseNear(getFirst(input, "near")),
     radius: parseRadius(getFirst(input, "r")),
     filters,
+    custom: parseCustom(input),
     // An opaque ID: a database id ("12") or a test fixture id ("O-001").
     org: org && /^[\w-]{1,20}$/.test(org) ? org : null,
     sort: (SORTS as readonly string[]).includes(sort ?? "") ? (sort as Sort) : null,
@@ -138,6 +162,9 @@ export function serializeDirectoryQuery(query: DirectoryQuery): string {
   for (const facet of FACET_KEYS) {
     for (const value of query.filters[facet]) params.append(FACET_URL_KEYS[facet], value);
   }
+  for (const [fieldId, values] of Object.entries(query.custom)) {
+    for (const value of values) params.append(customFilterUrlKey(fieldId), value);
+  }
   if (query.org) params.set("org", query.org);
   if (query.sort) params.set("sort", query.sort);
   if (query.pages > 1) params.set("n", String(query.pages));
@@ -152,7 +179,7 @@ export function shareSearch(query: DirectoryQuery): string {
 
 /** True when any filter checkbox or the Organization filter is active (the chips row shows). */
 export function hasActiveFilters(query: DirectoryQuery): boolean {
-  return query.org !== null || FACET_KEYS.some((facet) => query.filters[facet].length > 0);
+  return query.org !== null || FACET_KEYS.some((facet) => query.filters[facet].length > 0) || Object.values(query.custom).some((values) => values.length > 0);
 }
 
 /** The query after a chip's "x": one value removed. Back to the first page. */
@@ -172,7 +199,16 @@ export function toggleFilter(query: DirectoryQuery, facet: FacetKey, value: stri
 
 /** "Clear all": every filter and the Organization filter go; the keyword and location stay. */
 export function clearFilters(query: DirectoryQuery): DirectoryQuery {
-  return { ...query, filters: emptyFilters(), org: null, pages: 1 };
+  return { ...query, filters: emptyFilters(), custom: {}, org: null, pages: 1 };
+}
+
+/** The query after a custom filter chip's "x": one value removed. Back to the first page. */
+export function removeCustomFilter(query: DirectoryQuery, fieldId: string, value: string): DirectoryQuery {
+  const rest = (query.custom[fieldId] ?? []).filter((v) => v !== value);
+  const custom = { ...query.custom };
+  if (rest.length > 0) custom[fieldId] = rest;
+  else delete custom[fieldId];
+  return { ...query, custom, pages: 1 };
 }
 
 /** True when the family typed a ZIP that is not 5 digits (after trimming). Empty is not bad. */

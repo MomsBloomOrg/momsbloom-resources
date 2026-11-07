@@ -5,6 +5,7 @@ import {
   hasActiveFilters,
   isBadZip,
   parseDirectoryQuery,
+  removeCustomFilter,
   removeFilter,
   serializeDirectoryQuery,
   shareSearch,
@@ -120,5 +121,22 @@ describe("shareSearch", () => {
     expect(shareSearch(parseDirectoryQuery(new URLSearchParams(search)))).toBe(
       "q=yoga&cat=postpartum-recovery&org=O-005&sort=az",
     );
+  });
+});
+
+describe("custom field filters in the URL", () => {
+  it("reads cf<id> keys, and writes them back", () => {
+    const query = parseDirectoryQuery(new URLSearchParams("cf12=1&cf12=3&cf7=yes&cfx=1&cf=2"));
+    expect(query.custom).toEqual({ "12": ["1", "3"], "7": ["yes"] });
+    // Field ids are number-like keys, so they come out in number order.
+    expect(serializeDirectoryQuery(query)).toBe("cf7=yes&cf12=1&cf12=3");
+  });
+
+  it("counts as an active filter; Clear all and the chip x remove it", () => {
+    const query = parseDirectoryQuery(new URLSearchParams("q=yoga&cf12=1&cf12=3"));
+    expect(hasActiveFilters(query)).toBe(true);
+    expect(clearFilters(query).custom).toEqual({});
+    expect(removeCustomFilter(query, "12", "1").custom).toEqual({ "12": ["3"] });
+    expect(removeCustomFilter(removeCustomFilter(query, "12", "1"), "12", "3").custom).toEqual({});
   });
 });

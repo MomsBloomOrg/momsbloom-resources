@@ -126,3 +126,33 @@ test("detail-syncs-program: the host URL follows the open Program", async ({ pag
   await page.goto(`${HOST}/?mbr-program=P-001&mbr-q=yoga`);
   await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
 });
+
+// Custom field filters (src/custom-fields/README.md). The sample snapshot has a "Parking" filter (field 1).
+test("custom-filter-host-sync: a custom filter goes into the host URL and comes back on load", async ({ page }) => {
+  await page.goto(HOST);
+  const frame = page.frameLocator(IFRAME);
+  await frame.getByRole("checkbox", { name: /^Free lot/ }).check();
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-cf1")).toBe("1");
+  await expect(frame.getByRole("link", { name: "Remove Parking: Free lot" })).toBeVisible();
+
+  // A copied link opens the iframe with the same filter.
+  await page.goto(`${HOST}/?mbr-cf1=1&mbr-cfx=1`);
+  await expect(page.locator(IFRAME)).toHaveAttribute("src", `${APP}/embed?cf1=1`);
+  await expect(frame.getByRole("checkbox", { name: /^Free lot/ })).toBeChecked();
+
+  // Unchecking removes it from the host URL.
+  await frame.getByRole("checkbox", { name: /^Free lot/ }).uncheck();
+  await expect.poll(() => hostUrl(page).searchParams.has("mbr-cf1")).toBe(false);
+});
+
+test("custom-fields-detail-in-frame: a Program's and its Organization's custom fields show in the iframe", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-program=P-001`);
+  const frame = page.frameLocator(IFRAME);
+  await expect(frame.getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
+  await expect(frame.getByRole("heading", { name: "More details" })).toBeVisible();
+  await expect(frame.getByText("Free lot")).toBeVisible();
+  await expect(frame.getByRole("heading", { name: "About Riverbend Health" })).toBeVisible();
+  await expect(frame.getByText("Ramp at the side door")).toBeVisible();
+  // The iframe grows to fit the extra cards.
+  await expect.poll(async () => Math.abs((await iframeHeight(page)) - (await contentHeight(page)))).toBeLessThan(2);
+});

@@ -4,8 +4,9 @@ Staff admins can add their own fields to Programs, Organizations, Contacts, and 
 example "Parking" or "Doula on staff", without a developer and without a database change.
 
 **Status: live in the Admin.** Staff can add fields and fill in answers on the Program and Organization
-pages (below). The database change (migration 0004) is on Neon. Families can't see custom fields yet:
-the Directory and Program detail pages don't use them.
+pages (below). The database change (migration 0004) is on Neon. Families see Program and Organization
+answers on the Program detail page, and Program fields marked as filters in the filter column
+(URL key `cf<field id>`, for example `cf12=1`).
 
 ## The idea: a field is a question, each record has its own answer
 
@@ -115,8 +116,6 @@ action checks the login first (`requireStaffAdmin`).
 
 ### Still to do
 
-- Load the fields and the public answers in `src/directory/snapshot.ts` and `mapper.ts`.
-- Add the custom filters to the URL state in `src/directory/query.ts` and to `searchDirectory`.
-- Program detail: show `publicCustomValues`.
+- The Embed does not copy `cf…` keys to the host page URL yet (`HOST_QUERY_KEYS`, `public/embed.js`).
 - Admin: custom fields for Contacts and Documents, once they have Admin forms.
 - Nice to have: set the same answer on many records at once (for backfilling a new field).

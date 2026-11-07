@@ -7,6 +7,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { eq } from "drizzle-orm";
+import { listDefinitions } from "@/custom-fields/store";
 import { getDb } from "@/db";
 import * as t from "@/db/schema";
 import { toDirectorySnapshot } from "./mapper";
@@ -63,6 +64,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
     documentCategories,
     documentSubcategories,
     documentLanguages,
+    customFields,
   ] = await Promise.all([
     db.select({ id: t.statuses.id, showOnSite: t.statuses.showOnSite }).from(t.statuses),
     db
@@ -79,6 +81,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
         longitude: t.organizations.longitude,
         phone: t.organizations.phone,
         website: t.organizations.website,
+        custom: t.organizations.custom,
       })
       .from(t.organizations),
     db
@@ -96,6 +99,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
         eligibilityNotes: t.programs.eligibilityNotes,
         lastVerified: t.programs.lastVerified,
         statusId: t.programs.statusId,
+        custom: t.programs.custom,
       })
       .from(t.programs)
       .orderBy(t.programs.id),
@@ -141,6 +145,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
     db.select().from(t.documentCategories),
     db.select().from(t.documentSubcategories),
     db.select().from(t.documentLanguages),
+    listDefinitions(db),
   ]);
 
   return toDirectorySnapshot({
@@ -165,5 +170,6 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
     documentCategories,
     documentSubcategories,
     documentLanguages,
+    customFields,
   });
 }

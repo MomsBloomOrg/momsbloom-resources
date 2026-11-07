@@ -3,6 +3,8 @@
  * checklist of docs/specs/public-directory.md.
  */
 import { describe, expect, it } from "vitest";
+import { AGES, DOULA, PARKING, TEST_FIELDS } from "@/custom-fields/test-fixtures";
+import type { CustomValues } from "@/custom-fields/types";
 import { parseDirectoryQuery } from "./query";
 import { searchDirectory } from "./results";
 import { facetLabelLookup } from "./search";
@@ -37,6 +39,7 @@ describe("keyword", () => {
         { ...TEST_SNAPSHOT.programs[0], id: "12", facetValues: facetValues({ category: ["1"], language: ["1"] }), contacts: [] },
       ],
       documents: [],
+      customFields: [],
     };
     const labelOf = facetLabelLookup(snapshot.facets);
     expect([labelOf("category", "1"), labelOf("language", "1"), labelOf("cost", "1")]).toEqual(["Doula care", "Arabic", undefined]);
@@ -154,5 +157,55 @@ describe("sorting and pages", () => {
     expect(first.programs).toHaveLength(10);
     expect(search("n=3", many)).toMatchObject({ hasMore: false });
     expect(search("n=3", many).programs).toHaveLength(25);
+  });
+});
+
+describe("custom field filters", () => {
+  const answers: Record<string, Record<string, unknown>> = {
+    "P-001": { [DOULA.id]: true, [PARKING.id]: "1" },
+    "P-002": { [DOULA.id]: false, [PARKING.id]: "2" },
+    "P-003": { [PARKING.id]: "1" },
+  };
+  const snapshot: DirectorySnapshot = {
+    ...TEST_SNAPSHOT,
+    customFields: TEST_FIELDS,
+    programs: TEST_SNAPSHOT.programs.map((program) => ({ ...program, custom: (answers[program.id] ?? {}) as CustomValues })),
+  };
+  const customIds = (url: string) => search(url, snapshot).programs.map((r) => r.program.id).sort();
+
+  it("a checked value keeps only Programs with that answer; blank never matches", () => {
+    expect(customIds(`cf${DOULA.id}=yes`)).toEqual(["P-001"]);
+    expect(customIds(`cf${DOULA.id}=no`)).toEqual(["P-002"]);
+  });
+
+  it("values in one field combine with OR", () => {
+    expect(customIds(`cf${PARKING.id}=1&cf${PARKING.id}=2`)).toEqual(["P-001", "P-002", "P-003"]);
+  });
+
+  it("fields combine with AND, with each other and with the Facets", () => {
+    expect(customIds(`cf${PARKING.id}=1&cf${DOULA.id}=yes`)).toEqual(["P-001"]);
+    const withFacet = search(`cf${PARKING.id}=1&cat=postpartum-recovery`, snapshot).programs.map((r) => r.program.id);
+    const facetOnly = search("cat=postpartum-recovery", snapshot).programs.map((r) => r.program.id);
+    expect(withFacet).toEqual(facetOnly.filter((id) => answers[id]?.[PARKING.id] === "1"));
+  });
+
+  it("counts each custom value given the other filters", () => {
+    const results = search(`cf${DOULA.id}=yes`, snapshot);
+    expect(results.customCounts[PARKING.id]).toEqual({ "1": 1 });
+    // Its own field is left out of its counts, so both answers stay visible.
+    expect(results.customCounts[DOULA.id]).toEqual({ yes: 1, no: 1 });
+  });
+
+  it("the Facet counts respect the custom filters", () => {
+    const all = search("", snapshot).counts;
+    const filtered = search(`cf${DOULA.id}=yes`, snapshot).counts;
+    const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a, b) => a + b, 0);
+    expect(sum(filtered.category)).toBeLessThan(sum(all.category));
+  });
+
+  it("drops filters for fields that are not filters, hidden options, and unknown fields", () => {
+    const results = search(`cf${AGES.id}=1&cf${PARKING.id}=3&cf999=1`, snapshot);
+    expect(results.query.custom).toEqual({});
+    expect(results.totalPrograms).toBe(TEST_SNAPSHOT.programs.length);
   });
 });

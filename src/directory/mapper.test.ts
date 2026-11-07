@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { toDirectorySnapshot, toWebsite, type DirectoryRows } from "./mapper";
+import { BILLING_EMAIL, DOULA, INTAKE_NOTES, OLD_FIELD, TEST_FIELDS } from "@/custom-fields/test-fixtures";
 
 // Made-up rows only: this repo is public.
 const ACTIVE = 1;
@@ -24,7 +25,7 @@ const noPlace = {
 };
 
 function org(fields: Partial<OrgRow> & Pick<OrgRow, "id">): OrgRow {
-  return { name: `Org ${fields.id}`, statusId: ACTIVE, ...noPlace, ...fields };
+  return { name: `Org ${fields.id}`, statusId: ACTIVE, custom: {}, ...noPlace, ...fields };
 }
 
 function program(fields: Partial<ProgramRow> & Pick<ProgramRow, "id">): ProgramRow {
@@ -40,6 +41,7 @@ function program(fields: Partial<ProgramRow> & Pick<ProgramRow, "id">): ProgramR
     eligibilityNotes: null,
     lastVerified: null,
     statusId: ACTIVE,
+    custom: {},
     ...noPlace,
     ...fields,
   };
@@ -86,6 +88,7 @@ function rows(overrides: Partial<DirectoryRows> = {}): DirectoryRows {
     documentCategories: [],
     documentSubcategories: [],
     documentLanguages: [],
+    customFields: [],
     ...overrides,
   };
 }
@@ -238,5 +241,26 @@ describe("toWebsite", () => {
     expect(toWebsite(" www.example.org/page ")).toBe("https://www.example.org/page");
     expect(toWebsite("call for info")).toBeNull();
     expect(toWebsite("")).toBeNull();
+  });
+});
+
+describe("custom fields", () => {
+  it("keeps only public, active fields and their answers", () => {
+    const snapshot = toDirectorySnapshot(
+      rows({
+        customFields: TEST_FIELDS,
+        organizations: [org({ id: 10, custom: { [BILLING_EMAIL.id]: "billing@example.org" } })],
+        programs: [
+          program({ id: 1, custom: { [DOULA.id]: true, [INTAKE_NOTES.id]: "Staff only", [OLD_FIELD.id]: "Archived" } }),
+        ],
+      }),
+    );
+    const ids = snapshot.customFields.map((field) => field.id);
+    expect(ids).toContain(DOULA.id);
+    expect(ids).not.toContain(INTAKE_NOTES.id);
+    expect(ids).not.toContain(OLD_FIELD.id);
+    expect(ids).not.toContain(BILLING_EMAIL.id);
+    expect(snapshot.programs[0].custom).toEqual({ [DOULA.id]: true });
+    expect(snapshot.programs[0].organizationCustom).toEqual({});
   });
 });
