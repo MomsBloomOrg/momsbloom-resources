@@ -33,13 +33,12 @@ const place = {
 /**
  * Programs, Organizations, Contacts, and Documents: named columns only, so never Internal notes. Private
  * Contacts are never selected.
- * shortcut: cacheLife "hours" because nothing calls updateTag("directory") yet; the Admin (admin-pages)
- * adds updateTag on save, and then this becomes "max".
+ * Cached until an Admin save calls `directoryChanged()` (`updateTag("directory")`).
  */
 async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
   "use cache";
   cacheTag("directory");
-  cacheLife("hours");
+  cacheLife("max");
 
   const db = getDb();
   const [

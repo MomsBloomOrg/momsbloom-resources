@@ -8,6 +8,14 @@ test("/admin without a session cookie redirects to /login", async ({ request }) 
   expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/login");
 });
 
+for (const path of ["/admin/organizations/new", "/admin/organizations/1"]) {
+  test(`${path} without a session cookie redirects to /login`, async ({ request }) => {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status()).toBe(307);
+    expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/login");
+  });
+}
+
 test("/login shows the email form", async ({ page }) => {
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: "Log in to the Admin" })).toBeVisible();
