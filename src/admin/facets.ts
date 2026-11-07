@@ -155,27 +155,43 @@ export async function listFacetsForAdmin(db: Db): Promise<AdminFacet[]> {
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type ValueRow = { id: number; name: string; sortOrder: number; hidden: boolean; categoryId?: number };
 
-async function findValue(tx: Tx, key: FacetKey, id: number): Promise<ValueRow | undefined> {
+async function findValue(tx: Tx, key: FacetKey, id: number, lock = true): Promise<ValueRow | undefined> {
   if (key === "subcategory") {
-    const [row] = await tx.select().from(t.subcategories).where(eq(t.subcategories.id, id)).for("update");
+    const query = tx.select().from(t.subcategories).where(eq(t.subcategories.id, id));
+    const [row] = lock ? await query.for("update") : await query;
     return row;
   }
   const table = FACETS[key].table;
-  const [row] = await tx.select().from(table).where(eq(table.id, id)).for("update");
+  const query = tx.select().from(table).where(eq(table.id, id));
+  const [row] = lock ? await query.for("update") : await query;
   return row;
 }
 
-/** The values in the same list: the Facet, or for a Subcategory the other Subcategories of its Category. */
+/**
+ * The values in the same list: the Facet, or for a Subcategory the other Subcategories of its Category.
+ * Locks the rows until the transaction ends, so two saves of one list cannot interleave.
+ */
 async function siblings(tx: Tx, key: FacetKey, categoryId: number | undefined): Promise<{ id: number; sortOrder: number }[]> {
-  if (key === "subcategory") {
-    return tx
-      .select({ id: t.subcategories.id, sortOrder: t.subcategories.sortOrder })
-      .from(t.subcategories)
-      .where(eq(t.subcategories.categoryId, categoryId ?? -1))
-      .orderBy(asc(t.subcategories.sortOrder), asc(t.subcategories.id));
-  }
   const table = FACETS[key].table;
-  return tx.select({ id: table.id, sortOrder: table.sortOrder }).from(table).orderBy(asc(table.sortOrder), asc(table.id));
+  const rows =
+    key === "subcategory"
+      ? await tx
+          .select({ id: t.subcategories.id, sortOrder: t.subcategories.sortOrder })
+          .from(t.subcategories)
+          .where(eq(t.subcategories.categoryId, categoryId ?? -1))
+          .for("no key update")
+      : await tx.select({ id: table.id, sortOrder: table.sortOrder }).from(table).for("no key update");
+  // Postgres sorts before it locks: a row that waited on a lock comes back with its new sortOrder in its old place.
+  return rows.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+}
+
+/** Gives the values of a locked `list` (from `siblings`) the sort orders 1, 2, 3, ... in the order of `ids`. */
+async function renumber(tx: Tx, key: FacetKey, list: { id: number; sortOrder: number }[], ids: number[]): Promise<void> {
+  const table = FACETS[key].table;
+  const sortOrderOf = new Map(list.map((row) => [row.id, row.sortOrder]));
+  for (const [index, id] of ids.entries()) {
+    if (sortOrderOf.get(id) !== index + 1) await tx.update(table).set({ sortOrder: index + 1 }).where(eq(table.id, id));
+  }
 }
 
 /** True when another value in the same list has this name, without case. */
@@ -270,18 +286,40 @@ export async function moveFacetValue(db: Db, input: { key: FacetKey; id: unknown
   if (id === null) return NOT_FOUND;
 
   return db.transaction(async (tx) => {
-    const current = await findValue(tx, input.key, id);
+    // No row lock here: `siblings` locks the whole list, and a row lock first would deadlock with a second move.
+    const current = await findValue(tx, input.key, id, false);
     if (!current) return NOT_FOUND;
     const list = await siblings(tx, input.key, current.categoryId);
-    const from = list.findIndex((row) => row.id === id);
+    const ids = list.map((row) => row.id);
+    const from = ids.indexOf(id);
     const to = input.direction === "up" ? from - 1 : from + 1;
-    if (to < 0 || to >= list.length) return { ok: true, value: { name: current.name } } as const;
-    [list[from], list[to]] = [list[to], list[from]];
-    const table = FACETS[input.key].table;
-    for (const [index, row] of list.entries()) {
-      if (row.sortOrder !== index + 1) await tx.update(table).set({ sortOrder: index + 1 }).where(eq(table.id, row.id));
-    }
+    if (from < 0) return NOT_FOUND;
+    if (to < 0 || to >= ids.length) return { ok: true, value: { name: current.name } } as const;
+    [ids[from], ids[to]] = [ids[to], ids[from]];
+    await renumber(tx, input.key, list, ids);
     return { ok: true, value: { name: current.name } } as const;
+  });
+}
+
+/**
+ * Saves a new order for one list (a drag and drop). `ids` must be exactly the values of the list:
+ * the Facet, or for Subcategories the Subcategories of `categoryId`. Sort orders become 1, 2, 3, ...
+ */
+export async function reorderFacetValues(
+  db: Db,
+  input: { key: FacetKey; categoryId?: unknown; ids: unknown },
+): Promise<FacetResult<{ count: number }>> {
+  const ids = Array.isArray(input.ids) ? input.ids.map((id) => parseId(String(id))) : [];
+  const categoryId = input.key === "subcategory" ? parseId(String(input.categoryId)) : undefined;
+  if (ids.length === 0 || ids.includes(null) || new Set(ids).size !== ids.length || categoryId === null) return NOT_FOUND;
+
+  return db.transaction(async (tx) => {
+    const list = await siblings(tx, input.key, categoryId);
+    if (list.length !== ids.length || list.some((row) => !ids.includes(row.id))) {
+      return refuse("This list changed since you opened it. Reload the page.");
+    }
+    await renumber(tx, input.key, list, ids as number[]);
+    return { ok: true, value: { count: ids.length } } as const;
   });
 }
 

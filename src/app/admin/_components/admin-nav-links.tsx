@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 // "Resources" is the Admin home: one list of Organizations, Programs, and Guides & Downloads.
 const LINKS = [
   { href: "/admin", label: "Resources", match: ["/admin", "/admin/organizations", "/admin/programs", "/admin/documents"] },
-  { href: "/admin/settings", label: "Settings", match: ["/admin/settings"] },
+  { href: "/admin/settings/category", label: "Settings", match: ["/admin/settings"] },
   { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"] },
 ];
 
