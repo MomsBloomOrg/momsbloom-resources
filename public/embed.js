@@ -29,7 +29,7 @@
   var LOCATION = "momsbloom-resources:location";
   var MAX_HEIGHT = 50000;
   var MAX_SEARCH = 2000;
-  var KEYS = ["q", "zip", "r", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
+  var KEYS = ["q", "r", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
   var HOST_PREFIX = "mbr-";
   var PROGRAM_KEY = HOST_PREFIX + "program";
   var PROGRAM_ID = /^[A-Za-z0-9-]{1,40}$/;

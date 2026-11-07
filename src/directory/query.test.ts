@@ -108,10 +108,10 @@ describe("isBadZip", () => {
 });
 
 describe("shareSearch", () => {
-  it("never holds near or n, and keeps the rest", () => {
+  it("never holds zip, near or n, and keeps the rest", () => {
     const search = "q=yoga&zip=49508&near=42.96,-85.67&r=10&cat=postpartum-recovery&org=O-005&sort=az&n=3";
     expect(shareSearch(parseDirectoryQuery(new URLSearchParams(search)))).toBe(
-      "q=yoga&zip=49508&r=10&cat=postpartum-recovery&org=O-005&sort=az",
+      "q=yoga&r=10&cat=postpartum-recovery&org=O-005&sort=az",
     );
   });
 });

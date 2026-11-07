@@ -69,11 +69,12 @@ test("host-url-gets-mbr-keys: a filter change goes into the host URL with replac
   await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
   expect(hostUrl(page).searchParams.get("q")).toBe("host-search");
+  expect(page.url()).not.toMatch(/zip|near/);
   expect(await page.evaluate(() => history.length)).toBe(before); // replaceState: no new history entry
 });
 
-test("host-keys-open-filtered: mbr- keys reach the iframe; other keys and near do not", async ({ page }) => {
-  const url = `${HOST}/?mbr-q=yoga&mbr-near=42.96,-85.67&q=other`;
+test("host-keys-open-filtered: mbr- keys reach the iframe; other keys, zip and near do not", async ({ page }) => {
+  const url = `${HOST}/?mbr-q=yoga&mbr-zip=49508&mbr-near=42.96,-85.67&q=other`;
   await page.goto(url);
   await expect(page.locator(IFRAME)).toHaveAttribute("src", `${APP}/embed?q=yoga`);
   await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
@@ -97,6 +98,26 @@ test("near-never-shared: Use my location does not reach the host URL", async ({ 
   await frame.getByRole("checkbox", { name: /^Spanish/ }).check(); // a later change, so a message surely came after
   await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
   expect(page.url()).not.toContain("near");
+});
+
+test("zip-never-shared: a ZIP search stays out of the host URL", async ({ page }) => {
+  await page.goto(HOST);
+  const frame = page.frameLocator(IFRAME);
+  await frame.getByRole("textbox", { name: /zip/i }).fill("49508");
+  await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await expect.poll(() => hostUrl(page).searchParams.get("mbr-lang")).toBe("spanish");
+  expect(page.url()).not.toMatch(/zip|49508|near/);
+});
+
+// TODO: map view is not on main yet, so the iframe ignores `view`. Remove the skip when it lands.
+test.skip("view-map-height-stable: mbr-view=map keeps the iframe height steady and under a cap", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-view=map`);
+  await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
+  await page.waitForTimeout(1000);
+  const first = await iframeHeight(page);
+  await page.waitForTimeout(1000);
+  expect(await iframeHeight(page)).toBe(first);
+  expect(first).toBeLessThan(5000);
 });
 
 test("detail-syncs-program: the host URL follows the open Program", async ({ page }) => {

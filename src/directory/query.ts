@@ -144,9 +144,9 @@ export function serializeDirectoryQuery(query: DirectoryQuery): string {
   return params.toString();
 }
 
-/** The query for the host page URL (ADR 0005): no `near` (the family's location) and no `n` ("Show more" pages). */
+/** The query for the host page URL (ADR 0005): no `zip` or `near` (analytics sees that URL) and no `n` ("Show more" pages). */
 export function shareSearch(query: DirectoryQuery): string {
-  return serializeDirectoryQuery({ ...query, near: null, pages: 1 });
+  return serializeDirectoryQuery({ ...query, zip: null, near: null, pages: 1 });
 }
 
 /** True when any filter checkbox or the Organization filter is active (the chips row shows). */

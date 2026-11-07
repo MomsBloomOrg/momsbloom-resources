@@ -113,7 +113,7 @@ See the four `*-detail-*.png` captures.
 ## Sharing a link
 
 The handoff doc keeps all state in the URL, so a family can text a link and the other person sees
-the same results. Examples: `?q=yoga&zip=49508&r=10&cat=Yoga` for results, and a Program ID for
+the same results. Examples: `?q=yoga&cat=Yoga` for results, and a Program ID for
 the detail view.
 
 The family never sees the iframe URL, so the iframe tells the host page its state with a `location`
@@ -122,7 +122,8 @@ message. `embed.js` writes it into the host page URL with the prefix `mbr-` (`mb
 with those keys, `embed.js` passes them to the iframe. The URL changes with `replaceState`, and
 only when the page has one Embed. See [ADR 0005](../adr/0005-shared-links-through-the-host-page-url.md).
 
-`near` is never shared: a link holds the ZIP code, never the family's location.
+The ZIP code and `near` are never shared: a link holds the keyword and filters, never the ZIP code or the
+family's location, because the host page URL goes to analytics ("Analytics" below forbids that).
 
 ## Mobile filter sheet
 
