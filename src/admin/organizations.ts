@@ -2,6 +2,7 @@
 import { count, eq } from "drizzle-orm";
 import { organizations, programs, statuses } from "@/db/schema";
 import type { Db } from "@/db/types";
+import type { CustomValues } from "@/custom-fields/types";
 
 /**
  * The Status name that "n need review" counts.
@@ -113,6 +114,8 @@ export type AdminResult<T> =
 export const GONE = "This record does not exist. Reload the page.";
 
 export interface OrganizationInput {
+  /** Custom field answers (src/custom-fields/form.ts). Left out: the `custom` column does not change. */
+  custom?: CustomValues;
   name: string;
   about: string | null;
   website: string | null;

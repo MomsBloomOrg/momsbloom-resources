@@ -3,6 +3,8 @@
 import { NOT_PLACED } from "@/admin/geocode";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } from "@/admin/programs";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
+import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Field, Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
@@ -58,12 +60,15 @@ export function ProgramForm({
   program,
   organizationId,
   options,
+  customFields,
 }: {
   id?: number;
   program?: ProgramInput;
   /** Preselected Organization on the "new" page (`?org=`). */
   organizationId?: number;
   options: ProgramFormOptions;
+  /** The active Program custom fields, in order. */
+  customFields: readonly CustomFieldDefinition[];
 }) {
   const [state, dispatch, pending] = useActionState(saveProgramAction, IDLE);
   const [orgId, setOrgId] = useState(String(program?.organizationId ?? organizationId ?? ""));
@@ -250,6 +255,7 @@ export function ProgramForm({
       <Field id="program-eligibilityNotes" label="Eligibility notes" error={errors.eligibilityNotes}>
         <textarea id="program-eligibilityNotes" name="eligibilityNotes" rows={3} defaultValue={p?.eligibilityNotes ?? ""} className={inputClass} />
       </Field>
+      <CustomFieldInputs idPrefix="program" fields={customFields} values={p?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="program-statusId" label="Status" error={errors.statusId}>

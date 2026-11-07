@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { listStatuses } from "@/admin/organizations";
+import { listActiveFields } from "@/custom-fields/form";
 import { Card, PageHeader, linkClass } from "../../_components/ui";
 import { OrganizationForm } from "../_components/organization-form";
 
@@ -10,7 +11,8 @@ export const instant = false;
 
 export default async function NewOrganizationPage() {
   await requireStaffAdmin();
-  const statuses = await listStatuses(getDb());
+  const db = getDb();
+  const [statuses, customFields] = await Promise.all([listStatuses(db), listActiveFields(db, "organization")]);
   return (
     <>
       <PageHeader
@@ -22,7 +24,7 @@ export default async function NewOrganizationPage() {
         }
       />
       <Card>
-        <OrganizationForm statuses={statuses} hiddenProgramCount={0} />
+        <OrganizationForm statuses={statuses} hiddenProgramCount={0} customFields={customFields} />
       </Card>
     </>
   );

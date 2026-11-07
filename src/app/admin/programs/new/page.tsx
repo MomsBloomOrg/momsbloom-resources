@@ -3,6 +3,7 @@ import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { parseId } from "@/admin/organizations";
 import { getProgramFormOptions } from "@/admin/programs";
+import { listActiveFields } from "@/custom-fields/form";
 import { Card, PageHeader, linkClass } from "../../_components/ui";
 import { ProgramForm } from "../_components/program-form";
 
@@ -12,7 +13,8 @@ export const instant = false;
 /** `?org=ID` (from "Add program" on an Organization) preselects that Organization. */
 export default async function NewProgramPage({ searchParams }: PageProps<"/admin/programs/new">) {
   await requireStaffAdmin();
-  const [options, { org }] = await Promise.all([getProgramFormOptions(getDb()), searchParams]);
+  const db = getDb();
+  const [options, { org }, customFields] = await Promise.all([getProgramFormOptions(db), searchParams, listActiveFields(db, "program")]);
   const orgId = parseId(org);
   const organization = options.organizations.find((o) => o.id === orgId);
 
@@ -27,7 +29,7 @@ export default async function NewProgramPage({ searchParams }: PageProps<"/admin
         }
       />
       <Card>
-        <ProgramForm organizationId={organization?.id} options={options} />
+        <ProgramForm organizationId={organization?.id} options={options} customFields={customFields} />
       </Card>
     </>
   );

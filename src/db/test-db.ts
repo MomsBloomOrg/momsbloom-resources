@@ -19,10 +19,16 @@ export async function createTestDb(): Promise<{ db: Db; close: () => Promise<voi
   return { db, close: () => client.close() };
 }
 
-// The directory tables, as DDL generated from schema.ts. The auth tables are skipped: migrations
-// already make them. `pushSchema` would be shorter, but its introspection queries fail on PGlite.
-const AUTH_TABLES = new Set<unknown>([schema.staffAdmins, schema.authSessions, schema.authVerificationTokens, schema.rateLimits]);
-const directoryTables = Object.fromEntries(Object.entries(schema).filter(([, table]) => !AUTH_TABLES.has(table)));
+// The directory tables, as DDL generated from schema.ts. The tables the migrations make (auth, custom
+// fields) are skipped. `pushSchema` would be shorter, but its introspection queries fail on PGlite.
+const MIGRATION_TABLES = new Set<unknown>([
+  schema.staffAdmins,
+  schema.authSessions,
+  schema.authVerificationTokens,
+  schema.rateLimits,
+  schema.customFields,
+]);
+const directoryTables = Object.fromEntries(Object.entries(schema).filter(([, table]) => !MIGRATION_TABLES.has(table)));
 
 /**
  * Like `createTestDb`, plus the directory tables. The 0000 baseline is a comment (the tables were made

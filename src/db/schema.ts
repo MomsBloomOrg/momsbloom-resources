@@ -6,8 +6,13 @@
  * To change a table: edit this file, then `pnpm db:generate` and `pnpm db:migrate`. If someone changes
  * the database directly, pull again (into a temp `out`) and copy the new schema.ts over this file.
  */
-import { pgTable, index, foreignKey, integer, text, boolean, timestamp, doublePrecision, date, unique, primaryKey, uuid, check } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, integer, text, boolean, timestamp, doublePrecision, date, unique, primaryKey, jsonb, uuid, check } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+// Type-only (erased at runtime), and a relative path because drizzle-kit does not know the "@/" alias.
+import type { CustomFieldOption, CustomValues } from "../custom-fields/types"
+
+/** Custom field values on a record, keyed by custom_fields.id (src/custom-fields/README.md). */
+const custom = () => jsonb().$type<CustomValues>().default({}).notNull()
 
 export const contacts = pgTable("contacts", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "contacts_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
@@ -19,6 +24,7 @@ export const contacts = pgTable("contacts", {
 	phone: text(),
 	showOnWebsite: boolean("show_on_website").default(false).notNull(),
 	internalNotes: text("internal_notes"),
+	custom: custom(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -53,6 +59,7 @@ export const programs = pgTable("programs", {
 	lastVerified: date("last_verified"),
 	statusId: integer("status_id").notNull(),
 	internalNotes: text("internal_notes"),
+	custom: custom(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -94,6 +101,7 @@ export const documents = pgTable("documents", {
 	lastVerified: date("last_verified"),
 	statusId: integer("status_id").notNull(),
 	internalNotes: text("internal_notes"),
+	custom: custom(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -122,6 +130,7 @@ export const organizations = pgTable("organizations", {
 	lastVerified: date("last_verified"),
 	statusId: integer("status_id").notNull(),
 	internalNotes: text("internal_notes"),
+	custom: custom(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
@@ -357,6 +366,30 @@ export const programAudiences = pgTable("program_audiences", {
 			name: "program_audiences_audience_id_audiences_id_fk"
 		}).onDelete("cascade"),
 	primaryKey({ columns: [table.programId, table.audienceId], name: "program_audiences_program_id_audience_id_pk"}),
+]);
+
+/**
+ * Fields that Staff admins add themselves (src/custom-fields/README.md). The values live in the `custom`
+ * column of each record table, keyed by this id. Rows are archived (archived_at), never deleted.
+ * The checks below are a safety net; the rules are in src/custom-fields/definitions.ts.
+ */
+export const customFields = pgTable("custom_fields", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "custom_fields_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	entity: text().notNull(),
+	label: text().notNull(),
+	helpText: text("help_text"),
+	type: text().notNull(),
+	options: jsonb().$type<CustomFieldOption[]>().default([]).notNull(),
+	sortOrder: integer("sort_order").default(0).notNull(),
+	showOnWebsite: boolean("show_on_website").default(false).notNull(),
+	filterable: boolean().default(false).notNull(),
+	archivedAt: timestamp("archived_at", { withTimezone: true, mode: 'string' }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("custom_fields_entity_idx").using("btree", table.entity.asc().nullsLast().op("text_ops")),
+	check("custom_fields_entity_check", sql`${table.entity} in ('organization', 'program', 'contact', 'document')`),
+	check("custom_fields_type_check", sql`${table.type} in ('text', 'longText', 'number', 'yesNo', 'date', 'choice', 'multiChoice', 'link', 'phone', 'email')`),
 ]);
 
 // ---------------------------------------------------------------------------------------------
