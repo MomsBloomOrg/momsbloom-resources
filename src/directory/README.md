@@ -42,10 +42,13 @@ const href = `?${serializeDirectoryQuery(toggleFilter(results.query, "language",
 | `distance.ts` | Miles between two points. |
 | `zip.ts`, `michigan-zips.ts` | ZIP code → map point, for Michigan. The table is generated; see its header. |
 | `results.ts` | `searchDirectory`: puts it all together. |
-| `test-fixtures.ts` | A small made-up snapshot. Use it in tests and to build components before the database is ready. |
+| `snapshot.ts` | `getDirectorySnapshot()`: the data the pages use (sample data for now). |
+| `test-fixtures.ts` | A small made-up snapshot for unit tests. |
 
 ## Where the snapshot comes from
 
-Not built yet. A cached server function will load the public data from the database and turn it
-into a `DirectorySnapshot` (the "mapper"). Until then, build and test components with
-`TEST_SNAPSHOT` from `test-fixtures.ts`.
+`getDirectorySnapshot()` in `snapshot.ts`. Pages call only this function. For now it returns made-up
+sample data (`TEST_SNAPSHOT` plus a few more Programs), and `IS_SAMPLE_DATA` makes the page show a
+"Sample data" note. The directory-snapshot-loader task replaces that file with a cached server
+function that loads the public data from the database and turns it into a `DirectorySnapshot` (the
+"mapper"). Unit tests keep using `TEST_SNAPSHOT` from `test-fixtures.ts`.

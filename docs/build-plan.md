@@ -17,7 +17,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `context-and-specs` | Done | [CONTEXT.md](../CONTEXT.md), [docs/specs](specs/) |
 | `directory-core-functions` | Done. Search, filters, counts, distance, sorting, pages, Michigan ZIP centers; 53 unit tests. | `src/directory/` |
 | `database-schema` | In progress (another developer) | `src/db/schema.ts` |
-| `directory-ui-components` | Next. Can start now with `TEST_SNAPSHOT`. | [public directory spec](specs/public-directory.md) |
+| `directory-list-view` | Done (list view, desktop and mobile, on sample data with a "Sample data" note). Next: mobile filter sheet, Program detail, empty and error states. | `src/app/embed/`, `src/directory/snapshot.ts`, `e2e/directory.spec.ts` |
 | `directory-snapshot-loader` | Blocked on the schema. Cached loader + mapper (tables → `DirectorySnapshot`), `cacheComponents: true`, `updateTag("directory")`. | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
 | `seed-import` | Blocked on the schema. | [data import spec](specs/data-import.md) |
 | `admin-login` | Blocked on the schema (Auth.js tables) and on Resend domain setup. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |

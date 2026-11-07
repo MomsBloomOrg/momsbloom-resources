@@ -20,8 +20,8 @@ test("the embed script adds an iframe, and the iframe height matches its content
   // The start height is 600 px. After the resize message, the iframe is exactly as tall as its content.
   await expect.poll(async () => Math.abs((await iframeHeight(page)) - (await contentHeight(page)))).toBeLessThan(2);
   expect(await iframeHeight(page)).not.toBe(600);
-  // The host page's CSS does not reach inside the iframe (the test button keeps its own color).
-  await expect(frame.getByRole("link", { name: "A test button" })).not.toHaveCSS("color", "rgb(192, 57, 43)");
+  // The host page's CSS (all links red) does not reach inside the iframe: links keep `primary-text`.
+  await expect(frame.getByRole("link", { name: /^View details/ }).first()).toHaveCSS("color", "rgb(179, 84, 0)");
 });
 
 test("the iframe grows when its content grows", async ({ page }) => {
