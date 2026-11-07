@@ -30,8 +30,11 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   dropped. There is no queue and no error. It works with more than one Embed on a page.
 - **The keyword is the only free text.** The iframe sends it as GA4's standard `search_term`, so it
   fills the built-in "Search term" report with no setup. A keyword is cut to 100 characters. A keyword
-  with `@`, or with 5 or more digits (spaces and dashes ignored), becomes `(redacted)`: it may be an
-  email, a phone number, or a ZIP code. A name that a family types still goes through. Contact names
+  with `@`, or with 5 or more digits in a row, becomes `(redacted)`: it may be an
+  email, a phone number, or a ZIP code. Before it counts the digits, it ignores spaces and these
+  characters: `-`, `.`, `(`, `)`, `/`, `_`. It does not ignore `,` or `+`. So "616-555-1234" is
+  redacted, and "ages 0-5" is not. `embed.js` does the same check again. It also drops an event whose
+  `program_id` or `document_id` is not a valid ID. A name that a family types still goes through. Contact names
   are a real search feature, so a name filter would remove useful data. We do not send the GA4
   `search` event: it would mix Directory searches with Squarespace site searches.
 - **A search is sent 1 second after the results settle.** A new keyword cancels the wait, so "yo",
@@ -41,8 +44,9 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
 - **IDs only.** Events carry the Program ID or the Document ID, never a name. Staff can look up an
   ID.
 - **No ZIP code and no location.** `zip`, `near`, `r`, and `n` are not event parameters, and no
-  event holds them. ADR 0005 already keeps them out of the host page URL, because GA4 records that
-  URL as `page_location` (the open question `zip-in-page-location` is closed there).
+  event holds them. ADR 0005 keeps them out of the host page URL, because GA4 records that
+  URL as `page_location` (the open question `zip-in-page-location` is closed there). The `filters`
+  parameter holds only Facet value keys that exist in the Directory, never raw text from the URL.
 - **Consent is not bypassed.** We never call `gtag("consent", ...)`, never load `gtag.js`, never use
   the Measurement Protocol, and never set `send_to`. If MomsBloom turns on the Squarespace cookie
   banner, its Consent Mode applies to our events with no change, because they go through the host
@@ -50,7 +54,8 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
 - **Click events cannot block a link.** The click happens in the iframe, and the host page never
   navigates. The iframe sends the event in the click handler and does not call `preventDefault`. A
   link carries `data-event` and `data-program-id` (or `data-document-id`), and one listener on the
-  document sends the event.
+  document sends the event. A middle click or a right-click "open in new tab" fires `auxclick`, not
+  `click`, so it sends no event. We accept this loss.
 
 ## Considered options
 

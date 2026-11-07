@@ -121,3 +121,23 @@ test("first-load-no-search: a shared link sends no search event", async ({ page 
   await page.waitForTimeout(2000);
   expect(await named(page, "directory_search")).toHaveLength(0);
 });
+
+test("filters-validated: a bad Facet value in the host URL never reaches gtag", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-ins=49508&mbr-q=zzzzqq`);
+  await expect(frameOf(page).getByRole("heading", { level: 1 })).toBeVisible();
+  await keyword(page).fill("zzzzqqx"); // a real search, so the zero-results event surely fires
+  await waitFor(page, "directory_zero_results");
+  expect(JSON.stringify(await calls_(page))).not.toContain("49508");
+});
+
+test("map-popup-directions-event: Get directions in the map popup sends program_directions", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-view=map`);
+  // Click until the popup opens: the pin can show before the map is ready for clicks.
+  await expect(async () => {
+    await frameOf(page).locator(".leaflet-marker-icon").first().click();
+    await expect(frameOf(page).locator(".leaflet-popup")).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
+  await stay(page, ".leaflet-popup a[data-event]");
+  await frameOf(page).getByRole("link", { name: "Get directions" }).first().click();
+  expect(await waitFor(page, "program_directions")).toEqual({ program_id: expect.stringMatching(/^P-/) });
+});

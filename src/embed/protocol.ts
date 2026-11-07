@@ -38,11 +38,12 @@ export const ANALYTICS_EVENTS: Readonly<Record<string, readonly string[]>> = {
   program_website: ["program_id"],
   document_download: ["document_id"],
 };
+/** Characters that `safeKeyword` ignores before it counts digits, so "616-555-1234" and "616/555/1234" count as 10 in a row. Not "," or "+". */
+export const REDACT_STRIP = /[\s().\/_-]/g;
 /** What a keyword may become before it goes to analytics: cut to 100, or "(redacted)" for an email, phone number, or ZIP code. */
 export function safeKeyword(keyword: string): string {
   const text = keyword.trim().slice(0, MAX_PARAM_LENGTH);
-  // Spaces and dashes are removed first, so "616-555-1234" counts as 10 digits in a row.
-  return text.includes("@") || /\d{5}/.test(text.replace(/[\s().-]/g, "")) ? "(redacted)" : text;
+  return text.includes("@") || /\d{5}/.test(text.replace(REDACT_STRIP, "")) ? "(redacted)" : text;
 }
 /** A longer `search` is surely a bug or an attack; the parent ignores it. */
 export const MAX_SEARCH_LENGTH = 2_000;

@@ -111,6 +111,10 @@ export function ProgramMap({ programs, compact = false }: { programs: MapProgram
             a.href = href;
             a.textContent = text;
             a.className = "mr-3 font-bold text-primary-text underline";
+            if (text === "Get directions") {
+              a.dataset.event = "program_directions";
+              a.dataset.programId = program.id;
+            }
             if (newTab) {
               a.target = "_blank";
               a.rel = "noopener";

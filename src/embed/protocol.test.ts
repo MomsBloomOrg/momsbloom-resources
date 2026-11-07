@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ANALYTICS_EVENTS, EVENT_MESSAGE, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { ANALYTICS_EVENTS, EVENT_MESSAGE, MAX_PARAM_LENGTH, REDACT_STRIP, LOCATION_MESSAGE, safeKeyword, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -82,6 +82,10 @@ describe("safeKeyword", () => {
     ["616-555-1234", "(redacted)"],
     ["49508", "(redacted)"],
     ["doula 49508", "(redacted)"],
+    ["616/555/1234", "(redacted)"],
+    ["0-3 months", "0-3 months"],
+    ["6-12 months", "6-12 months"],
+    ["ages 0-5", "ages 0-5"],
     ["a".repeat(150), "a".repeat(100)],
   ])("turns %j into %j", (input, output) => {
     expect(safeKeyword(input)).toBe(output);
@@ -100,6 +104,11 @@ describe("public/embed.js agrees with protocol.ts", () => {
     expect(script).toContain(`var PROGRAM_ID = ${PROGRAM_ID_PATTERN};`);
     expect(script).toContain(`"${LOCATION_MESSAGE}"`);
     expect(script).toContain(`"${EVENT_MESSAGE}"`);
+  });
+
+  it("has the same value limit and redaction pattern", () => {
+    expect(script).toContain(`var MAX_VALUE = ${MAX_PARAM_LENGTH};`);
+    expect(script).toContain(`var REDACT_STRIP = ${REDACT_STRIP};`);
   });
 
   it("has the same event names and parameter keys", () => {

@@ -34,6 +34,7 @@ export function AnalyticsReporter({
   const key = search ? JSON.stringify(search) : null;
   const initial = useRef(key);
   const changed = useRef(false);
+  const sentQ = useRef(search?.q ?? ""); // the keyword of the last directory_search (or of the start state)
   useEffect(() => {
     if (!search) return;
     if (key !== initial.current) changed.current = true;
@@ -41,7 +42,9 @@ export function AnalyticsReporter({
     // shortcut: a search is lost if the family leaves the page within 1 s; add a `pagehide` flush if the numbers look low.
     const timer = setTimeout(() => {
       const term: Params = search.q ? { search_term: safeKeyword(search.q) } : {};
-      if (search.q) send("directory_search", { ...term, result_count: search.total });
+      // A filter toggle with the same keyword is not a new keyword search (zero results below can still send).
+      if (search.q && search.q !== sentQ.current) send("directory_search", { ...term, result_count: search.total });
+      sentQ.current = search.q;
       if (search.total === 0) {
         const filters: Params = search.filters ? { filters: search.filters.slice(0, MAX_PARAM_LENGTH) } : {};
         send("directory_zero_results", { ...term, ...filters });
@@ -64,7 +67,8 @@ export function AnalyticsReporter({
       if (!link || !name) return;
       const programId = link.getAttribute("data-program-id");
       const documentId = link.getAttribute("data-document-id");
-      send(name, programId ? { program_id: programId } : documentId ? { document_id: documentId } : {});
+      if (programId) send(name, { program_id: programId });
+      else if (documentId) send(name, { document_id: documentId });
     };
     const facetOf = new Map(Object.entries(FACET_URL_KEYS).map(([facet, urlKey]) => [urlKey, facet]));
     const onChange = (event: Event) => {

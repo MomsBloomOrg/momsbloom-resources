@@ -202,7 +202,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
         </div>
       </DirectoryLive>
       <ResizeReporter share={shareSearch(query)} />
-      <AnalyticsReporter search={{ q: query.q, total: results.totalPrograms, filters: Object.values(query.filters).flat().join(",") }} />
+      <AnalyticsReporter search={{ q: query.q, total: results.totalPrograms, filters: Object.values(query.filters).flat().filter((value) => labels.has(value)).join(",") }} />
     </main>
   );
 }
