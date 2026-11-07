@@ -11,7 +11,7 @@ import { getDb } from "@/db";
 
 export type ProgramFormState =
   | { status: "idle" }
-  | { status: "saved"; message: string; lastVerified?: string; notice?: string }
+  | { status: "saved"; message: string; lastVerified?: string; notice?: string; latitude?: number | null; longitude?: number | null }
   | { status: "invalid"; message: string; errors: Record<string, string> };
 
 const invalid = (message: string, errors: Record<string, string> = {}): ProgramFormState => ({ status: "invalid", message, errors });
@@ -32,7 +32,9 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
     const result = await markProgramVerified(db, id);
     if (!result.ok) return invalid(result.error);
     directoryChanged();
-    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
+    // The saved pin, so the form keeps it after a save with a changed address.
+    const saved = (await getProgramForAdmin(db, id))?.program;
+    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, latitude: saved?.latitude ?? null, longitude: saved?.longitude ?? null };
   }
 
   // Both checks run, so one save shows every marked field.
@@ -49,5 +51,5 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();
   if (id === null) redirect(`/admin/programs/${saved.value.id}`);
-  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined };
+  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined, latitude: input.latitude, longitude: input.longitude };
 }

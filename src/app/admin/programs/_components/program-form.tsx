@@ -78,6 +78,8 @@ export function ProgramForm({
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
   const notice = state.status === "saved" ? state.notice : program?.streetAddress && program.latitude == null && program.longitude == null ? NOT_PLACED : undefined;
   const p = program;
+  // The pin of the last save. The inputs are keyed on it, so a second Save does not send the old pin.
+  const pin = state.status === "saved" && state.latitude !== undefined ? state : p;
   const org: OrganizationOption | undefined = options.organizations.find((o) => String(o.id) === orgId);
   const acceptsYes = options.insuranceAcceptanceOptions.find((o) => String(o.id) === acceptanceId)?.name.trim().toLowerCase() === "yes";
 
@@ -105,7 +107,8 @@ export function ProgramForm({
           name={name}
           type={extra.type ?? "text"}
           inputMode={extra.inputMode}
-          defaultValue={(p?.[name] as string | number | null | undefined) ?? ""}
+          key={name === "latitude" || name === "longitude" ? `${pin?.latitude}|${pin?.longitude}` : undefined}
+          defaultValue={((name === "latitude" || name === "longitude" ? pin : p)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
           placeholder={inherited == null ? undefined : String(inherited)}
           aria-invalid={errors[name] ? true : undefined}
           aria-describedby={describedBy(name, extra.hint)}

@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { geocodeOnSave } from "./geocode";
 import { createDirectoryTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import {
@@ -121,6 +122,34 @@ describe("Organization edit", () => {
 
     expect(await updateOrganization(db, 999999, parsed.value)).toMatchObject({ ok: false, error: expect.stringContaining("does not exist") });
     expect(await createOrganization(db, { ...parsed.value, statusId: 999999 })).toMatchObject({ ok: false });
+  });
+
+  describe("a changed address (#32)", () => {
+    const census = (matches: unknown[]) => vi.fn().mockResolvedValue({ ok: true, json: async () => ({ result: { addressMatches: matches } }) });
+    const change = { streetAddress: "300 Monroe Ave NW", city: "Grand Rapids", state: "MI", zip: "49503" };
+
+    async function save(fetchFn: ReturnType<typeof census>, to = change) {
+      const id = ids.organizations.riverbend;
+      const old = (await getOrganizationForAdmin(db, id))!.organization;
+      const parsed = parseOrganizationInput(form({ ...to, latitude: String(old.latitude ?? ""), longitude: String(old.longitude ?? "") }));
+      if (!parsed.ok) throw new Error("parse");
+      const { input, failed } = await geocodeOnSave(parsed.value, old, fetchFn);
+      expect((await updateOrganization(db, id, input)).ok).toBe(true);
+      return { failed, saved: (await getOrganizationForAdmin(db, id))!.organization };
+    }
+
+    it("saves the new address and the geocoded pin, and a reload reads them back", async () => {
+      const { failed, saved } = await save(census([{ coordinates: { x: -85.67, y: 42.96 } }]));
+      expect(failed).toBe(false);
+      expect(saved).toMatchObject({ ...change, latitude: 42.96, longitude: -85.67 });
+    });
+
+    it("saves the new address with no pin when the geocoder finds no match", async () => {
+      const nowhere = { ...change, streetAddress: "1 Nowhere Rd", zip: "49504" }; // the first case already saved `change`
+      const { failed, saved } = await save(census([]), nowhere);
+      expect(failed).toBe(true);
+      expect(saved).toMatchObject({ ...nowhere, latitude: null, longitude: null });
+    });
   });
 
   it("Mark verified changes only Last verified", async () => {

@@ -19,7 +19,7 @@ import { getDb } from "@/db";
 
 export type OrganizationFormState =
   | { status: "idle" }
-  | { status: "saved"; message: string; lastVerified?: string; notice?: string }
+  | { status: "saved"; message: string; lastVerified?: string; notice?: string; latitude?: number | null; longitude?: number | null }
   | { status: "invalid"; message: string; errors: Record<string, string> };
 
 const invalid = (message: string, errors: Record<string, string> = {}): OrganizationFormState => ({
@@ -44,7 +44,9 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
     const result = await markOrganizationVerified(db, id);
     if (!result.ok) return invalid(result.error);
     directoryChanged();
-    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
+    // The saved pin, so the form keeps it after a save with a changed address.
+    const saved = (await getOrganizationForAdmin(db, id))?.organization;
+    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, latitude: saved?.latitude ?? null, longitude: saved?.longitude ?? null };
   }
 
   // Both checks run, so one save shows every marked field.
@@ -68,5 +70,5 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
   const updated = await updateOrganization(db, id, input);
   if (!updated.ok) return invalid(updated.error);
   directoryChanged();
-  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined };
+  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined, latitude: input.latitude, longitude: input.longitude };
 }

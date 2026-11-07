@@ -42,6 +42,8 @@ export function OrganizationForm({
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
   const notice = state.status === "saved" ? state.notice : organization?.streetAddress && organization.latitude == null && organization.longitude == null ? NOT_PLACED : undefined;
   const o = organization;
+  // The pin of the last save. The inputs are keyed on it, so a second Save does not send the old pin.
+  const pin = state.status === "saved" && state.latitude !== undefined ? state : o;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,7 +67,8 @@ export function OrganizationForm({
         name={name}
         type={extra.type ?? "text"}
         inputMode={extra.inputMode}
-        defaultValue={(o?.[name] as string | number | null | undefined) ?? ""}
+        key={name === "latitude" || name === "longitude" ? `${pin?.latitude}|${pin?.longitude}` : undefined}
+        defaultValue={((name === "latitude" || name === "longitude" ? pin : o)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
         aria-invalid={errors[name] ? true : undefined}
         aria-describedby={[extra.hint && `org-${name}-hint`, errors[name] && `org-${name}-error`].filter(Boolean).join(" ") || undefined}
         className={inputClass}

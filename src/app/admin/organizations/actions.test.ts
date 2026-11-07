@@ -106,7 +106,7 @@ describe("saveOrganizationAction", () => {
   it("a changed address is geocoded and the coordinates are saved", async () => {
     const fetchMock = census({ result: { addressMatches: [{ coordinates: { x: -84.5, y: 42.7 } }] } });
     vi.stubGlobal("fetch", fetchMock);
-    expect(await saveOrganizationAction(idle, form(withAddress))).toMatchObject({ status: "saved", notice: undefined });
+    expect(await saveOrganizationAction(idle, form(withAddress))).toMatchObject({ status: "saved", notice: undefined, latitude: 42.7, longitude: -84.5 });
     expect(mocks.write.mock.calls[0].at(-1)).toMatchObject({ latitude: 42.7, longitude: -84.5 });
   });
 
