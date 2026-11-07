@@ -6,7 +6,7 @@
  *   Riverbend Health ~0.5 mi, Eastown Family Yoga ~5.3 mi, Lakeshore Lactation ~22 mi,
  *   Kent Basic Needs has no map point.
  */
-import { FACET_KEYS, type DirectoryProgram, type DirectorySnapshot, type FacetKey, type FacetValueKeys } from "./types";
+import { FACET_KEYS, type DirectoryOrganization, type DirectoryProgram, type DirectorySnapshot, type FacetKey, type FacetValueKeys } from "./types";
 
 export function facetValues(values: Partial<Record<FacetKey, string[]>>): FacetValueKeys {
   return Object.fromEntries(FACET_KEYS.map((facet) => [facet, values[facet] ?? []])) as unknown as FacetValueKeys;
@@ -16,6 +16,10 @@ const RIVERBEND = { id: "O-001", name: "Riverbend Health" };
 const RIVERBEND_PLACE = { lat: 42.88, lng: -85.63 };
 const LAKESHORE = { id: "O-003", name: "Lakeshore Lactation" };
 const LAKESHORE_PLACE = { lat: 42.8, lng: -86.05 };
+
+function organization(fields: Pick<DirectoryOrganization, "id" | "name">): DirectoryOrganization {
+  return { about: null, phone: null, website: null, address: null, location: null, lastVerified: null, custom: {}, ...fields };
+}
 
 function program(fields: Partial<DirectoryProgram> & Pick<DirectoryProgram, "id" | "name" | "organization">): DirectoryProgram {
   return {
@@ -171,6 +175,12 @@ export const TEST_SNAPSHOT: DirectorySnapshot = {
       description: "Free diapers and wipes for families.",
       facetValues: facetValues({ category: ["basic-needs"], subcategory: ["diapers"], cost: ["free"], language: ["english"] }),
     }),
+  ],
+  organizations: [
+    organization(RIVERBEND),
+    organization({ id: "O-002", name: "Eastown Family Yoga" }),
+    organization(LAKESHORE),
+    organization({ id: "O-004", name: "Kent Basic Needs" }),
   ],
   documents: [
     {

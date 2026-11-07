@@ -25,7 +25,7 @@ const noPlace = {
 };
 
 function org(fields: Partial<OrgRow> & Pick<OrgRow, "id">): OrgRow {
-  return { name: `Org ${fields.id}`, statusId: ACTIVE, custom: {}, ...noPlace, ...fields };
+  return { name: `Org ${fields.id}`, about: null, lastVerified: null, statusId: ACTIVE, custom: {}, ...noPlace, ...fields };
 }
 
 function program(fields: Partial<ProgramRow> & Pick<ProgramRow, "id">): ProgramRow {
@@ -138,6 +138,23 @@ describe("toDirectorySnapshot", () => {
     const json = JSON.stringify(snapshot);
     expect(json).not.toMatch(/SECRET-NOTE|internalNotes|showOnWebsite|Pat Private|pat@example.org|555-0101/);
     expect(json).toContain("Sam Example");
+  });
+
+  it("org-snapshot-no-private: an Organization holds its named fields only, never Internal notes or email", () => {
+    // A row that carries more than the loader selects (as if a column were added by mistake).
+    const leaky = { ...org({ id: 10, about: " Helps families. ", lastVerified: "2026-10-01", website: "example.org" }), internalNotes: "SECRET-NOTE", email: "org@example.org" };
+    const snapshot = toDirectorySnapshot(rows({ organizations: [leaky] }));
+    expect(snapshot.organizations).toEqual([
+      { id: "10", name: "Org 10", about: "Helps families.", phone: null, website: "https://example.org", address: null, location: null, lastVerified: "2026-10-01", custom: {} },
+    ]);
+    expect(JSON.stringify(snapshot)).not.toMatch(/SECRET-NOTE|internalNotes|org@example.org/);
+  });
+
+  it("org-inactive-left-out: an Inactive Organization is not in organizations; one with no Programs is", () => {
+    const snapshot = toDirectorySnapshot(rows());
+    expect(snapshot.organizations.map((o) => o.id)).toEqual(["10"]);
+    expect(snapshot.organizations[0].address?.street).toBe("1 Example St");
+    expect(snapshot.organizations[0].location).toEqual({ lat: 42.9, lng: -85.6 });
   });
 
   it("takes a blank address, phone, and website from the Organization, with the Organization's point", () => {
@@ -262,5 +279,17 @@ describe("custom fields", () => {
     expect(ids).not.toContain(BILLING_EMAIL.id);
     expect(snapshot.programs[0].custom).toEqual({ [DOULA.id]: true });
     expect(snapshot.programs[0].organizationCustom).toEqual({});
+  });
+
+  it("org-custom-public-only: an Organization keeps its public answers; a staff-only answer is dropped", () => {
+    const entrance = { ...BILLING_EMAIL, id: "99", label: "Accessible entrance", type: "text" as const, showOnWebsite: true };
+    const snapshot = toDirectorySnapshot(
+      rows({
+        customFields: [...TEST_FIELDS, entrance],
+        organizations: [org({ id: 10, custom: { [BILLING_EMAIL.id]: "billing@example.org", [entrance.id]: "Ramp" } })],
+      }),
+    );
+    expect(snapshot.organizations[0].custom).toEqual({ [entrance.id]: "Ramp" });
+    expect(JSON.stringify(snapshot)).not.toContain("billing@example.org");
   });
 });

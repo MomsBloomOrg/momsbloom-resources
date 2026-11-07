@@ -13,7 +13,7 @@ import { activeFilterCount, FilterColumn } from "./filter-column";
 import { FilterSheet } from "./filter-sheet";
 import { HelpBox } from "./help-box";
 import { NoResults } from "./no-results";
-import { addressText, detailsHref, ProgramCard, type LabelOf } from "./program-card";
+import { addressText, detailsHref, organizationHref, ProgramCard, type LabelOf } from "./program-card";
 import { ProgramMap, type MapProgram } from "./program-map";
 import { ResizeReporter } from "./resize-reporter";
 import { ResultLine } from "./result-line";
@@ -93,6 +93,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             result={result}
             labelOf={labelOf}
             detailsHref={detailsHref(result.program.id, search)}
+            organizationHref={organizationHref(result.program.organization.id, search)}
             number={numberOf.get(result.program.id)}
           />
         </li>

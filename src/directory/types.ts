@@ -111,8 +111,28 @@ export interface DirectoryDocument {
   lastVerified: string | null;
 }
 
+/** An Organization with a shown Status, for its detail page. Never Internal notes, never email. */
+export interface DirectoryOrganization {
+  /** The database id, an integer as a string, for example "12". */
+  id: string;
+  name: string;
+  about: string | null;
+  phone: string | null;
+  /** A full URL, or null. */
+  website: string | null;
+  /** The Organization's own address only (not one from its Programs). */
+  address: PostalAddress | null;
+  location: LatLng | null;
+  /** ISO date, for example "2026-10-15". */
+  lastVerified: string | null;
+  /** Custom field answers, public fields only (field id → value). */
+  custom: CustomValues;
+}
+
 export interface DirectorySnapshot {
   programs: readonly DirectoryProgram[];
+  /** Shown Organizations, also those with no shown Programs. */
+  organizations: readonly DirectoryOrganization[];
   documents: readonly DirectoryDocument[];
   facets: readonly FacetDefinition[];
   /** Custom fields shown on the website and not archived. Staff-only fields never reach the snapshot. */

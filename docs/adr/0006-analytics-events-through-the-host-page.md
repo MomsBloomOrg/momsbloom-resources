@@ -21,6 +21,7 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   - `directory_zero_results`: `search_term`, `filters` (the checked Facet value keys, joined with ",")
   - `directory_filter`: `filter_group` (for example `insurance`), `filter_value` (for example `medicaid`)
   - `program_view`, `program_call`, `program_directions`, `program_website`: `program_id`
+  - `organization_view`: `organization_id`
   - `document_download`: `document_id`
 
   A string is at most 100 characters (the GA4 limit). A number is finite and not negative.
@@ -34,7 +35,7 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   email, a phone number, or a ZIP code. Before it counts the digits, it ignores spaces and these
   characters: `-`, `.`, `(`, `)`, `/`, `_`. It does not ignore `,` or `+`. So "616-555-1234" is
   redacted, and "ages 0-5" is not. `embed.js` does the same check again. It also drops an event whose
-  `program_id` or `document_id` is not a valid ID. A name that a family types still goes through. Contact names
+  `program_id`, `organization_id`, or `document_id` is not a valid ID. A name that a family types still goes through. Contact names
   are a real search feature, so a name filter would remove useful data. We do not send the GA4
   `search` event: it would mix Directory searches with Squarespace site searches.
 - **A search is sent 1 second after the results settle.** A new keyword cancels the wait, so "yo",

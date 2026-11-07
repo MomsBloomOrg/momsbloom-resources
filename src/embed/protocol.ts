@@ -33,6 +33,7 @@ export const ANALYTICS_EVENTS: Readonly<Record<string, readonly string[]>> = {
   directory_zero_results: ["search_term", "filters"],
   directory_filter: ["filter_group", "filter_value"],
   program_view: ["program_id"],
+  organization_view: ["organization_id"],
   program_call: ["program_id"],
   program_directions: ["program_id"],
   program_website: ["program_id"],

@@ -32,7 +32,8 @@ const place = {
 };
 
 /**
- * Programs, Organizations, Contacts, and Documents: named columns only, so never Internal notes. Private
+ * Programs, Organizations, Contacts, and Documents: named columns only, so never Internal notes (nor an
+ * Organization's email). Private
  * Contacts are never selected.
  * Cached until an Admin save calls `directoryChanged()` (`updateTag("directory")`).
  */
@@ -71,6 +72,8 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
       .select({
         id: t.organizations.id,
         name: t.organizations.name,
+        about: t.organizations.about,
+        lastVerified: t.organizations.lastVerified,
         statusId: t.organizations.statusId,
         streetAddress: t.organizations.streetAddress,
         suite: t.organizations.suite,

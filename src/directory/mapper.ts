@@ -13,6 +13,7 @@ import {
   FACET_KEYS,
   type DirectoryContact,
   type DirectoryDocument,
+  type DirectoryOrganization,
   type DirectoryProgram,
   type DirectorySnapshot,
   type FacetDefinition,
@@ -30,7 +31,7 @@ type PlaceFields = "streetAddress" | "suite" | "city" | "state" | "zip" | "latit
 
 export interface DirectoryRows {
   statuses: Pick<Row<typeof schema.statuses>, "id" | "showOnSite">[];
-  organizations: Pick<Row<typeof schema.organizations>, "id" | "name" | "statusId" | "custom" | PlaceFields>[];
+  organizations: Pick<Row<typeof schema.organizations>, "id" | "name" | "about" | "lastVerified" | "statusId" | "custom" | PlaceFields>[];
   programs: Pick<
     Row<typeof schema.programs>,
     | "id"
@@ -260,5 +261,21 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
     values: facetValueLists[key],
   }));
 
-  return { programs, documents, facets, customFields };
+  // Named fields only: never Internal notes or email, even if a row holds them.
+  const shownOrganizations: DirectoryOrganization[] = [...organizations.values()].map((org) => {
+    const place = addressOf(org);
+    return {
+      id: String(org.id),
+      name: org.name,
+      about: text(org.about),
+      phone: text(org.phone),
+      website: toWebsite(org.website),
+      address: place?.address ?? null,
+      location: place?.location ?? null,
+      lastVerified: org.lastVerified,
+      custom: publicValues("organization", org.custom),
+    };
+  });
+
+  return { programs, organizations: shownOrganizations, documents, facets, customFields };
 }

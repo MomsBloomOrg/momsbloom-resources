@@ -33,7 +33,7 @@
   var LOCATION = "momsbloom-resources:location";
   var EVENT = "momsbloom-resources:event";
   // The event names and the parameter keys that may pass (a copy of ANALYTICS_EVENTS in protocol.ts).
-  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id"],"program_call":["program_id"],"program_directions":["program_id"],"program_website":["program_id"],"document_download":["document_id"]};
+  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id"],"organization_view":["organization_id"],"program_call":["program_id"],"program_directions":["program_id"],"program_website":["program_id"],"document_download":["document_id"]};
   // A copy of REDACT_STRIP in protocol.ts: ignored before digits are counted in a keyword.
   var REDACT_STRIP = /[\s().\/_-]/g;
   var MAX_HEIGHT = 50000;
@@ -59,7 +59,7 @@
       if (EVENTS[name].indexOf(keys[i]) < 0) return null;
       // Defense in depth (the iframe does this too): a keyword with @ or 5+ digits is redacted, an ID must look like an ID.
       if (keys[i] === "search_term" && typeof value === "string" && (value.indexOf("@") >= 0 || /\d{5}/.test(value.replace(REDACT_STRIP, "")))) value = "(redacted)";
-      if ((keys[i] === "program_id" || keys[i] === "document_id") && !(typeof value === "string" && PROGRAM_ID.test(value))) return null;
+      if ((keys[i] === "program_id" || keys[i] === "organization_id" || keys[i] === "document_id") && !(typeof value === "string" && PROGRAM_ID.test(value))) return null;
       var ok = typeof value === "string" ? value.length <= MAX_VALUE : typeof value === "number" && isFinite(value) && value >= 0;
       if (!ok) return null;
       out[keys[i]] = value;
