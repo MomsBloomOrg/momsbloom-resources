@@ -5,7 +5,8 @@ on 2026-11-07 and refreshed later the same day, at the native size of each frame
 [WFG 2026 - MomsBloom](https://www.figma.com/design/XNxEurTwFpvw3kvVLPlea4/WFG-2026---MomsBloom),
 pages "Resources Page Designs" and "Admin Designs". The Figma file is the source of truth: if a
 screenshot here and Figma disagree, Figma wins. Each section links to its frame, so you can open
-it and measure spacing, colors, and text in Figma. (Most of us have view access only, so Figma will not let us export.)
+it and measure spacing, colors, and text in Figma. (Most of us have view access only, so Figma will
+not let us export.)
 
 The data in the designs is made up ("Maria Sample", `example.org`). The real data comes from the
 MomsBloom spreadsheet, which the database will import.
