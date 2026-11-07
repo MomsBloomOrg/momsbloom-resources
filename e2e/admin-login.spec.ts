@@ -10,7 +10,7 @@ for (const path of ["/admin", "/admin/settings"]) {
   });
 }
 
-for (const path of ["/admin/organizations/new", "/admin/organizations/1"]) {
+for (const path of ["/admin/organizations/new", "/admin/organizations/1", "/admin/programs/new", "/admin/programs/1"]) {
   test(`${path} without a session cookie redirects to /login`, async ({ request }) => {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status()).toBe(307);

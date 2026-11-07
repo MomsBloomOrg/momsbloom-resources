@@ -132,9 +132,11 @@ export interface OrganizationInput {
   internalNotes: string | null;
 }
 
-type Raw = Record<string, FormDataEntryValue | null | undefined>;
+export type Raw = Record<string, FormDataEntryValue | null | undefined>;
+type Errors = Record<string, string>;
+type Out = Record<string, unknown>;
 
-const str = (raw: Raw, key: string) => {
+export const str = (raw: Raw, key: string) => {
   const v = raw[key];
   return typeof v === "string" ? v.trim() : "";
 };
@@ -157,33 +159,17 @@ const isRealDate = (v: string) => {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
 };
 
-const TEXT_FIELDS = [
-  ["about", "About", 5000],
-  ["phone", "Phone", 50],
-  ["streetAddress", "Street address", 200],
-  ["suite", "Suite", 100],
-  ["city", "City", 100],
-  ["state", "State", 50],
-  ["zip", "ZIP", 20],
-  ["county", "County", 100],
-  ["internalNotes", "Internal notes", 5000],
-] as const;
-
-/** Trims and checks the form values of an Organization. Does not check that the Status exists. */
-export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput> {
-  const errors: Record<string, string> = {};
-  const out: Record<string, string | number | null> = {};
-
-  out.name = str(raw, "name");
-  if (!out.name) errors.name = "Enter a name.";
-  else if ((out.name as string).length > 200) errors.name = "Use 200 characters or fewer.";
-
-  for (const [key, label, max] of TEXT_FIELDS) {
+/** Optional text fields: trimmed, blank becomes null, too long is an error. */
+export function parseTextFields(raw: Raw, fields: readonly (readonly [string, string, number])[], errors: Errors, out: Out): void {
+  for (const [key, label, max] of fields) {
     const v = str(raw, key);
     if (v.length > max) errors[key] = `${label}: use ${max} characters or fewer.`;
     out[key] = v || null;
   }
+}
 
+/** The fields that Organizations and Programs share: website, map coordinates, Last verified, Status. */
+export function parseSharedFields(raw: Raw, errors: Errors, out: Out): void {
   const website = str(raw, "website");
   out.website = website || null;
   if (website) {
@@ -194,10 +180,6 @@ export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput>
       errors.website = "Enter a full web address that starts with https:// or http://.";
     }
   }
-
-  const email = str(raw, "email");
-  out.email = email || null;
-  if (email && (email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) errors.email = "Enter a valid email address.";
 
   for (const [key, label, limit] of [["latitude", "Latitude", 90], ["longitude", "Longitude", 180]] as const) {
     const v = str(raw, key);
@@ -215,8 +197,42 @@ export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput>
   const statusId = parseId(raw.statusId);
   if (statusId === null) errors.statusId = "Select a Status.";
   out.statusId = statusId;
+}
 
-  if (Object.keys(errors).length > 0) return { ok: false, error: "Fix the marked fields and save again.", fieldErrors: errors };
+/** A required name of at most 200 characters. */
+export function parseName(raw: Raw, errors: Errors, out: Out): void {
+  out.name = str(raw, "name");
+  if (!out.name) errors.name = "Enter a name.";
+  else if ((out.name as string).length > 200) errors.name = "Use 200 characters or fewer.";
+}
+
+export const FIX_FIELDS = "Fix the marked fields and save again.";
+
+const TEXT_FIELDS = [
+  ["about", "About", 5000],
+  ["phone", "Phone", 50],
+  ["streetAddress", "Street address", 200],
+  ["suite", "Suite", 100],
+  ["city", "City", 100],
+  ["state", "State", 50],
+  ["zip", "ZIP", 20],
+  ["county", "County", 100],
+  ["internalNotes", "Internal notes", 5000],
+] as const;
+
+/** Trims and checks the form values of an Organization. Does not check that the Status exists. */
+export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput> {
+  const errors: Errors = {};
+  const out: Out = {};
+  parseName(raw, errors, out);
+  parseTextFields(raw, TEXT_FIELDS, errors, out);
+  parseSharedFields(raw, errors, out);
+
+  const email = str(raw, "email");
+  out.email = email || null;
+  if (email && (email.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) errors.email = "Enter a valid email address.";
+
+  if (Object.keys(errors).length > 0) return { ok: false, error: FIX_FIELDS, fieldErrors: errors };
   return { ok: true, value: out as unknown as OrganizationInput };
 }
 
@@ -266,12 +282,12 @@ export async function getOrganizationForAdmin(db: Db, id: number): Promise<Organ
   return { organization: fields, programs: programRows };
 }
 
-async function statusExists(db: Db, id: number): Promise<boolean> {
+export async function statusExists(db: Db, id: number): Promise<boolean> {
   const [row] = await db.select({ id: statuses.id }).from(statuses).where(eq(statuses.id, id));
   return !!row;
 }
 
-const NO_STATUS = { ok: false, error: "That Status does not exist. Reload the page." } as const;
+export const NO_STATUS = { ok: false, error: "That Status does not exist. Reload the page." } as const;
 
 export async function createOrganization(db: Db, input: OrganizationInput): Promise<AdminResult<{ id: number }>> {
   if (!(await statusExists(db, input.statusId))) return NO_STATUS;

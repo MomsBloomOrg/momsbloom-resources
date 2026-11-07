@@ -129,3 +129,25 @@ export const thClass = "px-3 py-2 text-sm font-semibold first:pl-0 last:pr-0";
 export const stackTdClass =
   "px-3 py-3 first:pl-0 last:pr-0 max-lg:block max-lg:p-0 max-lg:before:mr-2 max-lg:before:text-sm " +
   "max-lg:before:font-semibold max-lg:before:text-muted max-lg:before:content-[attr(data-label)_/_'']";
+
+/** A labeled form field with an optional hint and error. The child input uses `id`. */
+export function Field({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className={labelClass}>
+        {label}
+      </label>
+      {children}
+      {hint && (
+        <p id={`${id}-hint`} className={hintClass}>
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p id={`${id}-error`} role="alert" className="text-sm font-semibold text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

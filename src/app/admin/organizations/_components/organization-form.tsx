@@ -1,32 +1,11 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import type { OrganizationInput, StatusOption } from "@/admin/organizations";
-import { Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
+import { Field, Notice, buttonClass, inputClass } from "../../_components/ui";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
 
 const IDLE: OrganizationFormState = { status: "idle" };
-
-function Field({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className={labelClass}>
-        {label}
-      </label>
-      {children}
-      {hint && (
-        <p id={`${id}-hint`} className={hintClass}>
-          {hint}
-        </p>
-      )}
-      {error && (
-        <p id={`${id}-error`} role="alert" className="text-sm font-semibold text-red-700">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
 
 /**
  * The Organization form. `organization` is empty on the "new" page. The form is submitted with
