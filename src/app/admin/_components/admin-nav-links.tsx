@@ -65,8 +65,8 @@ export function AdminNavLinks() {
             aria-current={current ? "page" : undefined}
             className={`flex min-h-11 items-center border-b-[3px] pb-1 ${
               current
-                ? "border-primary-text font-semibold text-ink"
-                : "border-transparent text-muted hover:border-line hover:text-ink"
+                ? "border-ink font-semibold text-ink"
+                : "border-transparent text-ink hover:border-ink/40"
             }`}
           >
             {link.label}

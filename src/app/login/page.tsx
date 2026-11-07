@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import Image from "next/image";
+import logo from "../_brand/momsbloom-logo.webp";
 import { getCurrentStaffAdmin } from "@/auth/dal";
 import { SESSION_COOKIES } from "@/auth/rules";
 import { LoginForm } from "./login-form";
@@ -25,7 +27,7 @@ async function LinkError({ searchParams }: { searchParams: PageProps<"/login">["
   if (typeof error !== "string") return null;
   const message = ERROR_MESSAGES[error] ?? "Login did not work. Try again, or get a new link below.";
   return (
-    <p role="alert" className="mb-6 rounded-lg border-l-4 border-primary bg-primary-soft px-4 py-3 text-primary-text">
+    <p role="alert" className="mb-6 rounded-2xl border-l-4 border-primary bg-primary-soft px-4 py-3 text-primary-text">
       {message}
     </p>
   );
@@ -38,9 +40,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (SESSION_COOKIES.some((name) => jar.has(name)) && (await getCurrentStaffAdmin())) redirect("/admin");
 
   return (
-    <main className="w-full flex-1 bg-background">
+    <main className="w-full flex-1 bg-surface font-light tracking-[.02em] text-ink">
       <div className="mx-auto max-w-[480px] px-6 py-12 sm:py-16">
-        <h1 className="mb-4 text-3xl font-bold">Log in to the Admin</h1>
+        <Image src={logo} alt="MomsBloom" priority className="mb-10 h-10 w-auto" />
+        <h1 className="mb-4 text-4xl font-normal sm:text-5xl">Log in to the Admin</h1>
         <p className="mb-8 text-muted">Staff admins log in with a link sent by email. There are no passwords.</p>
         <Suspense>
           <LinkError searchParams={searchParams} />

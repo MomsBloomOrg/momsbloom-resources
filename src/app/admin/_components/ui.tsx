@@ -2,23 +2,29 @@
  * Shared Admin UI: class helpers and small components. No "use client" and no server-only imports,
  * so server pages and client forms use the same parts. Colors are the momsbloom tokens in
  * globals.css (white on `primary-text` is about 5:1; never put white on `primary`).
+ *
+ * The look follows momsbloom.org (its Squarespace theme): Nunito at light weights (body 300 with
+ * .02em letter spacing, set in the Admin layout; headings 400), pill buttons (600, .05em; primary
+ * solid, secondary outline), light grey panels (`field`) on a white page, and no card borders. Two
+ * changes for accessibility: buttons use `primary-text` (white on the site's orange fails), and
+ * inputs keep a visible border (the site's borderless fields are hard to find).
  */
 import type { ReactNode } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "danger";
 
 const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors " +
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[.05em] transition-colors " +
   "disabled:cursor-not-allowed disabled:opacity-60";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-primary-text text-white hover:bg-primary-hover",
-  secondary: "border border-muted bg-surface text-ink hover:border-ink",
+  secondary: "border border-ink bg-surface text-ink hover:bg-ink hover:text-white",
   danger: "border border-red-700 bg-surface text-red-700 hover:bg-red-50",
 };
 
 const BUTTON_SIZES = {
-  md: "min-h-11 px-5 py-2 text-sm sm:min-h-10",
+  md: "min-h-11 px-6 py-2 text-sm",
   sm: "min-h-9 px-4 py-1.5 text-sm",
 };
 
@@ -29,7 +35,8 @@ export function buttonClass(variant: ButtonVariant = "secondary", size: keyof ty
 
 export const linkClass = "text-primary-text underline decoration-1 underline-offset-2 hover:text-primary-hover";
 export const inputClass =
-  "w-full rounded-md border border-muted bg-surface px-3 py-2 text-ink placeholder:text-muted disabled:bg-background";
+  "w-full rounded-3xl border border-muted bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
 export const labelClass = "font-semibold text-ink";
 export const hintClass = "text-sm text-muted";
 
@@ -46,10 +53,10 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <section className={`rounded-lg border border-line bg-surface p-4 sm:p-6 ${className}`}>
+    <section className={`rounded-3xl bg-field p-5 sm:p-8 ${className}`}>
       {(title || actions) && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          {title && <h2 className="text-xl font-bold">{title}</h2>}
+          {title && <h2 className="text-2xl font-normal sm:text-3xl">{title}</h2>}
           {actions}
         </div>
       )}
@@ -61,10 +68,10 @@ export function Card({
 /** The top of an Admin page: an optional back link, the h1, and optional actions. */
 export function PageHeader({ title, back, actions }: { title: ReactNode; back?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-2">
+    <div className="mb-8 flex flex-col gap-3">
       {back && <p className="text-sm">{back}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 tabIndex={-1} className="min-w-0 text-2xl font-bold [overflow-wrap:anywhere]">
+        <h1 tabIndex={-1} className="min-w-0 text-4xl font-normal [overflow-wrap:anywhere] sm:text-5xl">
           {title}
         </h1>
         {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -78,7 +85,7 @@ export type BadgeTone = "good" | "warning" | "neutral";
 const BADGE_TONES: Record<BadgeTone, string> = {
   good: "bg-secondary-soft text-ink",
   warning: "bg-amber-100 text-amber-900",
-  neutral: "bg-background text-ink",
+  neutral: "bg-surface text-ink",
 };
 
 export function Badge({ tone, children }: { tone: BadgeTone; children: ReactNode }) {
@@ -99,7 +106,7 @@ const NOTICE_TONES: Record<NoticeTone, string> = {
 };
 
 export function noticeClass(tone: NoticeTone): string {
-  return `rounded-md border-l-4 border-y border-r px-4 py-3 ${NOTICE_TONES[tone]}`;
+  return `rounded-2xl border-l-4 border-y border-r px-4 py-3 ${NOTICE_TONES[tone]}`;
 }
 
 /** A notice box. `role` is "status" for results and "alert" for errors; omit it for static text. */
@@ -113,7 +120,7 @@ export function Notice({ tone, role, children }: { tone: NoticeTone; role?: "sta
 
 /** "Nothing here" text in a list or a card. */
 export function EmptyState({ children }: { children: ReactNode }) {
-  return <p className="rounded-md border border-dashed border-line px-4 py-6 text-center text-muted">{children}</p>;
+  return <p className="rounded-2xl border border-dashed border-muted/40 bg-surface px-4 py-6 text-center text-muted">{children}</p>;
 }
 
 // Tables: the stack* classes make each row a block below `lg` (1024 px), so a phone shows every cell
