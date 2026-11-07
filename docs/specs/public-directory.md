@@ -71,8 +71,11 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 
 - The family types a ZIP code or selects "Use my location".
 - Look up the ZIP code in a small table of Michigan ZIP code centers that ships with the app (the
-  US Census publishes these for free). **Never send the ZIP code or the location to another
-  company.** Location from the browser stays in the browser.
+  US Census publishes these for free).
+- **The ZIP code and the location go only to our own server.** They never go to another company,
+  and never to analytics. "Use my location" sends `near=lat,lng`, rounded to 2 decimals (about
+  1 km), so the URL never holds an exact home address. `near` is never copied to the host page URL
+  (see "Sharing a link").
 - Distance is a straight line (the "haversine" formula), in miles, with one decimal: "0.8 mi".
 - Radius options: 5, 10, 25, Any. The default is Any until a ZIP code is entered, then 10.
 - Distance applies to Programs only. Programs that are virtual only, or have no coordinates, show
@@ -121,6 +124,8 @@ the detail view.
 > link with those keys, `embed.js` passes them to the iframe. The code to copy is in
 > bikegr-calendar `public/embed.js` and `src/embed/protocol.ts` (the `location` message). To be
 > recorded in an ADR.
+
+`near` is never shared: a link holds the ZIP code, never the family's location.
 
 ## Mobile filter sheet
 
