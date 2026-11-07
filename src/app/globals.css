@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/*
+ * MomsBloom brand colors. The values come from the Figma paint styles under "Brand/"
+ * (see the Dev Handoff doc, "Design tokens and components").
+ *
+ * Tailwind 4 turns each `--color-*` value in `@theme` into utility classes. For example,
+ * `--color-primary` gives you `bg-primary`, `text-primary`, and `border-primary`.
+ *
+ * Accessibility warning (WCAG AA needs 4.5:1 contrast for normal text):
+ * - White text on `primary` (#FD7A00) is about 2.6:1, so it fails. Use `primary` only for
+ *   large shapes and decoration. Use `primary-text` (#B35400, about 5:1) for buttons, links, and text.
+ * - `secondary` (#9DBB86) on `secondary-soft` is about 1.8:1. Put tag text in `ink`, not `secondary`.
+ * The darker orange is a proposal; the designer and MomsBloom must still approve it.
+ */
+@theme inline {
+  --color-primary: #fd7a00;
+  --color-primary-hover: #e97000;
+  --color-primary-text: #b35400;
+  --color-primary-soft: #fcefe2;
+  --color-secondary: #9dbb86;
+  --color-secondary-soft: #e5efea;
+  --color-ink: #2a2230;
+  --color-muted: #6b6270;
+  --color-line: #e6dfe3;
+  --color-surface: #ffffff;
+  --color-background: #fbf7f4;
+  --font-sans: var(--next-font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}

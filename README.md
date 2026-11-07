@@ -49,38 +49,82 @@ Users (identified by email)
 - [Vercel](https://vercel.com/) for hosting
 - [GitHub Actions](https://github.com/features/actions) for CI/CD
 
-## Getting started
+This repo is public, so never commit passwords, connection strings, or the resource spreadsheet.
 
-### Prerequisites
+## What the app uses
 
-- Node.js (LTS)
-- A Neon database
-- A Resend API key
+| Part | What it is | Why we use it |
+| --- | --- | --- |
+| [Next.js](https://nextjs.org/docs) 16 | The web framework. Pages live in `src/app/`. | One app for the public directory, the admin, and the server code. |
+| [Tailwind CSS](https://tailwindcss.com/docs) 4 | Styles written as class names (`text-muted`, `rounded-full`). | Brand colors are set once in `src/app/globals.css`. |
+| [Neon](https://neon.com/docs) | A hosted Postgres database. | Free tier, works well with Vercel. |
+| [Drizzle](https://orm.drizzle.team/docs/overview) | Writes the database tables and queries in TypeScript. | Type-safe queries; migrations are plain SQL files you can read. |
+| [Vitest](https://vitest.dev) | Unit tests (`*.test.ts` next to the code). | Fast, no browser. |
+| [Playwright](https://playwright.dev) | Browser tests (`e2e/`). | Tests the embed in a real browser. |
 
-### Install
+The setup is copied from [bikegr-calendar](https://github.com/ggrbc/bikegr-calendar), another
+Squarespace embed app. When you wonder "how should I do X?", that repo often has an example.
+
+## Get started on your computer
+
+You need:
+
+- Node.js 24. Check with `node -v`. If you use [nvm](https://github.com/nvm-sh/nvm), run `nvm use`;
+  it reads the version from `.nvmrc`.
+- pnpm 10, the package manager. It does the same job as npm. Install it with `corepack enable`.
+- Docker, but only if you want a local database instead of Neon.
+
+Then:
 
 ```bash
-git clone <repo-url>
-cd <repo-name>
-npm install
+pnpm install                 # download the packages
+cp .env.example .env.local   # your own settings file; git ignores it
+pnpm dev                     # start the app at http://localhost:3000
 ```
 
-### Environment variables
+Open <http://localhost:3000/embed> to see the page that momsbloom.org will show.
 
-Create a `.env.local` file:
+### The database
 
-```bash
-DATABASE_URL=        # Neon connection string
-RESEND_API_KEY=      # Resend API key
-```
+The app does not read the database yet, so you can skip this until the tables exist.
 
-### Run locally
+- For a local Docker database, run `pnpm db:up` to start Postgres. The `DATABASE_URL` in `.env.example`
+  already points at it. `pnpm db:down` stops it.
+- For Neon, paste your Neon connection string into `DATABASE_URL` in `.env.local`.
 
-```bash
-npm run dev
-```
+The tables are defined in `src/db/schema.ts`. After you change that file, run `pnpm db:generate`
+(writes a migration file into `drizzle/`) and then `pnpm db:migrate` (applies it to the database).
 
-Open <http://localhost:3000>.
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` | Starts the app on port 3000. It reloads when you save a file. |
+| `pnpm lint` | Checks the code for common mistakes. |
+| `pnpm typecheck` | Checks the TypeScript types. |
+| `pnpm test` | Runs the unit tests. |
+| `pnpm test:e2e` | Builds the app and runs the browser tests. First time: `pnpm exec playwright install chromium`. |
+| `pnpm build` | Makes the production build, the same as Vercel does. |
+| `pnpm db:up` / `pnpm db:down` | Starts or stops the local Docker database. |
+| `pnpm db:generate` / `pnpm db:migrate` | Makes or applies a database migration. |
+| `pnpm db:studio` | Opens a web page where you can look at the database tables. |
+
+Before you open a pull request, run `pnpm lint && pnpm typecheck && pnpm test`.
+
+## How the embed works
+
+1. The Squarespace page has a code block with one line:
+   `<script src="https://resources.momsbloom.org/embed.js" async></script>`
+2. That script (`public/embed.js`) adds an iframe that shows `https://resources.momsbloom.org/embed`.
+3. An iframe does not grow by itself. So the page inside the iframe
+   (`src/app/embed/_components/resize-reporter.tsx`) measures its own height each time it changes,
+   and sends the height to the Squarespace page with `postMessage` (the browser's safe way for two
+   websites to talk). The script sets the iframe to that height, so the page never shows a second scroll bar.
+4. A security header (`frame-ancestors`, set in `next.config.ts` from `src/embed/frame-ancestors.ts`)
+   tells browsers that only momsbloom.org and Squarespace may show `/embed` in an iframe. No site
+   may frame any other page, such as the admin.
+
+`e2e/embed.spec.ts` tests all of this with a fake momsbloom.org page (`e2e/host/index.html`).
 
 ## Deployment
 
@@ -91,9 +135,49 @@ Open <http://localhost:3000>.
 
 Set the same environment variables in the Vercel project settings.
 
+## Put it online (one-time setup)
+
+These steps are done once, by someone with access to the Vercel and Squarespace accounts.
+
+Open question for the team: the Deployment section above describes a GitHub Action that builds and
+deploys. The steps below use the Vercel GitHub integration instead, which deploys each push and gives
+each pull request a preview link. We will record the choice in an ADR.
+
+### 1. Connect Vercel to GitHub
+
+1. In Vercel, select **Add New → Project** and import `MomsBloomOrg/momsbloom-resources`.
+   If the repo is not in the list, give the Vercel GitHub app access to the `MomsBloomOrg`
+   organization (a GitHub org owner may need to approve it).
+2. Keep the defaults. Vercel finds Next.js and pnpm by itself. No environment variables are needed yet.
+3. Deploy. From now on, each push to `main` updates the live site, and each pull request gets its
+   own preview link. Share the preview link in the pull request.
+
+### 2. Add the subdomain
+
+1. In the Vercel project, open **Settings → Domains** and add `resources.momsbloom.org`.
+2. Vercel shows a CNAME record (a DNS entry that says "this name lives at Vercel").
+3. In Squarespace, open **Domains → momsbloom.org → DNS settings**, and add a record:
+   type `CNAME`, host `resources`, data: the value that Vercel showed.
+4. Wait until Vercel shows the domain as valid (minutes, sometimes an hour). Vercel adds HTTPS itself.
+
+### 3. Test the embed on Squarespace
+
+1. Check the plan in Squarespace **Settings → Billing**. JavaScript in code blocks runs only on
+   the Core plan or higher. On a lower plan, the embed script does not run.
+2. Make a test page that is not in the navigation, and add a **Code** block with:
+   `<script src="https://resources.momsbloom.org/embed.js" async></script>`
+3. Open the page. You should see "Postpartum Resources" with no scroll bar inside the box.
+   Also open the page from the main menu, not only with a refresh: some Squarespace templates load
+   pages without a full reload, and the embed must work then too.
+
 ## Roadmap
 
 - [ ] Organizations management
 - [ ] Programs management
 - [ ] Category management
 - [ ] User accounts and email notifications
+
+## Project documents
+
+- `docs/intent/repo-init.md`: what this repo set out to do, and for whom.
+- More to come: `CONTEXT.md` (the words we use), `docs/adr/` (decisions and why), and `docs/specs/`.

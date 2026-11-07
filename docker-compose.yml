@@ -1,0 +1,22 @@
+# Local Postgres for development, so you can work without a Neon account. Matches DATABASE_URL in
+# .env.example. Start it with `pnpm db:up`, stop it with `pnpm db:down`.
+# If port 5432 is already in use on your machine, set MOMSBLOOM_PG_PORT (and change DATABASE_URL too).
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: momsbloom
+      POSTGRES_PASSWORD: momsbloom
+      POSTGRES_DB: momsbloom
+    ports:
+      - "${MOMSBLOOM_PG_PORT:-5432}:5432"
+    volumes:
+      - momsbloom-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U momsbloom -d momsbloom"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  momsbloom-pg:
