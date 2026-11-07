@@ -154,7 +154,7 @@ export function todayInDetroit(now = new Date()): string {
 }
 
 /** Round trip: `2026-02-31` rolls over to March in Date, so it does not match. */
-export const isRealDate =(v: string) => {
+export const isRealDate = (v: string) => {
   const d = new Date(`${v}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
 };

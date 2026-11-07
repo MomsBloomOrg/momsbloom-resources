@@ -76,6 +76,7 @@ function ContactForm({ programId, contact, onAdded }: { programId: number; conta
 
 /** The Contacts of a Program: one small form each, plus "Add contact". Each form has its own action state. */
 export function ContactsSection({ programId, contacts }: { programId: number; contacts: ContactRow[] }) {
+  // Counts good adds. A new key remounts the "Add contact" form (empty fields), so the notice lives here.
   const [addKey, setAddKey] = useState(0);
   return (
     <Card title="Contacts" className="mt-6">
@@ -93,7 +94,8 @@ export function ContactsSection({ programId, contacts }: { programId: number; co
       </ul>
       <details className="mt-4 rounded-md border border-line p-4">
         <summary className="cursor-pointer font-semibold">Add contact</summary>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col gap-3">
+          {addKey > 0 && <Notice tone="success" role="status">Contact added.</Notice>}
           <ContactForm key={addKey} programId={programId} onAdded={() => setAddKey((k) => k + 1)} />
         </div>
       </details>
