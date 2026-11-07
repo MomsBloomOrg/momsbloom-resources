@@ -19,9 +19,9 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
-  const [detail, options, contacts, customFields] = await Promise.all([
-    getProgramForAdmin(db, id),
-    getProgramFormOptions(db),
+  const [{ detail, options }, contacts, customFields] = await Promise.all([
+    // The saved record goes in first: its hidden values stay on the form.
+    getProgramForAdmin(db, id).then(async (detail) => ({ detail, options: await getProgramFormOptions(db, detail?.program) })),
     listContactsForAdmin(db, id),
     listActiveFields(db, "program"),
   ]);

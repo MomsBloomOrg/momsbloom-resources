@@ -277,12 +277,32 @@ export interface ProgramFormOptions {
   serviceFormats: Option[];
 }
 
-/** Every choice the Program form shows. The lists are small (tens to a few hundred rows). */
-export async function getProgramFormOptions(db: Db): Promise<ProgramFormOptions> {
-  const list = (table: IdTable & { name: PgColumn; sortOrder: PgColumn }) =>
-    db.select({ id: table.id, name: table.name }).from(table).orderBy(table.sortOrder, table.id) as Promise<Option[]>;
+/** A Subcategory shows only under a Category the form shows (the Directory does the same). A used Subcategory whose Category is off the form cannot be saved anyway: the save needs its Category checked. */
+export function shownSubcategories(rows: (Option & { categoryId: number; hidden: boolean })[], categories: Option[], used: readonly number[] = []) {
+  return shownOptions(rows, used).filter((r) => categories.some((c) => c.id === r.categoryId));
+}
+
+/** Drops hidden Facet values, except the ones the record already uses: those stay, marked "(hidden)". */
+export function shownOptions<T extends Option & { hidden: boolean }>(rows: T[], used: readonly number[] = []): Omit<T, "hidden">[] {
+  return rows
+    .filter((r) => !r.hidden || used.includes(r.id))
+    .map(({ hidden, ...r }) => ({ ...r, name: hidden ? `${r.name} (hidden)` : r.name }));
+}
+
+/**
+ * Every choice the Program form shows. The lists are small (tens to a few hundred rows).
+ * `used` is the saved record: its hidden values stay on the form so a save does not drop them.
+ */
+export async function getProgramFormOptions(db: Db, used: Partial<ProgramInput> = {}): Promise<ProgramFormOptions> {
+  const list = (table: IdTable & { name: PgColumn; sortOrder: PgColumn; hidden: PgColumn }, usedIds: readonly number[] = []) =>
+    db
+      .select({ id: table.id, name: table.name, hidden: table.hidden })
+      .from(table)
+      .orderBy(table.sortOrder, table.id)
+      .then((rows) => shownOptions(rows as (Option & { hidden: boolean })[], usedIds));
+  const one = (id?: number | null) => (id == null ? [] : [id]);
   const o = t.organizations;
-  const [organizations, statuses, categories, subcategories, insurancePlans, insuranceAcceptanceOptions, languages, audiences, costOptions, serviceFormats] =
+  const [organizations, statuses, categories, allSubcategories, insurancePlans, insuranceAcceptanceOptions, languages, audiences, costOptions, serviceFormats] =
     await Promise.all([
       db
         .select({
@@ -301,17 +321,18 @@ export async function getProgramFormOptions(db: Db): Promise<ProgramFormOptions>
         .from(o)
         .orderBy(o.name, o.id),
       listStatuses(db),
-      list(t.categories),
+      list(t.categories, used.categoryIds),
       db
-        .select({ id: t.subcategories.id, name: t.subcategories.name, categoryId: t.subcategories.categoryId })
+        .select({ id: t.subcategories.id, name: t.subcategories.name, categoryId: t.subcategories.categoryId, hidden: t.subcategories.hidden })
         .from(t.subcategories)
         .orderBy(t.subcategories.sortOrder, t.subcategories.id),
-      list(t.insurancePlans),
-      list(t.insuranceAcceptanceOptions),
-      list(t.languages),
-      list(t.audiences),
-      list(t.costOptions),
-      list(t.serviceFormats),
+      list(t.insurancePlans, used.insurancePlanIds),
+      db.select({ id: t.insuranceAcceptanceOptions.id, name: t.insuranceAcceptanceOptions.name }).from(t.insuranceAcceptanceOptions).orderBy(t.insuranceAcceptanceOptions.sortOrder, t.insuranceAcceptanceOptions.id),
+      list(t.languages, used.languageIds),
+      list(t.audiences, used.audienceIds),
+      list(t.costOptions, one(used.costOptionId)),
+      list(t.serviceFormats, one(used.serviceFormatId)),
     ]);
+  const subcategories = shownSubcategories(allSubcategories, categories, used.subcategoryIds);
   return { organizations, statuses, categories, subcategories, insurancePlans, insuranceAcceptanceOptions, languages, audiences, costOptions, serviceFormats };
 }

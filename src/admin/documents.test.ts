@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm";
+import * as t from "@/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDirectoryTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
@@ -82,5 +84,26 @@ describe("Document edit", () => {
     ];
     expect(refusals.map((r) => r.ok)).toEqual([false, false, false, false, false]);
     expect(await listDocumentsForAdmin(db)).toEqual(before);
+  });
+});
+
+describe("Document form hides hidden Facet values", () => {
+  let db: Db;
+  let close: () => Promise<void>;
+  let category: number;
+  beforeAll(async () => {
+    ({ db, close } = await createDirectoryTestDb());
+    await insertSampleData(db);
+    category = (await db.select().from(t.categories).limit(1))[0].id;
+    await db.update(t.categories).set({ hidden: true }).where(eq(t.categories.id, category));
+  });
+  afterAll(() => close());
+
+  it("document-hidden-options: a new Document drops it, a Document that uses it keeps it marked", async () => {
+    const fresh = await getDocumentFormOptions(db);
+    expect(fresh.categories.map((c) => c.id)).not.toContain(category);
+    expect(fresh.subcategories.some((s) => s.categoryId === category)).toBe(false);
+    const used = await getDocumentFormOptions(db, { categoryIds: [category] });
+    expect(used.categories.find((c) => c.id === category)?.name).toMatch(/ \(hidden\)$/);
   });
 });

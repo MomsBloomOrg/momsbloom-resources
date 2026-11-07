@@ -15,8 +15,10 @@ export default async function DocumentPage({ params }: PageProps<"/admin/documen
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
-  const [detail, options] = await Promise.all([getDocumentForAdmin(db, id), getDocumentFormOptions(db)]);
+  const detail = await getDocumentForAdmin(db, id);
   if (!detail) notFound();
+  // The saved record goes in: its hidden values stay on the form.
+  const options = await getDocumentFormOptions(db, detail.document);
   const { document } = detail;
   const uploadPrefix = process.env.VERCEL_ENV === "production" ? "documents/" : "preview/documents/";
 
