@@ -93,7 +93,7 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
   call it), website, a row of facts (insurance summary, cost, languages, format), the first Contact
   plus "+N more", and "View details".
 - **Document card:** title, description, tags, "PDF" and languages, and "Download".
-- The green box "Can't find what you need?" (call or text 211, or contact MomsBloom) always comes
+- The green box "Can't find what you need?" (call or text 211, or contact MomsBloom; text from the Admin (Content)) always comes
   last.
 - Desktop: the heading is "Postpartum Resources" with the line "Find nearby support that fits your
   family, your insurance, and your needs." (no small heading above it).

@@ -442,3 +442,11 @@ export const rateLimits = pgTable("rate_limits", {
 	index("rate_limits_expires_idx").on(table.expiresAt),
 	check("rate_limits_hits_positive", sql`${table.hits} >= 1`),
 ]);
+
+// Site content (src/admin/help-box.ts): editable text, one row per key. A blank field has no row, so
+// the default shows.
+export const siteContent = pgTable("site_content", {
+	key: text().primaryKey().notNull(),
+	value: text().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+});

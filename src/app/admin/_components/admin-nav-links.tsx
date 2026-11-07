@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 const LINKS = [
   { href: "/admin", label: "Resources", match: ["/admin", "/admin/organizations", "/admin/programs", "/admin/documents"] },
   { href: "/admin/settings/category", label: "Settings", match: ["/admin/settings"] },
+  { href: "/admin/content", label: "Content", match: ["/admin/content"] },
   { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"] },
 ];
 
