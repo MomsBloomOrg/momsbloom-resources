@@ -129,6 +129,14 @@ export function ProgramMap({ programs, compact = false }: { programs: MapProgram
           activate(selected, false);
           selected = ids;
           activate(ids, true);
+          // Map view: the cards scroll in their own box (directory.tsx). Bring the pin's card into view there,
+          // without scrolling the page (scrollIntoView would move the host page too).
+          const card = cardOf(ids[0]);
+          const pane = card?.closest<HTMLElement>("[data-results-pane]");
+          if (card && pane && pane.scrollHeight > pane.clientHeight) {
+            const top = card.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop - 8;
+            pane.scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+          }
         });
         marker.on("popupclose", () => {
           activate(selected, false);

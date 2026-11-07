@@ -1,6 +1,7 @@
 import { appendFileSync } from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
 import { HOST } from "./fixture";
+import { setFilter } from "./filters";
 
 // Analytics events (ADR 0006). The iframe posts each event; embed.js calls the host page's gtag.
 // The stub is on the top frame only: the iframe must get no gtag of its own.
@@ -53,7 +54,7 @@ test("zero-results-event: a keyword with no match sends directory_zero_results",
 
 test("filter-event: a checked Facet value sends directory_filter with the Facet name", async ({ page }) => {
   await page.goto(HOST);
-  await frameOf(page).getByRole("checkbox", { name: /^Spanish/ }).check();
+  await setFilter(page, frameOf(page), /^Spanish/);
   expect(await waitFor(page, "directory_filter")).toEqual({ filter_group: "language", filter_value: "spanish" });
 });
 
@@ -92,7 +93,7 @@ test("no-zip-no-location: a ZIP search and Use my location stay out of the event
   await page.goto(HOST);
   const frame = frameOf(page);
   await frame.getByRole("textbox", { name: /zip/i }).fill("49508");
-  await frame.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await setFilter(page, frame, /^Spanish/);
   await waitFor(page, "directory_filter");
   await frame.getByRole("button", { name: /use my location/i }).click();
   await expect.poll(() => page.frames().some((f) => f.url().includes("near="))).toBe(true);

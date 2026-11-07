@@ -6,10 +6,11 @@ import { useEffect, useRef, type ReactNode } from "react";
 const TRIGGER = "[data-action=open-filters]";
 
 /**
- * The mobile filter sheet. It holds the one and only FilterColumn: on desktop, and with JavaScript
- * off, the <dialog> is never opened and shows as a normal block (the column). Below `md`, with
- * JavaScript, the "Filters" link opens it with showModal(): top layer, the page behind is inert,
- * Escape closes, focus stays inside. One copy of the checkboxes, so only one set submits with the form.
+ * The filters modal. It holds the one and only FilterColumn. With JavaScript off, the <dialog> is never
+ * opened and shows as a normal block at the bottom of the page. With JavaScript, the "Filters" button
+ * opens it with showModal(): top layer, the page behind is inert, Escape closes, focus stays inside.
+ * Phones get a sheet from the bottom; from `md` a centered panel. Checkboxes apply at once (the results
+ * behind update); "Show N results" closes. One copy of the checkboxes, so only one set submits with the form.
  *
  * Inside the iframe, the iframe is as tall as its content, so `bottom: 0` would be the bottom of the
  * iframe, not the phone screen. On open, an IntersectionObserver gives the part of the page that is
@@ -50,7 +51,7 @@ export function FilterSheet({ total, clearAllHref, children }: { total: number; 
       aria-labelledby="filters-heading"
       // Safari does not focus a tapped link, so the native focus return is not enough.
       onClose={() => document.querySelector<HTMLElement>(TRIGGER)?.focus()}
-      className="group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit max-md:data-js:not-open:hidden open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] backdrop:bg-ink/60"
+      className="group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit data-js:not-open:hidden open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] backdrop:bg-ink/60 md:open:mx-auto md:open:max-w-2xl md:open:top-[calc(var(--sheet-top)+2rem)] md:open:h-[min(calc(var(--sheet-height)-4rem),52rem)] md:open:rounded-2xl md:open:shadow-xl md:open:motion-safe:animate-none"
     >
       <button
         type="button"
