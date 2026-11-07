@@ -1,11 +1,13 @@
 # MomsBloom Resource Directory
 
-> A searchable directory of local Programs for pregnant and postpartum families in West Michigan.
-> MomsBloom runs it, and it shows inside momsbloom.org/resources. Code for Good WM volunteers built it.
+> A searchable directory of local Programs for pregnant and postpartum families in Kent County,
+> Michigan. MomsBloom runs it, and it shows inside momsbloom.org/resources. Volunteers of Code for
+> Good WM (West Michigan) built it.
 
 A Program is a service a family can use. An Organization runs one or more Programs. A Document is a
-file (for example a flyer) that belongs to a Program. Terms follow CONTEXT.md. The data is sample data
-until the database loader lands. Do not scrape contact details from the directory.
+downloadable guide (a PDF) that belongs to no Organization or Program. Terms follow CONTEXT.md. The
+data is sample data until the database loader lands. Do not scrape contact details from the
+directory.
 
 ## Docs
 
