@@ -30,6 +30,7 @@ export function FilterSheet({ total, clearAllHref, children }: { total: number; 
       event.preventDefault();
       const observer = new IntersectionObserver(([entry]) => {
         observer.disconnect();
+        if (dialog.open) return; // a double tap queues two observers
         const { top, height } = entry.intersectionRect;
         dialog.style.setProperty("--sheet-top", `${top}px`);
         dialog.style.setProperty("--sheet-height", `${height || window.innerHeight}px`);
@@ -61,8 +62,12 @@ export function FilterSheet({ total, clearAllHref, children }: { total: number; 
       </button>
       <div className="group-open/sheet:flex-1 group-open/sheet:overflow-y-auto group-open/sheet:overscroll-contain">{children}</div>
       <div className="hidden items-center gap-4 border-t border-line p-4 group-open/sheet:flex">
+        {/* The page's result line is inert behind the modal, so the sheet announces the count itself. */}
+        <span aria-live="polite" className="sr-only">
+          {total} {total === 1 ? "result" : "results"}
+        </span>
         {clearAllHref && (
-          <a href={clearAllHref} className="font-bold text-primary-text underline">
+          <a href={clearAllHref} className="flex min-h-11 items-center px-2 font-bold text-primary-text underline">
             Clear all
           </a>
         )}

@@ -1,7 +1,7 @@
 /** The Program detail view on /embed/programs/[id], with the sample snapshot (src/directory/snapshot.ts). */
 import { expect, type Page, test } from "@playwright/test";
 
-const resultLine = (page: Page) => page.locator("[aria-live=polite]");
+const resultLine = (page: Page) => page.locator("[aria-live=polite]:not(dialog *)"); // not the filter sheet's live count
 
 test("detail-opens-from-card: View details opens the Program with its Organization link", async ({ page }) => {
   await page.goto("/embed?q=yoga");

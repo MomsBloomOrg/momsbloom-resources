@@ -5,7 +5,8 @@
 import { expect, type Page, test } from "@playwright/test";
 import { HOST } from "./fixture";
 
-const resultLine = (page: Page) => page.locator("[aria-live=polite]");
+// The mobile filter sheet has its own live count; this is the page's result line.
+const resultLine = (page: Page) => page.locator("[aria-live=polite]:not(dialog *)");
 const programCards = (page: Page) => page.locator("section[aria-labelledby=programs-heading] > ul > li");
 
 test("keyword-narrows: typing a keyword narrows the results (after the debounce)", async ({ page }) => {
