@@ -29,7 +29,7 @@ export type FacetKey = (typeof FACET_KEYS)[number];
 export type FacetValueKeys = Readonly<Record<FacetKey, readonly string[]>>;
 
 export interface FacetValue {
-  /** Stable key, used in URLs and on records. The schema decides what it is (a slug or an ID). */
+  /** Stable key, used in URLs and on records. The database id, an integer as a string, for example "12". Unique only within its Facet. */
   key: string;
   /** What families see, for example "Medicaid / Healthy Michigan". */
   label: string;
@@ -66,9 +66,10 @@ export interface DirectoryContact {
 }
 
 export interface DirectoryProgram {
-  /** For example "P-001". */
+  /** The database id, an integer as a string, for example "12". */
   id: string;
   name: string;
+  /** `id` is the database id, an integer as a string, for example "12". */
   organization: { id: string; name: string };
   description: string;
   /** Extra words a parent might type ("PPD, baby blues"). Searched, never shown. */
@@ -93,7 +94,7 @@ export interface DirectoryProgram {
 }
 
 export interface DirectoryDocument {
-  /** For example "D-001". */
+  /** The database id, an integer as a string, for example "12". */
   id: string;
   title: string;
   description: string;

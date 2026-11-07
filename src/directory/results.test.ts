@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { parseDirectoryQuery } from "./query";
 import { searchDirectory } from "./results";
-import { TEST_SNAPSHOT } from "./test-fixtures";
+import { facetLabelLookup } from "./search";
+import { facetValues, TEST_SNAPSHOT } from "./test-fixtures";
 import type { DirectorySnapshot } from "./types";
 
 const search = (url: string, snapshot: DirectorySnapshot = TEST_SNAPSHOT) =>
@@ -24,6 +25,25 @@ describe("keyword", () => {
   it("search keywords and Facet value labels are searched", () => {
     expect(ids("q=ppd")).toEqual(["P-005"]);
     expect(ids("q=support groups")).toEqual(["P-005"]);
+  });
+
+  it("Facet value keys are unique only within a Facet: Category 1 and Language 1 keep their own labels", () => {
+    const snapshot: DirectorySnapshot = {
+      facets: [
+        { key: "category", label: "Type of support", values: [{ key: "1", label: "Doula care" }] },
+        { key: "language", label: "Language", values: [{ key: "1", label: "Arabic" }] },
+      ],
+      programs: [
+        { ...TEST_SNAPSHOT.programs[0], id: "12", facetValues: facetValues({ category: ["1"], language: ["1"] }), contacts: [] },
+      ],
+      documents: [],
+    };
+    const labelOf = facetLabelLookup(snapshot.facets);
+    expect([labelOf("category", "1"), labelOf("language", "1"), labelOf("cost", "1")]).toEqual(["Doula care", "Arabic", undefined]);
+    // The keyword searches Category labels, not Language labels.
+    expect(search("q=doula", snapshot).programs.map((r) => r.program.id)).toEqual(["12"]);
+    expect(search("q=arabic", snapshot).totalPrograms).toBe(0);
+    expect(search("cat=1&lang=1&cost=1", snapshot).query.filters).toMatchObject({ category: ["1"], language: ["1"], cost: [] });
   });
 
   it("Documents are searched too", () => {

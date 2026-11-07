@@ -1,11 +1,11 @@
 import { Download, FileText } from "lucide-react";
 import type { DirectoryDocument } from "@/directory/types";
-import { Tag } from "./program-card";
+import { supportTags, Tag, type LabelOf } from "./program-card";
 
 /** One Document in "Guides and downloads": title, description, tags, "PDF" + languages, Download. */
-export function DocumentCard({ document, labelOf }: { document: DirectoryDocument; labelOf: (key: string) => string }) {
+export function DocumentCard({ document, labelOf }: { document: DirectoryDocument; labelOf: LabelOf }) {
   const values = document.facetValues;
-  const tags = [...values.category, ...values.subcategory];
+  const tags = supportTags(values, labelOf);
   return (
     <article className="flex gap-4 rounded-2xl border border-line bg-surface p-5">
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft">
@@ -16,13 +16,13 @@ export function DocumentCard({ document, labelOf }: { document: DirectoryDocumen
         <p className="text-sm text-muted">{document.description}</p>
         {tags.length > 0 && (
           <ul aria-label="Type of support" className="flex flex-wrap gap-1.5">
-            {tags.map((key) => (
-              <Tag key={key}>{labelOf(key)}</Tag>
+            {tags.map((tag) => (
+              <Tag key={tag.id}>{tag.label}</Tag>
             ))}
           </ul>
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <p className="text-muted">{["PDF", values.language.map(labelOf).join(", ")].filter(Boolean).join(" · ")}</p>
+          <p className="text-muted">{["PDF", values.language.map((key) => labelOf("language", key)).join(", ")].filter(Boolean).join(" · ")}</p>
           <a
             href={document.pdfUrl}
             data-event="document_download"
