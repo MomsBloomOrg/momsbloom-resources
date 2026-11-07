@@ -11,7 +11,7 @@ import { DocumentCard } from "./_components/document-card";
 import { activeFilterCount, FilterColumn } from "./_components/filter-column";
 import { HelpBox } from "./_components/help-box";
 import { NoResults } from "./_components/no-results";
-import { ProgramCard } from "./_components/program-card";
+import { detailsHref, ProgramCard } from "./_components/program-card";
 import { ResizeReporter } from "./_components/resize-reporter";
 import { ResultLine } from "./_components/result-line";
 import { SearchBar } from "./_components/search-bar";
@@ -61,7 +61,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
           <ProgramCard
             result={result}
             labelOf={labelOf}
-            detailsHref={`/embed/programs/${result.program.id}${search ? `?${search}` : ""}`}
+            detailsHref={detailsHref(result.program.id, search)}
           />
         </li>
       ))}
@@ -84,6 +84,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
           </div>
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
+            {params.unavailable && <p role="status">That resource isn&apos;t available anymore.</p>}
             <ResultLine results={results} />
             <a
               href="#filters"

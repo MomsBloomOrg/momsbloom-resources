@@ -44,3 +44,17 @@ test("only /embed may be framed by other sites", async ({ request }) => {
   const home = await request.get(`${APP}/`);
   expect(home.headers()["content-security-policy"]).toBe("frame-ancestors 'none'");
 });
+
+test("detail-scrolls-host: opening a Program scrolls the host page to the top of the iframe", async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 500 });
+  await page.goto(HOST);
+  const frame = page.frameLocator(IFRAME);
+  const link = frame.getByRole("link", { name: /^View details for/ }).last(); // the last card of the first page: far enough down to need a scroll
+  await link.waitFor();
+  await page.mouse.wheel(0, 1500);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
+  await link.click();
+  await expect(frame.getByRole("heading", { level: 1 })).toBeVisible();
+  const top = () => page.locator(IFRAME).evaluate((el) => Math.round(el.getBoundingClientRect().top));
+  await expect.poll(async () => Math.abs(await top())).toBeLessThan(5);
+});

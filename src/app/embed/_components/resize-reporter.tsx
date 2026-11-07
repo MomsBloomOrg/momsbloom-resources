@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { EMBED_ROOT_ID, RESIZE_MESSAGE } from "@/embed/protocol";
+import { EMBED_ROOT_ID, RESIZE_MESSAGE, SCROLL_MESSAGE } from "@/embed/protocol";
 
 /**
  * Runs inside the iframe. It tells the parent page (momsbloom.org) how tall our content is, so the
@@ -32,6 +32,17 @@ export function ResizeReporter() {
     const observer = new ResizeObserver(post);
     observer.observe(root);
     post();
+    // Then ask the host to scroll (after the resize message, so the height is set first): to the top
+    // on the detail page, or to the card that the URL hash names when you come back to the results.
+    // Neither: send nothing, so the first load of the host page does not jump.
+    // Only a card ("#program-…") counts: "#filters" must never scroll the host. A malformed hash means no target.
+    let target: HTMLElement | null = null;
+    try {
+      const hash = decodeURIComponent(location.hash.slice(1));
+      if (hash.startsWith("program-")) target = document.getElementById(hash);
+    } catch {}
+    const top = root.hasAttribute("data-scroll-top") ? 0 : target ? Math.max(0, target.getBoundingClientRect().top - root.getBoundingClientRect().top) : null;
+    if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
     return () => observer.disconnect();
   }, []);
   return null;
