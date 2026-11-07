@@ -18,6 +18,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `directory-core-functions` | Done. Search, filters, counts, distance, sorting, pages, Michigan ZIP centers; 53 unit tests. | `src/directory/` |
 | `database-schema` | In progress (another developer) | `src/db/schema.ts` |
 | `directory-list-view` | Done (list view, desktop and mobile, on sample data with a "Sample data" note). Next: mobile filter sheet, Program detail, empty and error states. | `src/app/embed/`, `src/directory/snapshot.ts`, `e2e/directory.spec.ts` |
+| `directory-empty-error-states` | Done. Error screen with "Try again", "Clear filters" and "Widen to 25 mi" buttons, ZIP message for a ZIP that is not 5 digits. | `src/app/embed/`, `e2e/directory.spec.ts` |
 | `directory-snapshot-loader` | Blocked on the schema. Cached loader + mapper (tables → `DirectorySnapshot`), `cacheComponents: true`, `updateTag("directory")`. | [ADR 0004](adr/0004-search-filters-a-cached-snapshot-on-the-server.md) |
 | `seed-import` | Blocked on the schema. | [data import spec](specs/data-import.md) |
 | `admin-login` | Blocked on the schema (Auth.js tables) and on Resend domain setup. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |
@@ -57,6 +58,7 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
       it changes how pages render).
 - [ ] When the schema lands, check it against `src/directory/types.ts` and the data import spec's
       column list.
+- [ ] Skeleton on first load: add with the snapshot loader, as a Suspense boundary around the results only (the search form stays outside it, so no-JS still works).
 - [ ] Test the embed in Safari and on iOS, and when reached from the Squarespace menu.
 - [ ] The README says a Code block also works; only the Embed block was tested.
 - [ ] Ask the designer for the Admin design and the empty, loading, and error states (Designer To Do list).

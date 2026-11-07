@@ -85,3 +85,52 @@ test.describe("works-without-javascript", () => {
     await expect(resultLine(page)).toHaveText('2 results for "yoga"');
   });
 });
+
+test("no-results-clear-filters: Clear filters keeps the keyword and brings results back", async ({ page }) => {
+  await page.goto("/embed?q=yoga&cost=free&lang=spanish");
+  await expect(page.getByText('No matches for "yoga"')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Can't find what you need?" })).toBeVisible();
+  await page.getByRole("link", { name: "Clear filters", exact: true }).click();
+  await expect(page).toHaveURL(/\?q=yoga$/);
+  await expect(resultLine(page)).toHaveText('2 results for "yoga"');
+});
+
+test("no-results-widen-25: Widen to 25 mi sets the radius and shows results", async ({ page }) => {
+  await page.goto("/embed?q=pelvic&zip=49301&r=5");
+  await expect(resultLine(page)).toContainText("0 results");
+  await page.getByRole("link", { name: "Widen to 25 mi" }).click();
+  await expect(page).toHaveURL(/r=25/);
+  await expect(resultLine(page)).toContainText("1 result");
+});
+
+test("no-results-keyword-only: no buttons when there is nothing to clear or widen", async ({ page }) => {
+  await page.goto("/embed?q=zzzz");
+  await expect(page.getByText('No matches for "zzzz"')).toBeVisible();
+  await expect(page.getByRole("link", { name: "Clear filters", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /^Widen/ })).toHaveCount(0);
+});
+
+test("load-error-try-again: the error screen shows the 211 text and Try again", async ({ page }) => {
+  await page.goto("/embed?fail=1");
+  const main = page.locator("main");
+  await expect(main.getByRole("alert")).toContainText("We couldn't load the directory right now.");
+  await expect(main.locator("a[href='tel:211']")).toBeVisible();
+  await expect(main.getByRole("button", { name: "Try again" })).toBeVisible();
+});
+
+test("zip-not-five-digits: a short ZIP shows the ZIP message on Search and keeps the text", async ({ page }) => {
+  await page.goto("/embed");
+  const zip = page.getByRole("textbox", { name: "ZIP code" });
+  await zip.fill("495");
+  await expect(page.locator("#zip-not-found")).toHaveCount(0);
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page.locator("#zip-not-found")).toHaveText("We don't recognize that ZIP. Try a Michigan ZIP code.");
+  await expect(zip).toHaveValue("495");
+  await expect(resultLine(page)).toHaveText("14 results");
+});
+
+test("zip-not-five-digits-url: /embed?zip=495 shows the ZIP message too", async ({ page }) => {
+  await page.goto("/embed?zip=495");
+  await expect(page.locator("#zip-not-found")).toContainText("We don't recognize that ZIP");
+  await expect(page.getByRole("textbox", { name: "ZIP code" })).toHaveValue("495");
+});

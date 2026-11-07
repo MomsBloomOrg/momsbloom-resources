@@ -8,13 +8,22 @@ export const DIRECTORY_FORM_ID = "directory-form";
  * The filter checkboxes in the filter column belong to this form too (form={DIRECTORY_FORM_ID}).
  * DirectoryLive adds the live behavior (debounce, no page reload, location).
  */
-export function SearchBar({ query, zipNotFound }: { query: DirectoryQuery; zipNotFound: boolean }) {
+export function SearchBar({
+  query,
+  zipNotFound,
+  zipText,
+}: {
+  query: DirectoryQuery;
+  zipNotFound: boolean;
+  /** What the family typed when it is not a 5-digit ZIP (the query drops it). */
+  zipText?: string;
+}) {
   return (
     <form
       id={DIRECTORY_FORM_ID}
       method="get"
       role="search"
-      // No browser validation: a half-typed ZIP must not block the keyword search. The server ignores a bad ZIP.
+      // No browser validation: a half-typed ZIP must not block the keyword search. A bad ZIP shows the ZIP message.
       noValidate
       className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-start md:rounded-full md:bg-surface md:p-2 md:shadow-md"
     >
@@ -41,7 +50,7 @@ export function SearchBar({ query, zipNotFound }: { query: DirectoryQuery; zipNo
             <input
               type="text"
               name="zip"
-              defaultValue={query.zip ?? ""}
+              defaultValue={zipText ?? query.zip ?? ""}
               placeholder="ZIP code"
               inputMode="numeric"
               autoComplete="postal-code"
@@ -62,7 +71,7 @@ export function SearchBar({ query, zipNotFound }: { query: DirectoryQuery; zipNo
           </button>
         </div>
         {zipNotFound && (
-          <p id="zip-not-found" className="px-4 text-sm font-bold text-primary-text">
+          <p id="zip-not-found" role="alert" className="px-4 text-sm font-bold text-primary-text">
             We don&apos;t recognize that ZIP. Try a Michigan ZIP code.
           </p>
         )}

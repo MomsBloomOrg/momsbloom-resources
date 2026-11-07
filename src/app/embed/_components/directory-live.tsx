@@ -52,9 +52,14 @@ export function DirectoryLive({ children }: { children: ReactNode }) {
         const params = new URLSearchParams();
         new FormData(event.target as HTMLFormElement).forEach((value, key) => params.append(key, String(value)));
         // Keep "Use my location" until the family types a ZIP code (the form has no `near` field).
+        // An explicit Search (a submitter button) with a bad ZIP: pass the text on so the page shows the ZIP message.
+        const rawZip = String(params.get("zip") ?? "");
+        const explicit = (event.nativeEvent as SubmitEvent).submitter !== null;
         const near = searchParams.get("near");
         if (near && !params.get("zip")) params.set("near", near);
-        navigate(serializeDirectoryQuery(parseDirectoryQuery(params)));
+        const search = serializeDirectoryQuery(parseDirectoryQuery(params));
+        const badZip = explicit && rawZip && !/^\d{5}$/.test(rawZip);
+        navigate(badZip ? `${search}${search ? "&" : ""}zip=${encodeURIComponent(rawZip)}` : search);
       }}
       onInput={(event) => {
         const input = event.target as HTMLInputElement;
