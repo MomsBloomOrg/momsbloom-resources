@@ -44,9 +44,7 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
     const result = await markOrganizationVerified(db, id);
     if (!result.ok) return invalid(result.error);
     directoryChanged();
-    // The saved pin, so the form keeps it after a save with a changed address.
-    const saved = (await getOrganizationForAdmin(db, id))?.organization;
-    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, latitude: saved?.latitude ?? null, longitude: saved?.longitude ?? null };
+    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
   }
 
   // Both checks run, so one save shows every marked field.

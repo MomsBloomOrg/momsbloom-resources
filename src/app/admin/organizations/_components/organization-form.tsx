@@ -6,6 +6,7 @@ import type { OrganizationInput, StatusOption } from "@/admin/organizations";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Field, Notice, buttonClass, inputClass } from "../../_components/ui";
+import { lastGoodPin } from "../../_components/last-good-pin";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
 
 const IDLE: OrganizationFormState = { status: "idle" };
@@ -42,8 +43,10 @@ export function OrganizationForm({
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
   const notice = state.status === "saved" ? state.notice : organization?.streetAddress && organization.latitude == null && organization.longitude == null ? NOT_PLACED : undefined;
   const o = organization;
-  // The pin of the last save. The inputs are keyed on it, so a second Save does not send the old pin.
-  const pin = state.status === "saved" && state.latitude !== undefined ? state : o;
+  // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
+  const [pin, setPin] = useState({ latitude: o?.latitude, longitude: o?.longitude });
+  const next = lastGoodPin(pin, state);
+  if (next !== pin) setPin(next);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,21 +63,24 @@ export function OrganizationForm({
     startTransition(() => dispatch(data));
   }
 
-  const text = (name: keyof OrganizationInput, label: string, extra: { hint?: string; type?: string; inputMode?: "decimal" } = {}) => (
+  const text = (name: keyof OrganizationInput, label: string, extra: { hint?: string; type?: string; inputMode?: "decimal" } = {}) => {
+    const fromPin = name === "latitude" || name === "longitude";
+    return (
     <Field id={`org-${name}`} label={label} hint={extra.hint} error={errors[name]}>
       <input
         id={`org-${name}`}
         name={name}
         type={extra.type ?? "text"}
         inputMode={extra.inputMode}
-        key={name === "latitude" || name === "longitude" ? `${pin?.latitude}|${pin?.longitude}` : undefined}
-        defaultValue={((name === "latitude" || name === "longitude" ? pin : o)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
+        key={fromPin ? `${pin.latitude}|${pin.longitude}` : undefined}
+        defaultValue={((fromPin ? pin : o)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
         aria-invalid={errors[name] ? true : undefined}
         aria-describedby={[extra.hint && `org-${name}-hint`, errors[name] && `org-${name}-error`].filter(Boolean).join(" ") || undefined}
         className={inputClass}
       />
     </Field>
-  );
+    );
+  };
 
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (o?.lastVerified ?? "");
 

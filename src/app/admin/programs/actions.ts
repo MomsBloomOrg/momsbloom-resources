@@ -32,9 +32,7 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
     const result = await markProgramVerified(db, id);
     if (!result.ok) return invalid(result.error);
     directoryChanged();
-    // The saved pin, so the form keeps it after a save with a changed address.
-    const saved = (await getProgramForAdmin(db, id))?.program;
-    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, latitude: saved?.latitude ?? null, longitude: saved?.longitude ?? null };
+    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
   }
 
   // Both checks run, so one save shows every marked field.
