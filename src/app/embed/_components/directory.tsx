@@ -136,15 +136,15 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             </div>
 
             {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
-            <div className={mapView ? "grid gap-4 lg:grid-cols-[26rem_1fr]" : "contents"}>
-              {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[640px]),
+            <div className={mapView ? "grid gap-4 lg:grid-cols-[22rem_1fr]" : "contents"}>
+              {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[800px]),
                   so a long list never runs past the map. Focusable, so keyboard users can scroll it. `relative`: absolute
                   children (sr-only text) must be clipped by the box, or they stretch the page to the list's full height. */}
               <div
                 {...(mapView
                   ? { "data-results-pane": "", tabIndex: 0, role: "region", "aria-label": "Results list" }
                   : {})}
-                className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[640px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
+                className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[800px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
               >
                 <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
                   <h2 id="programs-heading" className="text-xl font-extrabold">
