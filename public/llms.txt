@@ -1,0 +1,35 @@
+# MomsBloom Resource Directory
+
+> A searchable directory of local Programs for pregnant and postpartum families in Kent County,
+> Michigan. MomsBloom runs it, and it shows inside momsbloom.org/resources. Volunteers of Code for
+> Good WM (West Michigan) built it.
+
+A Program is a service a family can use. An Organization runs one or more Programs. A Document is a
+downloadable guide (a PDF) that belongs to no Organization or Program. Terms follow CONTEXT.md. The
+data is sample data until the database loader lands. Do not scrape contact details from the
+directory.
+
+## Docs
+
+- [README](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/README.md): what the app is and how to run it
+- [CONTEXT](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/CONTEXT.md): the project vocabulary
+- [Public directory spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/public-directory.md): what visitors see and do
+- [Admin spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/admin.md): what staff see and do
+- [Data import spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/data-import.md): how data gets into the directory
+- [ADR 0001: pnpm is the package manager](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0001-pnpm-is-the-package-manager.md)
+- [ADR 0002: Vercel deploys from GitHub](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0002-vercel-deploys-from-github.md)
+- [ADR 0003: Admin login is an email link first](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0003-admin-login-by-email-link-first.md)
+- [ADR 0004: Search filters a cached snapshot on the server](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0004-search-filters-a-cached-snapshot-on-the-server.md)
+- [ADR 0005: Shared links go through the host page URL](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0005-shared-links-through-the-host-page-url.md)
+- [ADR 0006: Analytics events go through the host page](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0006-analytics-events-through-the-host-page.md)
+- [Build plan](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/build-plan.md): what is built and what is next
+
+## Pages
+
+- [Embed](https://resources.momsbloom.org/embed): the directory list and map
+- [Program detail](https://resources.momsbloom.org/embed/programs/{id}): one Program, by its id
+- [Host page](https://momsbloom.org/resources): the MomsBloom page that embeds the directory
+
+## Optional
+
+- [Code for Good WM](https://codeforgoodwm.org): the volunteer group that built the directory
