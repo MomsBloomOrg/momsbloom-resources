@@ -45,7 +45,7 @@ export async function CustomFieldsManager({ db, entity }: { db: Db; entity: Admi
                 ))}
               </ul>
             )}
-            <div className="rounded-2xl bg-surface p-4 sm:p-5">
+            <div className="rounded-2xl border border-line p-4 sm:p-5">
               <AddFieldForm entity={entity} entityLabel={one} />
             </div>
             {archived.length > 0 && (

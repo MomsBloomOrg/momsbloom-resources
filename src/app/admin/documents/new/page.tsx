@@ -16,8 +16,8 @@ export default async function NewDocumentPage() {
       <PageHeader
         title="New Document"
         back={
-          <Link href="/admin/documents" className={linkClass}>
-            Back to Documents
+          <Link href="/admin?type=guide" className={linkClass}>
+            Back to Guides & Downloads
           </Link>
         }
       />

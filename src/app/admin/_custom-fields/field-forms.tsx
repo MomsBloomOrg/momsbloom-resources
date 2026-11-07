@@ -158,7 +158,7 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
 
       <details open={state.result === "error" && Object.keys(errors).length > 0 ? true : undefined}>
         <summary className={summary}>Edit</summary>
-        <form method="post" onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-2xl bg-surface p-4 sm:p-5">
+        <form method="post" onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-2xl border border-line bg-background p-4 sm:p-5">
           {intent("edit")}
           <p className={hintClass}>
             Type: {CUSTOM_FIELD_TYPE_LABELS[field.type]}. It can&apos;t change: to change it, archive this field and add a new one.
