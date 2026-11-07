@@ -51,6 +51,8 @@ export interface DirectoryQuery {
   sort: Sort | null;
   /** How many pages of 10 are shown ("Show more" adds one). At least 1. */
   pages: number;
+  /** "map" shows the map beside the cards. Anything else in the URL is the list. */
+  view: "list" | "map";
 }
 
 /** What Next.js gives a page as `searchParams`, or a plain URLSearchParams. */
@@ -69,6 +71,7 @@ export const EMPTY_QUERY: DirectoryQuery = {
   org: null,
   sort: null,
   pages: 1,
+  view: "list",
 };
 
 function getAll(input: SearchParamsInput, key: string): string[] {
@@ -120,6 +123,7 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
     org: org && /^O-\d{3,}$/.test(org) ? org : null,
     sort: (SORTS as readonly string[]).includes(sort ?? "") ? (sort as Sort) : null,
     pages: Number.isFinite(pages) ? Math.min(Math.max(pages, 1), MAX_PAGES) : 1,
+    view: getFirst(input, "view") === "map" ? "map" : "list",
   };
 }
 
@@ -136,6 +140,7 @@ export function serializeDirectoryQuery(query: DirectoryQuery): string {
   if (query.org) params.set("org", query.org);
   if (query.sort) params.set("sort", query.sort);
   if (query.pages > 1) params.set("n", String(query.pages));
+  if (query.view === "map") params.set("view", "map");
   return params.toString();
 }
 

@@ -46,10 +46,13 @@ export function ProgramCard({
   result: { program, distanceMiles },
   labelOf,
   detailsHref,
+  number,
 }: {
   result: ProgramResult;
   labelOf: (key: string) => string;
   detailsHref: string;
+  /** The pin number on the map (map view only), so card 3 matches pin 3. */
+  number?: number;
 }) {
   const values = program.facetValues;
   const format = formatText(values.format, labelOf);
@@ -64,9 +67,21 @@ export function ProgramCard({
   const website = webUrl(program.website);
 
   return (
-    <article id={`program-${program.id}`} className="rounded-2xl border border-line bg-surface p-5">
+    <article
+      id={`program-${program.id}`}
+      // data-active is set by ProgramMap when the family selects the card's pin.
+      className="rounded-2xl border border-line bg-surface p-5 data-[active]:border-primary-text data-[active]:ring-2 data-[active]:ring-primary-text"
+    >
       <div className="flex items-start justify-between gap-3 text-sm text-muted">
-        <p>{program.organization.name}</p>
+        <p>
+          {number !== undefined && (
+            <span className="mr-2 inline-flex size-6 items-center justify-center rounded-full border-2 border-primary-text font-bold text-primary-text">
+              <span className="sr-only">Pin </span>
+              {number}
+            </span>
+          )}
+          {program.organization.name}
+        </p>
         {distanceMiles !== null && (
           <p className="flex shrink-0 items-center gap-1">
             <MapPin aria-hidden="true" className="size-4" />

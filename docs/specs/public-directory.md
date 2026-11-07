@@ -146,6 +146,12 @@ See `desktop-directory-map.png`. Build it only after everything above works.
 - The map shows the same filtered Programs as the list. Selecting a card highlights its pin, and
   the reverse.
 - A note tells families that Documents are in the list view.
+- The map fits the Program pins. It never centers on the family's ZIP code or location, and it has no
+  "you are here" marker.
+- OpenStreetMap gets only tile requests: the map area, and the page origin as the Referer. It never
+  gets `near` or the ZIP code.
+- The map shows the Programs on the shown pages (10, then "Show more" adds 10). Programs at the same
+  address share one pin. Virtual and phone Programs stay cards with no pin.
 - If time is short, skip the map. The Directions link on each Program covers most of its value.
 
 ## States and edge cases

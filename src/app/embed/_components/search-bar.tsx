@@ -29,6 +29,7 @@ export function SearchBar({
     >
       {/* Keep the Organization filter and the sort when the family searches again. */}
       {query.org && <input type="hidden" name="org" value={query.org} />}
+      {query.view === "map" && <input type="hidden" name="view" value="map" />}
       {query.sort && <input type="hidden" name="sort" value={query.sort} />}
       <label className="flex min-h-12 flex-1 items-center gap-2 rounded-full border border-line bg-surface px-4 md:border-0">
         <Search aria-hidden="true" className="size-4 shrink-0" />
