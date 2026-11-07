@@ -27,6 +27,8 @@
   --color-line: #e6dfe3;
   --color-surface: #ffffff;
   --color-background: #fbf7f4;
+  /* Panels in the Admin, like momsbloom.org's light grey sections (Squarespace "lightAccent", #EFEFEF). */
+  --color-field: #efefef;
   --font-sans: var(--next-font-nunito), ui-sans-serif, system-ui, sans-serif;
 }
 

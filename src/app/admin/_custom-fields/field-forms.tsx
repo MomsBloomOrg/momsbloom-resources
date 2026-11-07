@@ -76,7 +76,7 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
   return (
     <form key={formKey} method="post" onSubmit={submitWith(dispatch)} className="flex flex-col gap-4">
       <input type="hidden" name="entity" value={entity} />
-      <h3 className="text-lg font-bold">Add a {entityLabel} field</h3>
+      <h3 className="text-xl font-normal">Add a {entityLabel} field</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id={`${id}-type`} label="Field type" hint="It can't be changed later." error={errors.type}>
           <select id={`${id}-type`} name="type" value={type} onChange={(e) => setType(e.target.value as CustomFieldType)} className={inputClass}>
@@ -158,7 +158,7 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
 
       <details open={state.result === "error" && Object.keys(errors).length > 0 ? true : undefined}>
         <summary className={summary}>Edit</summary>
-        <form method="post" onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-md border border-line bg-background p-4">
+        <form method="post" onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-2xl bg-surface p-4 sm:p-5">
           {intent("edit")}
           <p className={hintClass}>
             Type: {CUSTOM_FIELD_TYPE_LABELS[field.type]}. It can&apos;t change: to change it, archive this field and add a new one.

@@ -45,12 +45,12 @@ export async function CustomFieldsManager({ db, entity }: { db: Db; entity: Admi
                 ))}
               </ul>
             )}
-            <div className="rounded-md border border-line p-4">
+            <div className="rounded-2xl bg-surface p-4 sm:p-5">
               <AddFieldForm entity={entity} entityLabel={one} />
             </div>
             {archived.length > 0 && (
               <div>
-                <h3 className="text-lg font-bold">Archived fields</h3>
+                <h3 className="text-xl font-normal">Archived fields</h3>
                 <p className={hintClass}>Hidden everywhere. Their answers stay on the records; Restore brings them back.</p>
                 <ul>
                   {archived.map((field) => (
