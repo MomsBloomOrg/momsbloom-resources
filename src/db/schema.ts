@@ -6,7 +6,8 @@
  * To change a table: edit this file, then `pnpm db:generate` and `pnpm db:migrate`. If someone changes
  * the database directly, pull again (into a temp `out`) and copy the new schema.ts over this file.
  */
-import { pgTable, index, foreignKey, integer, text, boolean, timestamp, doublePrecision, date, unique, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, integer, text, boolean, timestamp, doublePrecision, date, unique, primaryKey, uuid, check } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
 
 export const contacts = pgTable("contacts", {
 	id: integer().primaryKey().generatedAlwaysAsIdentity({ name: "contacts_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
@@ -349,4 +350,65 @@ export const programAudiences = pgTable("program_audiences", {
 			name: "program_audiences_audience_id_audiences_id_fk"
 		}).onDelete("cascade"),
 	primaryKey({ columns: [table.programId, table.audienceId], name: "program_audiences_program_id_audience_id_pk"}),
+]);
+
+// ---------------------------------------------------------------------------------------------
+// Admin login (Auth.js). Written here, not pulled: the column names follow @auth/drizzle-adapter.
+// A Staff admin row is made at the first login of an address on ADMIN_EMAILS (src/auth/config.ts).
+
+export const staffAdmins = pgTable("staff_admins", {
+	id: uuid().primaryKey().defaultRandom(),
+	email: text().notNull().unique(),
+	name: text(),
+	emailVerified: timestamp("email_verified", { withTimezone: true, mode: 'date' }),
+	image: text(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+}, (table) => [
+	check("staff_admins_email_lowercase", sql`${table.email} = lower(${table.email})`),
+]);
+
+export const authAccounts = pgTable("auth_accounts", {
+	userId: uuid("user_id").notNull().references(() => staffAdmins.id, { onDelete: "cascade" }),
+	type: text().notNull(),
+	provider: text().notNull(),
+	providerAccountId: text("provider_account_id").notNull(),
+	refresh_token: text("refresh_token"),
+	access_token: text("access_token"),
+	expires_at: integer("expires_at"),
+	token_type: text("token_type"),
+	scope: text(),
+	id_token: text("id_token"),
+	session_state: text("session_state"),
+}, (table) => [
+	primaryKey({ columns: [table.provider, table.providerAccountId] }),
+]);
+
+export const authSessions = pgTable("auth_sessions", {
+	sessionToken: text("session_token").primaryKey(),
+	userId: uuid("user_id").notNull().references(() => staffAdmins.id, { onDelete: "cascade" }),
+	expires: timestamp({ withTimezone: true, mode: 'date' }).notNull(),
+}, (table) => [
+	index("auth_sessions_user_idx").on(table.userId),
+]);
+
+export const authVerificationTokens = pgTable("auth_verification_tokens", {
+	identifier: text().notNull(),
+	token: text().notNull(),
+	expires: timestamp({ withTimezone: true, mode: 'date' }).notNull(),
+}, (table) => [
+	primaryKey({ columns: [table.identifier, table.token] }),
+]);
+
+// Rate limits (src/rate-limit). One row per bucket and key: a fixed window and its hit count. The key
+// is an HMAC, never a raw IP or email.
+export const rateLimits = pgTable("rate_limits", {
+	bucket: text().notNull(),
+	keyHash: text("key_hash").notNull(),
+	windowStart: timestamp("window_start", { withTimezone: true, mode: 'date' }).notNull(),
+	hits: integer().notNull(),
+	expiresAt: timestamp("expires_at", { withTimezone: true, mode: 'date' }).notNull(),
+}, (table) => [
+	primaryKey({ columns: [table.bucket, table.keyHash] }),
+	index("rate_limits_expires_idx").on(table.expiresAt),
+	check("rate_limits_hits_positive", sql`${table.hits} >= 1`),
 ]);

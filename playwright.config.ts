@@ -21,7 +21,15 @@ export default defineConfig({
       // Let the fake host page frame /embed (production allows only momsbloom.org and Squarespace).
       // DIRECTORY_TEST_ERRORS lets /embed?fail=1 show the error screen. DIRECTORY_SAMPLE_DATA uses the
       // made-up sample snapshot, so the tests need no database.
-      env: { EMBED_EXTRA_FRAME_ANCESTORS: HOST, DIRECTORY_TEST_ERRORS: "1", DIRECTORY_SAMPLE_DATA: "1" },
+      // AUTH_* and ADMIN_EMAILS: /login renders with no database (no link is requested in e2e).
+      env: {
+        EMBED_EXTRA_FRAME_ANCESTORS: HOST,
+        DIRECTORY_TEST_ERRORS: "1",
+        DIRECTORY_SAMPLE_DATA: "1",
+        AUTH_SECRET: "e2e-test-secret-not-for-production",
+        AUTH_URL: APP,
+        ADMIN_EMAILS: "staff@example.org",
+      },
     },
     {
       command: `node e2e/host-server.mjs ${HOST_PORT} ${APP}`,

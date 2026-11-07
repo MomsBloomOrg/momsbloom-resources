@@ -95,6 +95,26 @@ The app does not read the database yet, so you can skip this until the tables ex
 The tables are defined in `src/db/schema.ts`. After you change that file, run `pnpm db:generate`
 (writes a migration file into `drizzle/`) and then `pnpm db:migrate` (applies it to the database).
 
+### Admin login settings
+
+| Variable | What it is |
+| --- | --- |
+| `AUTH_SECRET` | Signs the login cookies and keys the rate limit. Make one with `openssl rand -base64 32`. |
+| `AUTH_URL` | Local and Playwright only (`http://localhost:3000`). Do not set it on Vercel: there Auth.js uses the request host, so each Preview sends links to itself. |
+| `RESEND_API_KEY` | Resend key. Empty: the Login link prints in the `pnpm dev` log (refused on Vercel). |
+| `EMAIL_FROM` | The From address. Default `"MomsBloom Resources" <no-reply@momsbloom.org>`. |
+| `ADMIN_EMAILS` | The Staff admin allow-list, separated by commas. Remove an address to lock that person out on their next request. Never commit real addresses. |
+
+Production and Preview on Vercel need `AUTH_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, and `ADMIN_EMAILS`.
+
+### Log in to the Admin locally
+
+1. Start a local database (`pnpm db:up`) and run `pnpm db:migrate`, so the login tables exist.
+2. In `.env.local`, set `AUTH_SECRET`, `AUTH_URL=http://localhost:3000`, `ADMIN_EMAILS=you@example.org`,
+   and leave `RESEND_API_KEY` empty.
+3. Run `pnpm dev`, open http://localhost:3000/login, and enter that address.
+4. The Login link prints in the terminal (`[login-link] for …`). Open it to log in.
+
 ## Scripts
 
 | Command | What it does |
