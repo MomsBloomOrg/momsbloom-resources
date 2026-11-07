@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+/** Block on the server and send the full HTML, so the page works without JavaScript (cacheComponents). */
+export const instant = false;
+
 /**
  * The Directory list view, shown in an iframe on momsbloom.org/resources by `public/embed.js`.
  *
@@ -41,7 +44,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   const params = await searchParams;
   // Test-only switch for the error screen (e2e). Vercel never sets the env var.
   if (process.env.DIRECTORY_TEST_ERRORS === "1" && params.fail === "1") throw new Error("Test error");
-  const snapshot = getDirectorySnapshot();
+  const snapshot = await getDirectorySnapshot();
   const results = searchDirectory(snapshot, parseDirectoryQuery(params));
   const { query } = results;
 

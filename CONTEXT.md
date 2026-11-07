@@ -13,10 +13,10 @@ to translate, and bugs from "I thought you meant..." go away.
 
 | Term | Meaning |
 |---|---|
-| **Organization** | A group that offers services, for example Corewell Health or Arbor Circle. It holds the shared details: name, about text, main phone, website, email, and main address. An Organization is never a search result itself. It has one or more Programs. ID format: `O-001`. |
-| **Program** | One service that an Organization offers, for example "Mom and baby yoga" at Riverbend Health. **Programs are what families search, filter, and open.** Categories, insurance, cost, languages, and who it serves belong to the Program, not the Organization. An Organization that offers only one thing still has one Program. ID format: `P-001`. |
+| **Organization** | A group that offers services, for example Corewell Health or Arbor Circle. It holds the shared details: name, about text, main phone, website, email, and main address. An Organization is never a search result itself. It has one or more Programs. ID format: in the database, an integer (`12`); `O-001` is the spreadsheet ID only. |
+| **Program** | One service that an Organization offers, for example "Mom and baby yoga" at Riverbend Health. **Programs are what families search, filter, and open.** Categories, insurance, cost, languages, and who it serves belong to the Program, not the Organization. An Organization that offers only one thing still has one Program. ID format: in the database, an integer (`12`); `P-001` is the spreadsheet ID only. |
 | **Contact** | A person who works in one Program, with a name, title, phone, and email. Shown on the Program detail page only if "Show on website" is yes. |
-| **Document** | A downloadable guide (a PDF), for example "Postpartum Warning Signs". It stands alone: it belongs to no Organization and has no address or distance. Shown in "Guides and downloads". ID format: `D-001`. |
+| **Document** | A downloadable guide (a PDF), for example "Postpartum Warning Signs". It stands alone: it belongs to no Organization and has no address or distance. Shown in "Guides and downloads". ID format: in the database, an integer (`12`); `D-001` is the spreadsheet ID only. |
 | **Facet** | One way to filter Programs, shown as a group of checkboxes: Category, Subcategory, Insurance plan, Language, Who it serves, Cost, and Service format. Each Facet has a fixed list of Facet values. |
 | **Facet value** | One option in a Facet, for example "Spanish" in Language, or "Sliding scale" in Cost. Staff admins manage the list. The order of the list is the order on screen. |
 | **Category** | The main Facet: the type of support, for example "Mental health" or "Lactation and feeding". A Program can have more than one. |

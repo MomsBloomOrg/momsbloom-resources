@@ -42,13 +42,18 @@ const href = `?${serializeDirectoryQuery(toggleFilter(results.query, "language",
 | `distance.ts` | Miles between two points. |
 | `zip.ts`, `michigan-zips.ts` | ZIP code → map point, for Michigan. The table is generated; see its header. |
 | `results.ts` | `searchDirectory`: puts it all together. |
-| `snapshot.ts` | `getDirectorySnapshot()`: the data the pages use (sample data for now). |
+| `snapshot.ts` | `getDirectorySnapshot()`: the data the pages use. The cached database loader. |
+| `mapper.ts` | `toDirectorySnapshot()`: database rows → `DirectorySnapshot`. Pure; the only code that knows the tables. |
+| `sample-snapshot.ts` | Made-up sample data, for the e2e tests (`DIRECTORY_SAMPLE_DATA=1`). |
 | `test-fixtures.ts` | A small made-up snapshot for unit tests. |
 
 ## Where the snapshot comes from
 
-`getDirectorySnapshot()` in `snapshot.ts`. Pages call only this function. For now it returns made-up
-sample data (`TEST_SNAPSHOT` plus a few more Programs), and `IS_SAMPLE_DATA` makes the page show a
-"Sample data" note. The directory-snapshot-loader task replaces that file with a cached server
-function that loads the public data from the database and turns it into a `DirectorySnapshot` (the
-"mapper"). Unit tests keep using `TEST_SNAPSHOT` from `test-fixtures.ts`.
+`getDirectorySnapshot()` in `snapshot.ts`. Pages call only this function. It selects the public
+columns of each table (never Internal notes, never private Contacts) in one `Promise.all`, and
+`toDirectorySnapshot()` in `mapper.ts` turns the rows into a `DirectorySnapshot`: Status, Inheritance,
+and the "In person and virtual" format. The result is cached (`"use cache"`, `cacheTag("directory")`,
+`cacheLife("hours")`); the Admin will call `updateTag("directory")` after a save.
+
+With `DIRECTORY_SAMPLE_DATA=1` it returns the made-up `SAMPLE_SNAPSHOT` instead (`sample-snapshot.ts`),
+so the e2e tests need no database. Unit tests use `TEST_SNAPSHOT` from `test-fixtures.ts`.

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
 import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
-import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
 import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
@@ -15,6 +14,9 @@ export const metadata: Metadata = {
   title: "MomsBloom Resource Directory",
   robots: { index: false, follow: true },
 };
+
+/** Block on the server and send the full HTML, so the page works without JavaScript (cacheComponents). */
+export const instant = false;
 
 const MORE_LIMIT = 3;
 const card = "rounded-2xl border border-line bg-surface p-5";
@@ -48,7 +50,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
   const [{ id }, rawQuery] = await Promise.all([params, searchParams]);
   const query = parseDirectoryQuery(rawQuery);
   const search = serializeDirectoryQuery(query);
-  const snapshot = getDirectorySnapshot();
+  const snapshot = await getDirectorySnapshot();
   const program = snapshot.programs.find((candidate) => candidate.id === id);
   if (!program) redirect(`/embed?${search ? `${search}&` : ""}unavailable=1`);
 
@@ -100,9 +102,6 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
 
   return (
     <main id={EMBED_ROOT_ID} data-scroll-top="" className="mx-auto w-full max-w-6xl px-4 py-6">
-      {IS_SAMPLE_DATA && (
-        <p className="mb-4 text-sm text-muted">Sample data: these programs are made up while the directory is being built.</p>
-      )}
       <a
         href={`/embed?${search}#program-${program.id}`}
         className="flex min-h-11 w-fit items-center gap-2 font-bold text-primary-text min-[900px]:min-h-6"
