@@ -196,7 +196,7 @@ export function ProgramMap({ programs, compact = false }: { programs: MapProgram
       role="region"
       aria-label={compact ? "Map of the location" : "Map of the places in the results"}
       data-testid="program-map"
-      className={`w-full rounded-2xl border border-line ${compact ? "h-[200px]" : "h-80 lg:h-[640px]"}`}
+      className={`w-full border border-line ${compact ? "rounded-2xl " : ""}${compact ? "h-[200px]" : "h-96 lg:h-[800px]"}`}
     />
   );
 }
