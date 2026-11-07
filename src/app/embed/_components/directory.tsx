@@ -1,4 +1,4 @@
-import { FileText, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
 import { facetLabelLookup } from "@/directory/search";
@@ -16,7 +16,7 @@ import { NoResults } from "./no-results";
 import { addressText, detailsHref, organizationHref, ProgramCard, type LabelOf } from "./program-card";
 import { ProgramMap, type MapProgram } from "./program-map";
 import { ResizeReporter } from "./resize-reporter";
-import { ResultLine } from "./result-line";
+import { ResultSummary, ResultToolbar } from "./result-line";
 import { SearchBar } from "./search-bar";
 import { ShowMore } from "./show-more";
 
@@ -72,19 +72,6 @@ export async function Directory({ params, embed = false }: { params: Record<stri
     }
   }
   const numberOf = new Map(mapPrograms.map((program) => [program.id, program.number]));
-  const documentsNote =
-    mapView && results.documents.length > 0 ? (
-      <p className="flex items-start gap-2 rounded-xl bg-secondary-soft p-3 text-sm">
-        <FileText aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-        <span>
-          {results.documents.length} {results.documents.length === 1 ? "guide or download matches" : "guides and downloads match"} your search.{" "}
-          <a href={`?${serializeDirectoryQuery({ ...query, view: "list" })}`} className="font-bold text-primary-text underline">
-            Switch to list view to see {results.documents.length === 1 ? "it" : "them"}.
-          </a>
-        </span>
-      </p>
-    ) : null;
-
   const cards = (list: ProgramResult[]) => (
     <ul className="flex flex-col gap-4">
       {list.map((result) => (
@@ -111,39 +98,54 @@ export async function Directory({ params, embed = false }: { params: Record<stri
         <div className="mt-6">
           <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
-        <div className="mt-8 grid gap-6 md:grid-cols-[17rem_1fr]">
-          <div className="order-last md:order-first">
-            <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref}>
-              <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
-            </FilterSheet>
-          </div>
+        {/* The filters live in a modal (FilterSheet), opened by the "Filters" button in the result line. Without
+            JavaScript the dialog is a plain block at the bottom of the page, and the button jumps to it. */}
+        <div className="mt-8 flex flex-col gap-6">
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
-            <ResultLine results={results} />
-            {/* Without JavaScript: a jump to the column at the bottom. With it: FilterSheet opens the sheet. */}
-            <a
-              href="#filters"
-              data-action="open-filters"
-              aria-haspopup="dialog"
-              className="flex min-h-11 w-fit items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold md:hidden"
-            >
-              <SlidersHorizontal aria-hidden="true" className="size-4" />
-              Filters
-              {filterCount > 0 && (
-                <span className="rounded-full bg-primary-text px-2 text-sm text-white">
-                  {filterCount}
-                  <span className="sr-only"> active</span>
-                </span>
+            {/* One toolbar grid. Mobile order (CSS `order`, one copy of each element): toolbar, chips, count. */}
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div className="order-3 md:order-1">
+                <ResultSummary results={results} />
+              </div>
+              <div className="order-1 min-w-0 md:order-2">
+                <ResultToolbar results={results}>
+                  {/* Every width: opens the filters modal (FilterSheet). Without JavaScript it jumps to the filters at the bottom. */}
+                  <a
+                    href="#filters"
+                    data-action="open-filters"
+                    aria-haspopup="dialog"
+                    className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold hover:border-ink md:min-h-8 md:px-3 md:text-sm"
+                  >
+                    <SlidersHorizontal aria-hidden="true" className="size-4" />
+                    Filters
+                    {filterCount > 0 && (
+                      <span className="rounded-full bg-primary-text px-2 text-sm text-white">
+                        {filterCount}
+                        <span className="sr-only"> active</span>
+                      </span>
+                    )}
+                  </a>
+                </ResultToolbar>
+              </div>
+              {clearAllHref && (
+                <div className="order-2 md:order-3 md:col-span-2">
+                  <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
+                </div>
               )}
-            </a>
-            {clearAllHref && (
-              <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
-            )}
+            </div>
 
             {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
-            <div className={mapView ? "grid gap-4 lg:grid-cols-[20rem_1fr]" : "contents"}>
-              <div className="flex min-w-0 flex-col gap-4">
-                {documentsNote}
+            <div className={mapView ? "grid gap-4 lg:grid-cols-[26rem_1fr]" : "contents"}>
+              {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[640px]),
+                  so a long list never runs past the map. Focusable, so keyboard users can scroll it. `relative`: absolute
+                  children (sr-only text) must be clipped by the box, or they stretch the page to the list's full height. */}
+              <div
+                {...(mapView
+                  ? { "data-results-pane": "", tabIndex: 0, role: "region", "aria-label": "Results list" }
+                  : {})}
+                className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[640px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
+              >
                 <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
                   <h2 id="programs-heading" className="text-xl font-extrabold">
                     {results.origin ? "Places near you" : "Programs"}
@@ -172,7 +174,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
               )}
             </div>
 
-            {!mapView && results.documents.length > 0 && (
+            {results.documents.length > 0 && (
               <section aria-labelledby="documents-heading" className="mt-4 flex flex-col gap-4">
                 <h2 id="documents-heading" className="text-xl font-extrabold">
                   Guides and downloads{" "}
@@ -180,7 +182,14 @@ export async function Directory({ params, embed = false }: { params: Record<stri
                     {results.documents.length} {results.documents.length === 1 ? "result" : "results"}
                   </span>
                 </h2>
-                <ul className="grid gap-4 lg:grid-cols-2">
+                {/* About two rows of cards, then the list scrolls in its own box (like the map view's cards).
+                    Focusable, so keyboard users can scroll it. */}
+                <ul
+                  tabIndex={0}
+                  aria-labelledby="documents-heading"
+                  data-documents-pane=""
+                  className="relative grid max-h-[26rem] gap-4 overflow-y-auto overscroll-contain pr-2 focus-visible:outline-2 focus-visible:outline-primary-text lg:grid-cols-2"
+                >
                   {results.documents.map((document) => (
                     <li key={document.id}>
                       <DocumentCard document={document} labelOf={labelOf} />
@@ -191,6 +200,9 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             )}
             <HelpBox />
           </div>
+          <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref}>
+            <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
+          </FilterSheet>
         </div>
       </DirectoryLive>
       {embed && <ResizeReporter share={shareSearch(query)} />}

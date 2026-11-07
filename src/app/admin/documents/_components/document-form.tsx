@@ -36,11 +36,13 @@ export function DocumentForm({
   const urlInput = useRef<HTMLInputElement>(null);
   const errors = state.status === "invalid" ? state.errors : {};
   const d = document;
+  const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (d?.lastVerified ?? "");
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (uploading) return;
-    const data = new FormData(event.currentTarget);
+    // The button that was clicked, so `intent=verify` reaches the action.
+    const data = new FormData(event.currentTarget, (event.nativeEvent as SubmitEvent).submitter);
     startTransition(() => dispatch(data));
   }
 
@@ -187,7 +189,7 @@ export function DocumentForm({
           </select>
         </Field>
         <Field id="document-lastVerified" label="Last verified" error={errors.lastVerified}>
-          <input id="document-lastVerified" name="lastVerified" type="date" defaultValue={d?.lastVerified ?? ""} className={inputClass} />
+          <input key={lastVerified} id="document-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
         </Field>
       </div>
       <Field id="document-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
@@ -208,6 +210,11 @@ export function DocumentForm({
         <button type="submit" disabled={pending || uploading} className={buttonClass("primary")}>
           {id === undefined ? "Create Document" : "Save"}
         </button>
+        {id !== undefined && (
+          <button type="submit" name="intent" value="verify" disabled={pending || uploading} className={buttonClass("secondary")}>
+            Mark verified
+          </button>
+        )}
       </div>
     </form>
   );
