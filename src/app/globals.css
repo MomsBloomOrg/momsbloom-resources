@@ -10,12 +10,14 @@
  * Accessibility warning (WCAG AA needs 4.5:1 contrast for normal text):
  * - White text on `primary` (#FD7A00) is about 2.6:1, so it fails. Use `primary` only for
  *   large shapes and decoration. Use `primary-text` (#B35400, about 5:1) for buttons, links, and text.
+ * - `primary-hover` (#8F4300, about 7:1 with white) is the hover color for `primary-text` buttons. It is
+ *   darker, not lighter, so white text still passes on hover.
  * - `secondary` (#9DBB86) on `secondary-soft` is about 1.8:1. Put tag text in `ink`, not `secondary`.
  * The darker orange is a proposal; the designer and MomsBloom must still approve it.
  */
 @theme inline {
   --color-primary: #fd7a00;
-  --color-primary-hover: #e97000;
+  --color-primary-hover: #8f4300;
   --color-primary-text: #b35400;
   --color-primary-soft: #fcefe2;
   --color-secondary: #9dbb86;
