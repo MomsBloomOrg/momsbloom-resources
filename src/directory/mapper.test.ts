@@ -119,6 +119,24 @@ describe("toDirectorySnapshot", () => {
     expect(snapshot.programs[0].contacts).toEqual([{ name: "Sam Example", title: "Doula", phone: null, email: "sam@example.org" }]);
   });
 
+  it("never lets a private Contact or any Internal notes reach the snapshot, even if a row carries them", () => {
+    const withNotes = <T extends object>(row: T) => ({ ...row, internalNotes: "SECRET-NOTE" });
+    const snapshot = toDirectorySnapshot(
+      rows({
+        organizations: [withNotes(org({ id: 10 }))],
+        programs: [withNotes(program({ id: 1 }))],
+        contacts: [
+          withNotes({ programId: 1, name: "Sam Example", title: "Doula", specialty: null, email: null, phone: null, showOnWebsite: true }),
+          withNotes({ programId: 1, name: "Pat Private", title: null, specialty: null, email: "pat@example.org", phone: "616-555-0101", showOnWebsite: false }),
+        ],
+        documents: [withNotes({ id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE })],
+      }),
+    );
+    const json = JSON.stringify(snapshot);
+    expect(json).not.toMatch(/SECRET-NOTE|internalNotes|showOnWebsite|Pat Private|pat@example.org|555-0101/);
+    expect(json).toContain("Sam Example");
+  });
+
   it("takes a blank address, phone, and website from the Organization, with the Organization's point", () => {
     const [program1] = toDirectorySnapshot(rows({ programs: [program({ id: 1 })] })).programs;
     expect(program1.address).toEqual({ street: "1 Example St", suite: null, city: "Grand Rapids", state: "MI", zip: "49503" });
