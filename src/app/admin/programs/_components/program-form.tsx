@@ -6,6 +6,7 @@ import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } fro
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Field, Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
+import { lastGoodPin } from "../../_components/last-good-pin";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
 const IDLE: ProgramFormState = { status: "idle" };
@@ -78,6 +79,10 @@ export function ProgramForm({
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
   const notice = state.status === "saved" ? state.notice : program?.streetAddress && program.latitude == null && program.longitude == null ? NOT_PLACED : undefined;
   const p = program;
+  // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
+  const [pin, setPin] = useState({ latitude: p?.latitude, longitude: p?.longitude });
+  const next = lastGoodPin(pin, state);
+  if (next !== pin) setPin(next);
   const org: OrganizationOption | undefined = options.organizations.find((o) => String(o.id) === orgId);
   const acceptsYes = options.insuranceAcceptanceOptions.find((o) => String(o.id) === acceptanceId)?.name.trim().toLowerCase() === "yes";
 
@@ -98,6 +103,7 @@ export function ProgramForm({
     extra: { hint?: string; type?: string; inputMode?: "decimal"; inherit?: keyof OrganizationOption } = {},
   ) => {
     const inherited = extra.inherit && org?.[extra.inherit];
+    const fromPin = name === "latitude" || name === "longitude";
     return (
       <Field id={`program-${name}`} label={label} hint={extra.hint} error={errors[name]}>
         <input
@@ -105,7 +111,8 @@ export function ProgramForm({
           name={name}
           type={extra.type ?? "text"}
           inputMode={extra.inputMode}
-          defaultValue={(p?.[name] as string | number | null | undefined) ?? ""}
+          key={fromPin ? `${pin.latitude}|${pin.longitude}` : undefined}
+          defaultValue={((fromPin ? pin : p)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
           placeholder={inherited == null ? undefined : String(inherited)}
           aria-invalid={errors[name] ? true : undefined}
           aria-describedby={describedBy(name, extra.hint)}
