@@ -40,7 +40,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (SESSION_COOKIES.some((name) => jar.has(name)) && (await getCurrentStaffAdmin())) redirect("/admin");
 
   return (
-    <main className="w-full flex-1 bg-surface font-light tracking-[.02em] text-ink">
+    <main className="w-full flex-1 bg-background font-light tracking-[.02em] text-ink">
       <div className="mx-auto max-w-[480px] px-6 py-12 sm:py-16">
         <Image src={logo} alt="MomsBloom" priority className="mb-10 h-10 w-auto" />
         <h1 className="mb-4 text-4xl font-normal sm:text-5xl">Log in to the Admin</h1>

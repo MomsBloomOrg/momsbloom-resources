@@ -17,8 +17,8 @@ function AdminHomeLink() {
   return (
     <Link href="/admin" className="flex flex-wrap items-center gap-x-4 gap-y-1">
       {/* The logo's text is the alt, so the link reads "MomsBloom Resource Directory Admin". */}
-      <Image src={logo} alt="MomsBloom" priority className="h-8 w-auto sm:h-10" />
-      <span className="text-lg font-normal sm:border-l sm:border-line sm:pl-4 sm:text-xl">Resource Directory Admin</span>
+      <Image src={logo} alt="MomsBloom" priority className="h-8 w-auto sm:h-11" />
+      <span className="sr-only">Resource Directory Admin</span>
     </Link>
   );
 }
@@ -29,7 +29,7 @@ async function AdminUser() {
   if (!admin) return null;
   return (
     <div className="flex items-center gap-4 text-sm">
-      <span>{admin.email}</span>
+      <span className="text-muted">{admin.email}</span>
       <form action={signOutAction}>
         <button type="submit" className="font-semibold underline decoration-1 underline-offset-2 hover:decoration-2">
           Sign out
@@ -43,33 +43,27 @@ async function AdminUser() {
  * The Admin shell. Each page checks the login itself with `requireStaffAdmin()`; this layout does
  * not. The nav links are static text, so they show before the login check.
  *
- * Styled after momsbloom.org: a white top strip with the orange logo (as on the site; orange on
- * sage would be about 1.6:1), a full-width sage band (`secondary`) for the nav, then a white page in
- * light Nunito. Text on the sage band is `ink` (about 8:1); `muted` and `primary-text` fall to about
- * 3:1 there, so they are not used in the band.
+ * The Admin design ("Resource Admin List"): a white header with the orange logo and the nav, a thin
+ * sage rule under it, then the warm `background` page in light Nunito.
  */
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-surface font-light tracking-[.02em] text-ink">
-      <header>
-        <div className="px-4 sm:px-8">
-          <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4">
-            <AdminHomeLink />
+    <div className="flex min-h-full flex-1 flex-col bg-background font-light tracking-[.02em] text-ink">
+      <header className="border-b-[6px] border-secondary bg-surface px-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-10 gap-y-2 py-4 sm:py-6">
+          <AdminHomeLink />
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
+            <Suspense fallback={<div className="h-11" />}>
+              <AdminNavLinks />
+            </Suspense>
             <Suspense fallback={<div className="h-6" />}>
               <AdminUser />
             </Suspense>
           </div>
         </div>
-        <div className="bg-secondary px-4 pt-2 sm:px-8">
-          <div className="mx-auto w-full max-w-5xl">
-            <Suspense fallback={<div className="h-11" />}>
-              <AdminNavLinks />
-            </Suspense>
-          </div>
-        </div>
       </header>
       <main id="admin-main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-8 sm:px-8 sm:py-12">
-        <div className="mx-auto w-full max-w-5xl">{children}</div>
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
       </main>
     </div>
   );

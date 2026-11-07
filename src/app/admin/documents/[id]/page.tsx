@@ -24,8 +24,8 @@ export default async function DocumentPage({ params }: PageProps<"/admin/documen
       <PageHeader
         title={document.title}
         back={
-          <Link href="/admin/documents" className={linkClass}>
-            Back to Documents
+          <Link href="/admin?type=guide" className={linkClass}>
+            Back to Guides & Downloads
           </Link>
         }
       />
