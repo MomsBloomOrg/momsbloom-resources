@@ -116,6 +116,8 @@ Who it serves, Cost, and Service format.
 - **Record who changed what.** Each Organization, Program, and Document stores when it was last
   changed and the email of the Staff admin who changed it. Show it at the bottom of the form.
 - **A save shows at once.** After a save, the next page load of the Directory shows the change.
+  Every save action calls `updateTag("directory")`, which throws away the Directory's cached
+  copy of the data ([ADR 0004](../adr/0004-search-filters-a-cached-snapshot-on-the-server.md)).
 - **Check input on the server.** The browser checks are for convenience; the server must check
   again (required fields, URL format, IDs that exist). Never trust what the browser sends.
 

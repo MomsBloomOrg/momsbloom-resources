@@ -46,13 +46,11 @@ verified.
 - Typing an Organization's name (for example "Corewell") returns all of its Programs.
 - The "popular" quick picks set the Category filter, not the keyword.
 
-> **Open question: how search runs.** Recommendation: the server sends all public Programs and
-> Documents to the browser once (a few hundred records, well under 1 MB), and the browser searches
-> and filters them. Every change is instant, filter counts are easy, and the search and filter code
-> is plain TypeScript that unit tests can check. Write it as pure functions in `src/directory/`
-> (no React inside), and test them with Vitest. If the data grows past about 2,000 Programs, move
-> search to the database. The other option, searching in Postgres on every change, is more work and
-> slower to feel. To be recorded in an ADR.
+**How search runs** ([ADR 0004](../adr/0004-search-filters-a-cached-snapshot-on-the-server.md)):
+the server searches, filters, counts, and pages a cached copy of all public data, in plain
+TypeScript. Write that logic as pure functions in `src/directory/` (no React and no database
+inside), and test them with Vitest. The page reads its state from the URL (`searchParams`).
+While new results load, keep the old ones on screen (React's `useTransition`).
 
 ## Filters
 
@@ -84,7 +82,7 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 ## Results
 
 - Two groups: "Places near you" (Program cards), then "Guides and downloads" (Document cards).
-- Show 10 Program cards, then a "Show more" button that adds 10.
+- Show 10 Program cards, then a "Show more" button that asks the server for the next 10.
 - The result line reads `24 results for "yoga" within 10 mi of 49508`. Leave out the parts that are
   not set.
 - **Program card** (see `desktop-directory-list.png`): Organization name, Program name, distance,
@@ -115,9 +113,9 @@ The handoff doc keeps all state in the URL, so a family can text a link and the 
 the same results. Examples: `?q=yoga&zip=49508&r=10&cat=Yoga` for results, and a Program ID for
 the detail view.
 
-> **Open question: links inside the iframe (Changed for Option C).** The iframe has its own URL,
-> which the family never sees. A link copied from the browser bar is the momsbloom.org page, with
-> no filters. Recommendation: do what bikegr-calendar does. The iframe tells the host page its
+> **Open question: links inside the iframe (Changed for Option C).** The state is already in the
+> iframe's URL (ADR 0004), but the family never sees that URL. A link copied from the browser bar
+> is the momsbloom.org page, with no filters. Recommendation: do what bikegr-calendar does. The iframe tells the host page its
 > current query with a `postMessage`, and `embed.js` writes it into the host page URL with a
 > prefix (`mbr-q=yoga`), so it never clashes with Squarespace's own `?q=`. When a family opens a
 > link with those keys, `embed.js` passes them to the iframe. The code to copy is in
@@ -152,7 +150,8 @@ and the style of the existing screens.
 
 | Situation | What the family sees |
 |---|---|
-| Loading | Grey placeholder cards ("skeletons") in the results, filters disabled. |
+| First load | Grey placeholder cards ("skeletons") in the results, filters disabled. |
+| Loading after a change | The old results stay on screen, slightly faded, until the new ones arrive. Filters stay usable. |
 | The data does not load | "We couldn't load the directory right now. Call 211 or contact MomsBloom and we'll help you look." and a "Try again" button. |
 | No results | `No matches for "yoga" with these filters.` Buttons: "Clear filters", "Widen to 25 mi". The 211 box stays. |
 | ZIP code not found | Under the field: "We don't recognize that ZIP. Try a Michigan ZIP code." Keep the previous results. |
