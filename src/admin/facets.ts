@@ -172,16 +172,17 @@ async function findValue(tx: Tx, key: FacetKey, id: number, lock = true): Promis
  * Locks the rows until the transaction ends, so two saves of one list cannot interleave.
  */
 async function siblings(tx: Tx, key: FacetKey, categoryId: number | undefined): Promise<{ id: number; sortOrder: number }[]> {
-  if (key === "subcategory") {
-    return tx
-      .select({ id: t.subcategories.id, sortOrder: t.subcategories.sortOrder })
-      .from(t.subcategories)
-      .where(eq(t.subcategories.categoryId, categoryId ?? -1))
-      .orderBy(asc(t.subcategories.sortOrder), asc(t.subcategories.id))
-      .for("update");
-  }
   const table = FACETS[key].table;
-  return tx.select({ id: table.id, sortOrder: table.sortOrder }).from(table).orderBy(asc(table.sortOrder), asc(table.id)).for("update");
+  const rows =
+    key === "subcategory"
+      ? await tx
+          .select({ id: t.subcategories.id, sortOrder: t.subcategories.sortOrder })
+          .from(t.subcategories)
+          .where(eq(t.subcategories.categoryId, categoryId ?? -1))
+          .for("no key update")
+      : await tx.select({ id: table.id, sortOrder: table.sortOrder }).from(table).for("no key update");
+  // Postgres sorts before it locks: a row that waited on a lock comes back with its new sortOrder in its old place.
+  return rows.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
 }
 
 /** Gives the values of a locked `list` (from `siblings`) the sort orders 1, 2, 3, ... in the order of `ids`. */
