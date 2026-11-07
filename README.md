@@ -179,6 +179,7 @@ in an Embed block on MomsBloom's current Squarespace plan, at desktop and phone 
 
 ## Project documents
 
+- [`docs/build-plan.md`](docs/build-plan.md): what is done, what is next, and the open questions. Start here.
 - `docs/intent/repo-init.md`: what this repo set out to do, and for whom.
 - `docs/adr/`: decisions and why we made them (ADR = Architecture Decision Record). Read these before you change how the app is built, deployed, or logged in to.
   - [0001 pnpm is the package manager](docs/adr/0001-pnpm-is-the-package-manager.md)
