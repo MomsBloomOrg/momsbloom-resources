@@ -60,12 +60,13 @@ test("mobile-actions-first: on a phone, the Call button is above About", async (
   expect(call!.y).toBeLessThan(about!.y);
 });
 
-test("detail-map: the map shows for a Program with a point and not for a virtual one", async ({ page }) => {
+test("detail-map: the map shows for a Program with a point and not for a virtual-only one", async ({ page }) => {
   await page.route("https://tile.openstreetmap.org/**", (route) => route.abort());
   await page.goto("/embed/programs/P-001");
   const map = page.getByTestId("program-map");
   await expect(map).toBeVisible();
   await expect(map.locator(".leaflet-marker-icon")).toHaveCount(1);
+  await expect(map.locator(".leaflet-marker-icon")).toHaveAttribute("aria-label", "Mom and baby yoga");
   expect((await map.boundingBox())?.height).toBe(200);
   await page.goto("/embed/programs/P-004");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
