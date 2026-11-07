@@ -7,6 +7,8 @@
  * 1. It makes an iframe that shows https://resources.momsbloom.org/embed, just after this <script> tag.
  * 2. It listens for "resize" messages from that iframe and sets the iframe height to match, so the
  *    page has no second scroll bar.
+ * 3. It listens for "scroll" messages: the iframe asks the page to scroll to a point in the iframe,
+ *    but only when that point is out of view.
  *
  * This file is plain JavaScript (no TypeScript, no build step) because the browser loads it directly
  * from Squarespace. The message names and checks are a copy of src/embed/protocol.ts.
@@ -16,6 +18,7 @@
   "use strict";
 
   var RESIZE = "momsbloom-resources:resize";
+  var SCROLL = "momsbloom-resources:scroll";
   var MAX_HEIGHT = 50000;
   var MOUNTED = "data-momsbloom-mounted";
 
@@ -67,10 +70,17 @@
     window.addEventListener("message", function (event) {
       if (event.origin !== origin || event.source !== iframe.contentWindow) return;
       var data = event.data;
-      if (!data || typeof data !== "object" || data.type !== RESIZE) return;
-      var height = data.height;
-      if (typeof height !== "number" || !isFinite(height) || height < 0 || height > MAX_HEIGHT) return;
-      iframe.style.height = Math.ceil(height) + "px";
+      if (!data || typeof data !== "object") return;
+      if (data.type === RESIZE) {
+        var height = data.height;
+        if (typeof height !== "number" || !isFinite(height) || height < 0 || height > MAX_HEIGHT) return;
+        iframe.style.height = Math.ceil(height) + "px";
+      } else if (data.type === SCROLL) {
+        var top = data.top;
+        if (typeof top !== "number" || !isFinite(top) || top < 0 || top > MAX_HEIGHT) return;
+        var y = iframe.getBoundingClientRect().top + top;
+        if (y < 0 || y > window.innerHeight) window.scrollBy(0, y);
+      }
     });
   }
 
