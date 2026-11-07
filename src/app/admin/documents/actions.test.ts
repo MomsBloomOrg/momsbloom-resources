@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   updateTag: vi.fn(),
   requireStaffAdmin: vi.fn(),
   write: vi.fn(),
+  verify: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
@@ -18,6 +19,7 @@ vi.mock("@/auth/dal", () => ({ requireStaffAdmin: mocks.requireStaffAdmin }));
 vi.mock("@/admin/documents", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/admin/documents")>()),
   saveDocument: mocks.write,
+  markDocumentVerified: mocks.verify,
 }));
 
 import { saveDocumentAction } from "./actions";
@@ -35,6 +37,23 @@ describe("saveDocumentAction", () => {
     for (const m of Object.values(mocks)) m.mockReset();
     mocks.requireStaffAdmin.mockResolvedValue({ id: "a", email: "staff@example.org" });
     mocks.write.mockResolvedValue({ ok: true, value: { id: 7 } });
+    mocks.verify.mockResolvedValue({ ok: true, value: { lastVerified: "2026-11-07" } });
+  });
+
+  it("Mark verified clears the cache", async () => {
+    expect(await saveDocumentAction(idle, form({ id: "7", intent: "verify" }))).toEqual({
+      status: "saved",
+      message: "Marked verified today.",
+      lastVerified: "2026-11-07",
+    });
+    expect(mocks.write).not.toHaveBeenCalled();
+    expect(mocks.updateTag).toHaveBeenCalledWith("directory");
+  });
+
+  it("Mark verified without an id is refused", async () => {
+    expect(await saveDocumentAction(idle, form({ intent: "verify" }))).toMatchObject({ status: "invalid" });
+    expect(mocks.verify).not.toHaveBeenCalled();
+    expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 
   it("without a login: nothing is written", async () => {
