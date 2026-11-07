@@ -153,15 +153,15 @@ export function DocumentForm({
                 />
                 <span className="font-semibold">{c.name}</span>
               </label>
-              {on && subs.length > 0 && (
-                <div className="ml-7 grid gap-x-4 sm:grid-cols-2" role="group" aria-label={`Subcategories of ${c.name}`}>
+              {subs.length > 0 && (
+                <fieldset hidden={!on} disabled={!on} className="ml-7 grid gap-x-4 sm:grid-cols-2" aria-label={`Subcategories of ${c.name}`}>
                   {subs.map((s) => (
                     <label key={s.id} className={checkRowClass}>
                       <input type="checkbox" name="subcategoryIds" value={s.id} defaultChecked={d?.subcategoryIds.includes(s.id)} />
                       {s.name}
                     </label>
                   ))}
-                </div>
+                </fieldset>
               )}
             </div>
           );
