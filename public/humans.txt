@@ -19,7 +19,7 @@ Volunteers: Code for Good WM, Weekend for Good 2026 (Nov 6-8, 2026, Ada, Michiga
 Client: MomsBloom (https://www.momsbloom.org)
 Host: Code for Good WM (https://codeforgoodwm.org)
 Team members: add your name here in a PR if you want credit.
-Sam
+Sam Buck
 
 /* THANKS */
 Code for Good WM
