@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
@@ -6,7 +7,7 @@ import { parseId } from "@/admin/organizations";
 import { listContactsForAdmin } from "@/admin/contacts";
 import { getProgramForAdmin, getProgramFormOptions } from "@/admin/programs";
 import { listActiveFields } from "@/custom-fields/form";
-import { Card, PageHeader, buttonClass, hintClass, linkClass } from "../../_components/ui";
+import { buttonClass, hintClass, linkClass } from "../../_components/ui";
 import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { ProgramForm } from "../_components/program-form";
 import { ContactsSection } from "./_components/contacts-section";
@@ -27,15 +28,20 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
   ]);
   if (!detail) notFound();
   const { program } = detail;
-  const organization = options.organizations.find((o) => o.id === program.organizationId);
 
   return (
-    <>
-      <PageHeader
-        title={program.name}
+    <div className="flex flex-col gap-6">
+      <ProgramForm
+        key={id}
+        id={id}
+        program={program}
+        options={options}
+        customFields={customFields}
+        title="Edit Resource"
         back={
-          <Link href={`/admin/organizations/${program.organizationId}`} className={linkClass}>
-            Back to {organization?.name ?? "Organization"}
+          <Link href="/admin" className={`${linkClass} inline-flex items-center gap-1`}>
+            <ArrowLeft size={14} aria-hidden />
+            All Resources
           </Link>
         }
         actions={
@@ -43,17 +49,13 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
             View on site<span className="sr-only"> (opens in a new tab)</span>
           </a>
         }
-      />
-      <div className="flex flex-col gap-6">
-        <Card title="Program">
-          <ProgramForm key={id} id={id} program={program} options={options} customFields={customFields} />
-          <p className={`${hintClass} mt-4`}>
-            Last changed {new Date(program.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
-          </p>
-        </Card>
-        <ContactsSection programId={id} contacts={contacts} />
-        <CustomFieldsManager db={db} entity="program" />
-      </div>
-    </>
+      >
+        <p className={hintClass}>
+          Last changed {new Date(program.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
+        </p>
+      </ProgramForm>
+      <ContactsSection programId={id} contacts={contacts} />
+      <CustomFieldsManager db={db} entity="program" />
+    </div>
   );
 }
