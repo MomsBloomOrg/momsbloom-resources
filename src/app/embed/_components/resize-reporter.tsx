@@ -52,7 +52,8 @@ export function ResizeReporter({ share, program }: { share?: string; program?: s
   useEffect(() => {
     // The error screen has no `share`: it sends no location.
     if (window.parent === window || share === undefined) return;
-    // Target "*" as for resize: the data holds no location, and the parent script checks the sender.
+    // Target "*" is acceptable: the CSP `frame-ancestors` header (src/embed/frame-ancestors.ts) lets only
+    // momsbloom.org frame this page, and the data holds no ZIP or location. The parent script checks the sender.
     window.parent.postMessage({ type: LOCATION_MESSAGE, search: share, program: program ?? null }, "*");
   }, [share, program]);
   return null;

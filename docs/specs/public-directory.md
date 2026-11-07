@@ -122,7 +122,7 @@ message. `embed.js` writes it into the host page URL with the prefix `mbr-` (`mb
 with those keys, `embed.js` passes them to the iframe. The URL changes with `replaceState`, and
 only when the page has one Embed. See [ADR 0005](../adr/0005-shared-links-through-the-host-page-url.md).
 
-The ZIP code and `near` are never shared: a link holds the keyword and filters, never the ZIP code or the
+The ZIP code, the radius, and `near` are never shared: a link holds the keyword and filters, never the ZIP code or the
 family's location, because the host page URL goes to analytics ("Analytics" below forbids that).
 
 ## Mobile filter sheet

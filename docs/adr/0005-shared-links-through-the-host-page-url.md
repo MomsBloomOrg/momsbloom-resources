@@ -17,10 +17,10 @@ This is the same approach that bikegr-calendar uses (`public/embed.js` there).
 - **The `mbr-` prefix.** `embed.js` writes each key into the host URL as `mbr-<key>` (for example
   `mbr-q=yoga` and `mbr-program=P-101`). Squarespace uses `?q=` for its own search, so a key
   without a prefix would clash. `embed.js` never reads or changes a host key that has no prefix.
-- **A list of allowed keys.** Only `q`, `r`, `cat`, `sub`, `ins`, `cost`, `lang`, `who`,
+- **A list of allowed keys.** Only `q`, `cat`, `sub`, `ins`, `cost`, `lang`, `who`,
   `fmt`, `org`, `sort`, and `view` go through. Any other key is dropped. The list is in
   `HOST_QUERY_KEYS` in `src/embed/protocol.ts`, and `embed.js` has a copy.
-- **`zip`, `near`, and `n` are never shared.** The iframe removes them before it sends the message
+- **`zip`, `near`, `r`, and `n` are never shared.** (`r` is the radius. It means nothing without a ZIP code.) The iframe removes them before it sends the message
   (`shareSearch` in `src/directory/query.ts`). Shared links carry the keyword and filters but not
   the ZIP code or the location, because the host page URL goes to analytics (Squarespace GA4 records
   it as `page_location`), and the spec says never to send them there (see "Distance" and

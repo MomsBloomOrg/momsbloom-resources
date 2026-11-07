@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { LOCATION_MESSAGE, MAX_HEIGHT, MAX_SEARCH_LENGTH, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
+import { LOCATION_MESSAGE, MAX_HEIGHT, MAX_SEARCH_LENGTH, HOST_QUERY_KEYS, PROGRAM_ID_PATTERN, readEmbedMessage, RESIZE_MESSAGE, SCROLL_MESSAGE } from "./protocol";
 
 describe("readEmbedMessage", () => {
   it("accepts a resize message with a good height", () => {
@@ -47,5 +48,19 @@ describe("readEmbedMessage", () => {
     ["no program field", { search: "" }],
   ])("refuses a location message with %s", (_name, rest) => {
     expect(readEmbedMessage({ type: LOCATION_MESSAGE, ...rest })).toBeNull();
+  });
+});
+
+describe("public/embed.js agrees with protocol.ts", () => {
+  const script = readFileSync("public/embed.js", "utf8");
+
+  it("has the same key list", () => {
+    const match = script.match(/var KEYS = (\[.*?\]);/);
+    expect(JSON.parse(match![1])).toEqual([...HOST_QUERY_KEYS]);
+  });
+
+  it("has the same Program ID pattern and message names", () => {
+    expect(script).toContain(`var PROGRAM_ID = ${PROGRAM_ID_PATTERN};`);
+    expect(script).toContain(`"${LOCATION_MESSAGE}"`);
   });
 });

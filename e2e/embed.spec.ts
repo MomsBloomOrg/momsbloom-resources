@@ -85,12 +85,7 @@ test("near-never-shared: Use my location does not reach the host URL", async ({ 
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: 42.96, longitude: -85.67 });
   await page.goto(HOST);
-  // embed.js gives the iframe no allow="geolocation", so the browser would refuse "Use my location" here.
-  // Add it and reload the iframe, so this test reaches the code that must not share `near`.
-  await page.locator(IFRAME).evaluate((el: HTMLIFrameElement) => {
-    el.allow = "geolocation";
-    el.src = el.src;
-  });
+  await expect(page.locator(IFRAME)).toHaveAttribute("allow", "geolocation");
   const frame = page.frameLocator(IFRAME);
   await frame.getByRole("button", { name: /use my location/i }).click();
   // The iframe URL holds `near` now (the page is the iframe's own, so we read its URL).
@@ -109,8 +104,7 @@ test("zip-never-shared: a ZIP search stays out of the host URL", async ({ page }
   expect(page.url()).not.toMatch(/zip|49508|near/);
 });
 
-// TODO: map view is not on main yet, so the iframe ignores `view`. Remove the skip when it lands.
-test.skip("view-map-height-stable: mbr-view=map keeps the iframe height steady and under a cap", async ({ page }) => {
+test("view-map-height-stable: mbr-view=map keeps the iframe height steady and under a cap", async ({ page }) => {
   await page.goto(`${HOST}/?mbr-view=map`);
   await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
   await page.waitForTimeout(1000);

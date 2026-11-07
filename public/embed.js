@@ -29,7 +29,8 @@
   var LOCATION = "momsbloom-resources:location";
   var MAX_HEIGHT = 50000;
   var MAX_SEARCH = 2000;
-  var KEYS = ["q", "r", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
+  var MAX_VALUE = 100;
+  var KEYS = ["q", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
   var HOST_PREFIX = "mbr-";
   var PROGRAM_KEY = HOST_PREFIX + "program";
   var PROGRAM_ID = /^[A-Za-z0-9-]{1,40}$/;
@@ -64,6 +65,7 @@
     var out = new URLSearchParams();
     KEYS.forEach(function (key) {
       params.getAll(prefix + key).forEach(function (value) {
+        if (value.length > MAX_VALUE) return; // the server ignores long values; keep the URL short
         out.append(key, value);
       });
     });
@@ -77,6 +79,10 @@
       url.searchParams.delete(HOST_PREFIX + key);
     });
     url.searchParams.delete(PROGRAM_KEY);
+    // Old links may hold keys that we no longer share. Remove them (the ZIP code must not stay in the URL).
+    ["zip", "near", "n", "r"].forEach(function (key) {
+      url.searchParams.delete(HOST_PREFIX + key);
+    });
     filterParams(new URLSearchParams(search), "").forEach(function (value, key) {
       url.searchParams.append(HOST_PREFIX + key, value);
     });
@@ -101,6 +107,8 @@
     iframe.src = origin + path + (query ? "?" + query : "");
     iframe.title = "MomsBloom Resource Directory";
     iframe.setAttribute("data-momsbloom-embed", "");
+    // "Use my location" needs this: a cross-origin iframe may not ask for the location without it.
+    iframe.allow = "geolocation";
     // sandbox: the iframe may run scripts and open links in new tabs, and nothing more.
     iframe.setAttribute(
       "sandbox",
