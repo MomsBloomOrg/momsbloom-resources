@@ -73,11 +73,13 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
         const ids = group.map((program) => program.id);
         const pin = document.createElement("span");
         pin.className = PIN_CLASS;
-        pin.textContent = String(group[0].number);
+        // "2+" for a shared pin: it is not only card 2.
+        pin.textContent = `${group[0].number}${group.length > 1 ? "+" : ""}`;
         const marker = L.marker([group[0].lat, group[0].lng], {
           icon: L.divIcon({ html: pin, className: "", iconSize: [32, 32] }),
           title: group.map((program) => program.name).join(", "),
         }).addTo(map);
+        marker.getElement()?.setAttribute("aria-label", group.map((program) => program.name).join(", "));
         for (const id of ids) pins.set(id, pin);
 
         const popup = document.createElement("div");
@@ -116,10 +118,6 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
           activate(selected, false);
           selected = ids;
           activate(ids, true);
-          cardOf(ids[0])?.scrollIntoView({
-            block: "nearest",
-            behavior: "smooth",
-          });
         });
         marker.on("popupclose", () => {
           activate(selected, false);

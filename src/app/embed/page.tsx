@@ -167,10 +167,15 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
                 )}
                 {results.hasMore && <ShowMore query={query} remaining={results.totalPrograms - results.programs.length} />}
               </div>
-              {mapView && results.totalPrograms > 0 && (
+              {mapView && mapPrograms.length > 0 && (
                 <div className="order-first lg:order-last">
                   <ProgramMap programs={mapPrograms} />
                 </div>
+              )}
+              {mapView && results.totalPrograms > 0 && mapPrograms.length === 0 && (
+                <p className="order-first rounded-xl border border-line bg-surface p-4 text-sm lg:order-last">
+                  These places are virtual or by phone, so they have no map pin.
+                </p>
               )}
             </div>
 

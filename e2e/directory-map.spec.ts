@@ -47,6 +47,13 @@ test("pins match the distinct points of the shown Programs, and selecting a pin 
   await expect(page.locator(".leaflet-popup")).toContainText("Get directions");
 });
 
+test("results with no pins show a line, not an empty map", async ({ page }) => {
+  await page.goto("/embed?q=warm+line&view=map");
+  await expect(programCards(page).first()).toBeVisible();
+  await expect(map(page)).toHaveCount(0);
+  await expect(page.getByText("These places are virtual or by phone, so they have no map pin.")).toBeVisible();
+});
+
 test("the Documents note links to the list view", async ({ page }) => {
   await page.goto("/embed?q=yoga&view=map");
   await expect(page.getByRole("heading", { name: /Guides and downloads/ })).toHaveCount(0);
