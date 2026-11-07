@@ -1,0 +1,132 @@
+/**
+ * searchDirectory against the made-up snapshot. Most tests match an item in the acceptance
+ * checklist of docs/specs/public-directory.md.
+ */
+import { describe, expect, it } from "vitest";
+import { parseDirectoryQuery } from "./query";
+import { searchDirectory } from "./results";
+import { TEST_SNAPSHOT } from "./test-fixtures";
+import type { DirectorySnapshot } from "./types";
+
+const search = (url: string, snapshot: DirectorySnapshot = TEST_SNAPSHOT) =>
+  searchDirectory(snapshot, parseDirectoryQuery(new URLSearchParams(url)));
+const ids = (url: string) => search(url).programs.map((result) => result.program.id);
+
+describe("keyword", () => {
+  it("an Organization's name returns all of its Programs", () => {
+    expect(ids("q=riverbend")).toEqual(["P-001", "P-002"]);
+  });
+
+  it("a Contact's name finds their Program", () => {
+    expect(ids("q=maria")).toEqual(["P-001"]);
+  });
+
+  it("search keywords and Facet value labels are searched", () => {
+    expect(ids("q=ppd")).toEqual(["P-005"]);
+    expect(ids("q=support groups")).toEqual(["P-005"]);
+  });
+
+  it("Documents are searched too", () => {
+    expect(search("q=ppd").documents.map((d) => d.id)).toEqual(["D-001"]);
+  });
+});
+
+describe("filters", () => {
+  it("two insurance options give more results; adding a language gives fewer", () => {
+    expect(ids("ins=medicaid")).toEqual(["P-001", "P-002"]);
+    expect(ids("ins=medicaid&ins=priority-health")).toEqual(["P-003", "P-001", "P-002"]);
+    expect(ids("ins=medicaid&ins=priority-health&lang=spanish")).toEqual(["P-001"]);
+  });
+
+  it("a filter value that does not exist is dropped, not matched", () => {
+    const results = search("cat=no-such-category");
+    expect(results.totalPrograms).toBe(6);
+    expect(results.query.filters.category).toEqual([]);
+  });
+
+  it("the Organization filter shows that Organization's Programs and no Documents", () => {
+    const results = search("org=O-003");
+    expect(results.programs.map((r) => r.program.id)).toEqual(["P-004", "P-005"]);
+    expect(results.documents).toEqual([]);
+  });
+
+  it("Documents follow the Category and Language filters, and ignore the others", () => {
+    expect(search("lang=spanish").documents.map((d) => d.id)).toEqual(["D-001"]);
+    expect(search("ins=medicaid").documents).toHaveLength(2);
+  });
+
+  it("counts each option given the other filters", () => {
+    const { counts } = search("q=yoga&lang=english");
+    // "yoga" finds P-001 and P-003, and both are in English.
+    expect(counts.subcategory).toEqual({ yoga: 2 });
+    expect(counts.insurance).toEqual({ medicaid: 1, "priority-health": 2 });
+    // The language counts ignore the language filter itself.
+    expect(counts.language).toEqual({ english: 2, spanish: 1 });
+  });
+});
+
+describe("distance", () => {
+  it("49508 sorts by distance; virtual Programs and Documents still show at 5 mi", () => {
+    const results = search("zip=49508&r=5");
+    expect(results.sort).toBe("nearest");
+    expect(results.programs.map((r) => [r.program.id, r.group, r.distanceMiles])).toEqual([
+      ["P-001", "nearby", 0.5],
+      ["P-002", "nearby", 0.5],
+      ["P-006", "virtual-and-phone", null],
+      ["P-004", "virtual-and-phone", null],
+    ]);
+    expect(results.documents).toHaveLength(2);
+  });
+
+  it("the radius is 10 miles when a ZIP code is set and no radius is chosen", () => {
+    const results = search("zip=49508");
+    expect(results.radius).toBe(10);
+    expect(results.programs.map((r) => r.program.id)).toEqual(["P-001", "P-002", "P-003", "P-006", "P-004"]);
+  });
+
+  it("Any radius keeps far Programs", () => {
+    expect(search("zip=49508&r=any").programs.map((r) => r.program.id)).toContain("P-005");
+  });
+
+  it("an unknown ZIP code is reported, and the results show without distances", () => {
+    const results = search("zip=90210");
+    expect(results.zipNotFound).toBe(true);
+    expect(results.origin).toBeNull();
+    expect(results.radius).toBe("any");
+    expect(results.programs.every((r) => r.group === null && r.distanceMiles === null)).toBe(true);
+  });
+
+  it("Use my location works like a ZIP code", () => {
+    expect(search("near=42.87,-85.63&r=5").programs[0]).toMatchObject({ group: "nearby" });
+  });
+});
+
+describe("sorting and pages", () => {
+  it("A to Z is the default without a location", () => {
+    expect(ids("")).toEqual(["P-003", "P-006", "P-004", "P-001", "P-005", "P-002"]);
+  });
+
+  it("Recently verified puts the newest date first and no date last", () => {
+    expect(ids("sort=verified")).toEqual(["P-003", "P-001", "P-002", "P-005", "P-006", "P-004"]);
+  });
+
+  it("Nearest without a location falls back to A to Z", () => {
+    expect(search("sort=nearest").sort).toBe("az");
+  });
+
+  it("shows 10 per page, and Show more adds 10", () => {
+    const many: DirectorySnapshot = {
+      ...TEST_SNAPSHOT,
+      programs: Array.from({ length: 25 }, (_, i) => ({
+        ...TEST_SNAPSHOT.programs[0],
+        id: `P-${String(i + 100)}`,
+        name: `Program ${String(i).padStart(2, "0")}`,
+      })),
+    };
+    const first = search("", many);
+    expect(first).toMatchObject({ totalPrograms: 25, hasMore: true });
+    expect(first.programs).toHaveLength(10);
+    expect(search("n=3", many)).toMatchObject({ hasMore: false });
+    expect(search("n=3", many).programs).toHaveLength(25);
+  });
+});
