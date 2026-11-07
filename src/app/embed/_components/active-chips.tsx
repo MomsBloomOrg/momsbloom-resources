@@ -1,5 +1,7 @@
 import { X } from "lucide-react";
-import { removeFilter, serializeDirectoryQuery, type DirectoryQuery } from "@/directory/query";
+import { customFilterGroups } from "@/custom-fields/filter";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
+import { removeCustomFilter, removeFilter, serializeDirectoryQuery, type DirectoryQuery } from "@/directory/query";
 import { FACET_KEYS } from "@/directory/types";
 import type { LabelOf } from "./program-card";
 
@@ -7,11 +9,13 @@ import type { LabelOf } from "./program-card";
 export function ActiveChips({
   query,
   labelOf,
+  customFields,
   organizationName,
   clearAllHref,
 }: {
   query: DirectoryQuery;
   labelOf: LabelOf;
+  customFields: readonly CustomFieldDefinition[];
   organizationName: string | null;
   clearAllHref: string;
 }) {
@@ -21,6 +25,14 @@ export function ActiveChips({
       href: `?${serializeDirectoryQuery(removeFilter(query, facet, value))}`,
     })),
   );
+  for (const group of customFilterGroups(customFields)) {
+    for (const value of query.custom[group.fieldId] ?? []) {
+      chips.push({
+        label: `${group.label}: ${group.values.find((v) => v.key === value)?.label ?? value}`,
+        href: `?${serializeDirectoryQuery(removeCustomFilter(query, group.fieldId, value))}`,
+      });
+    }
+  }
   if (query.org) {
     chips.push({
       label: organizationName ?? query.org,

@@ -58,6 +58,8 @@ export interface PostalAddress {
   zip: string;
 }
 
+import type { CustomFieldDefinition, CustomValues } from "@/custom-fields/types";
+
 export interface DirectoryContact {
   name: string;
   title: string | null;
@@ -91,6 +93,10 @@ export interface DirectoryProgram {
   /** ISO date, for example "2026-10-15". */
   lastVerified: string | null;
   contacts: readonly DirectoryContact[];
+  /** Custom field answers, public fields only (field id → value). */
+  custom: CustomValues;
+  /** The Organization's custom field answers, public fields only. Shown on Program detail. */
+  organizationCustom: CustomValues;
 }
 
 export interface DirectoryDocument {
@@ -109,4 +115,6 @@ export interface DirectorySnapshot {
   programs: readonly DirectoryProgram[];
   documents: readonly DirectoryDocument[];
   facets: readonly FacetDefinition[];
+  /** Custom fields shown on the website and not archived. Staff-only fields never reach the snapshot. */
+  customFields: readonly CustomFieldDefinition[];
 }

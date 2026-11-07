@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
+import { publicCustomValues, type ShownCustomValue } from "@/custom-fields/values";
 import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
@@ -35,6 +36,23 @@ function Field({ name, children }: { name: string; children: React.ReactNode }) 
       <p className="text-sm text-muted">{name}</p>
       <div>{children}</div>
     </div>
+  );
+}
+
+/** One custom field answer. Links, phone numbers, and emails are links. */
+function CustomField({ field }: { field: ShownCustomValue }) {
+  const href =
+    field.type === "link" ? webUrl(field.text) : field.type === "phone" ? telHref(field.text) : field.type === "email" ? `mailto:${field.text}` : null;
+  return (
+    <Field name={field.label}>
+      {href ? (
+        <a href={href} {...(field.type === "link" ? { target: "_blank", rel: "noopener" } : {})} className="underline">
+          {field.text}
+        </a>
+      ) : (
+        <span className="whitespace-pre-line">{field.text}</span>
+      )}
+    </Field>
   );
 }
 
@@ -77,6 +95,8 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
   const website = webUrl(program.website);
   const hasInsurance = Boolean(program.acceptsInsurance || values.insurance.length || values.cost.length || program.eligibilityNotes);
   const hasWho = values.language.length > 0 || values.whoItServes.length > 0;
+  const programDetails = publicCustomValues(snapshot.customFields, "program", program.custom);
+  const organizationDetails = publicCustomValues(snapshot.customFields, "organization", program.organizationCustom);
   const newTab = <span className="sr-only"> (opens in a new tab)</span>;
 
   const hasActions = Boolean(program.phone || place || website);
@@ -241,6 +261,30 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
             <div className="mt-2">
               <Field name="Languages">{values.language.map((key) => labelOf("language", key)).join(", ")}</Field>
               <Field name="Who it's for">{values.whoItServes.map((key) => labelOf("whoItServes", key)).join(", ")}</Field>
+            </div>
+          </section>
+        )}
+        {programDetails.length > 0 && (
+          <section aria-labelledby="details" className={`${card} min-[900px]:col-start-1`}>
+            <h2 id="details" className={heading}>
+              More details
+            </h2>
+            <div className="mt-2">
+              {programDetails.map((field) => (
+                <CustomField key={field.fieldId} field={field} />
+              ))}
+            </div>
+          </section>
+        )}
+        {organizationDetails.length > 0 && (
+          <section aria-labelledby="org-details" className={`${card} min-[900px]:col-start-2`}>
+            <h2 id="org-details" className={heading}>
+              About {organization.name}
+            </h2>
+            <div className="mt-2">
+              {organizationDetails.map((field) => (
+                <CustomField key={field.fieldId} field={field} />
+              ))}
             </div>
           </section>
         )}

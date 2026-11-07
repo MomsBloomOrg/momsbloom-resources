@@ -40,6 +40,8 @@ function sample(fields: Partial<DirectoryProgram> & Pick<DirectoryProgram, "id" 
     eligibilityNotes: null,
     lastVerified: null,
     contacts: [],
+    custom: {},
+    organizationCustom: {},
     ...fields,
   };
 }

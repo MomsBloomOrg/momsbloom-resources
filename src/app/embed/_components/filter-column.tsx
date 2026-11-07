@@ -1,6 +1,8 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { FACET_URL_KEYS, type DirectoryQuery } from "@/directory/query";
+import { customFilterGroups } from "@/custom-fields/filter";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
+import { customFilterUrlKey, FACET_URL_KEYS, type DirectoryQuery } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import type { FacetDefinition, FacetKey, FacetValue } from "@/directory/types";
 import { DIRECTORY_FORM_ID } from "./search-bar";
@@ -8,31 +10,33 @@ import { DIRECTORY_FORM_ID } from "./search-bar";
 const VISIBLE_OPTIONS = 4;
 
 /**
- * One fieldset per Facet. The inputs belong to the search form (form=...), so without
+ * One fieldset per Facet, then one per custom field filter (in the order staff set). The inputs belong to the search form (form=...), so without
  * JavaScript the "Apply filters" button submits them; with JavaScript, DirectoryLive submits on change.
  */
 export function FilterColumn({
   facets,
+  customFields,
   results,
   clearAllHref,
 }: {
   facets: readonly FacetDefinition[];
+  customFields: readonly CustomFieldDefinition[];
   results: DirectoryResults;
   clearAllHref: string | null;
 }) {
-  const { query, counts } = results;
+  const { query, counts, customCounts } = results;
 
   /** One checkbox row, or null when its count is 0 and it is not checked (spec: hide, do not grey out). */
-  const row = (facet: FacetKey, value: FacetValue, indent = false): ReactNode => {
-    const count = counts[facet][value.key] ?? 0;
-    const checked = query.filters[facet].includes(value.key);
+  const row = (facet: FacetKey, value: FacetValue, indent = false): ReactNode =>
+    checkboxRow(FACET_URL_KEYS[facet], value, counts[facet][value.key] ?? 0, query.filters[facet].includes(value.key), indent);
+  const checkboxRow = (name: string, value: { key: string; label: string }, count: number, checked: boolean, indent = false): ReactNode => {
     if (count === 0 && !checked) return null;
     return (
-      <label key={`${facet}:${value.key}`} className={`flex min-h-11 items-center gap-3 md:min-h-8 ${indent ? "pl-7" : ""}`}>
+      <label key={`${name}:${value.key}`} className={`flex min-h-11 items-center gap-3 md:min-h-8 ${indent ? "pl-7" : ""}`}>
         <input
           type="checkbox"
           form={DIRECTORY_FORM_ID}
-          name={FACET_URL_KEYS[facet]}
+          name={name}
           value={value.key}
           defaultChecked={checked}
           className="size-5 shrink-0 accent-primary-text"
@@ -63,13 +67,27 @@ export function FilterColumn({
         const orphans = subcategories.filter((sub) => !categoryKeys.has(sub.parentKey ?? ""));
         options = [...options, ...orphans.map((sub) => ({ node: row("subcategory", sub), checked: query.filters.subcategory.includes(sub.key) }))];
       }
-      options = options.filter((option) => option.node);
+      return group(facet.key, facet.label, options);
+    });
+
+  const customGroups = customFilterGroups(customFields).map((field) => {
+    const checkedKeys = query.custom[field.fieldId] ?? [];
+    const options = field.values.map((value) => {
+      const checked = checkedKeys.includes(value.key);
+      return { node: checkboxRow(customFilterUrlKey(field.fieldId), value, customCounts[field.fieldId]?.[value.key] ?? 0, checked), checked };
+    });
+    return group(`custom-${field.fieldId}`, field.label, options);
+  });
+
+  /** A fieldset of options; after VISIBLE_OPTIONS the rest go behind "Show all". Null when nothing shows. */
+  function group(key: string, label: string, all: { node: ReactNode; checked: boolean }[]): ReactNode {
+      const options = all.filter((option) => option.node);
       if (options.length === 0) return null;
       const shown = options.slice(0, VISIBLE_OPTIONS);
       const rest = options.slice(VISIBLE_OPTIONS);
       return (
-        <fieldset key={facet.key} className="border-t border-line pt-4">
-          <legend className="float-left mb-2 w-full font-bold">{facet.label}</legend>
+        <fieldset key={key} className="border-t border-line pt-4">
+          <legend className="float-left mb-2 w-full font-bold">{label}</legend>
           <div className="clear-left">
             {shown.map((option) => option.node)}
             {rest.length > 0 && (
@@ -85,7 +103,7 @@ export function FilterColumn({
           </div>
         </fieldset>
       );
-    });
+  }
 
   return (
     <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm group-open/sheet:rounded-none group-open/sheet:border-0">
@@ -102,6 +120,7 @@ export function FilterColumn({
         )}
       </div>
       {groups}
+      {customGroups}
       <noscript>
         <button
           type="submit"
@@ -117,5 +136,6 @@ export function FilterColumn({
 
 /** How many filter values are checked, for the mobile "Filters (n)" button. */
 export function activeFilterCount(query: DirectoryQuery): number {
-  return Object.values(query.filters).reduce((sum, values) => sum + values.length, 0) + (query.org ? 1 : 0);
+  const count = (lists: readonly (readonly string[])[]) => lists.reduce((sum, values) => sum + values.length, 0);
+  return count(Object.values(query.filters)) + count(Object.values(query.custom)) + (query.org ? 1 : 0);
 }
