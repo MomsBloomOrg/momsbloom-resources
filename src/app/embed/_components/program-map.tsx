@@ -25,10 +25,12 @@ const cardOf = (id: string) => document.getElementById(`program-${id}`);
  * It fits the pins and never centers on the family's ZIP code or location (spec, "Map view").
  * Leaflet is loaded here, in the browser, only when the map shows.
  *
+ * `compact` is the small map on the detail page: one pin, no popup, no card highlight, zoom 15.
+ *
  * The container has a fixed pixel height: the iframe grows to fit its content, so a height in
  * `vh` or `h-full` would grow the iframe without end.
  */
-export function ProgramMap({ programs }: { programs: MapProgram[] }) {
+export function ProgramMap({ programs, compact = false }: { programs: MapProgram[]; compact?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   // shortcut: the map is rebuilt when the shown Programs change; fine for 10 to 30 pins, keep one map if it feels slow.
   const key = JSON.stringify(programs);
@@ -45,6 +47,7 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
       if (cancelled) return;
 
       const map = L.map(element, {
+        keyboard: !compact, // the compact pin does nothing, so it is not a tab stop
         scrollWheelZoom: false, // the iframe must not trap the host page scroll
         dragging: !L.Browser.mobile, // one finger scrolls the page on phones; +/- and pins still work
       });
@@ -74,13 +77,17 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
         const pin = document.createElement("span");
         pin.className = PIN_CLASS;
         // "2+" for a shared pin: it is not only card 2.
-        pin.textContent = `${group[0].number}${group.length > 1 ? "+" : ""}`;
+        if (!compact) pin.textContent = `${group[0].number}${group.length > 1 ? "+" : ""}`; // compact: a plain dot
         const marker = L.marker([group[0].lat, group[0].lng], {
           icon: L.divIcon({ html: pin, className: "", iconSize: [32, 32] }),
+          keyboard: !compact,
           title: group.map((program) => program.name).join(", "),
-        }).addTo(map);
-        marker.getElement()?.setAttribute("aria-label", group.map((program) => program.name).join(", "));
+        });
+        // The icon element exists only once the map has a view, so label it on "add" (then addTo).
+        marker.on("add", () => marker.getElement()?.setAttribute("aria-label", group.map((program) => program.name).join(", ")));
+        marker.addTo(map);
         for (const id of ids) pins.set(id, pin);
+        if (compact) continue;
 
         const popup = document.createElement("div");
         for (const program of group) {
@@ -130,6 +137,11 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
           (program) => [program.lat, program.lng] as [number, number],
         ),
       );
+      if (compact) {
+        map.setView(bounds.getCenter(), 15);
+        cleanup = () => map.remove();
+        return;
+      }
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
 
       // Hover or focus on a card highlights its pin (one listener each, by `program-<id>`).
@@ -169,9 +181,9 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
     <div
       ref={container}
       role="region"
-      aria-label="Map of the places in the results"
+      aria-label={compact ? "Map of the location" : "Map of the places in the results"}
       data-testid="program-map"
-      className="h-80 w-full rounded-2xl border border-line lg:h-[640px]"
+      className={`w-full rounded-2xl border border-line ${compact ? "h-[200px]" : "h-80 lg:h-[640px]"}`}
     />
   );
 }

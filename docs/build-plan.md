@@ -26,7 +26,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `seed-import` | Blocked on the schema. | [data import spec](specs/data-import.md) |
 | `admin-login` | Blocked on the schema (Auth.js tables) and on Resend domain setup. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |
 | `admin-pages` | After `admin-login`. No design yet: plain forms. | [admin spec](specs/admin.md) |
-| `directory-map-view` | Slice `map-view-results` done: List/Map toggle (`view=map`), Leaflet map beside numbered cards, pins for the shown pages. Next, optional: small map on the detail page. | `src/app/embed/_components/program-map.tsx`, `e2e/directory-map.spec.ts`, [public directory spec](specs/public-directory.md) |
+| `directory-map-view` | Done. List/Map toggle (`view=map`), Leaflet map beside numbered cards, pins for the shown pages; small 200 px map in the detail page Location card (hidden without a location or for virtual-only Programs). | `src/app/embed/_components/program-map.tsx`, `e2e/directory-map.spec.ts`, [public directory spec](specs/public-directory.md) |
 
 ## Decisions
 
