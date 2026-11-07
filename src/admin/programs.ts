@@ -103,10 +103,10 @@ export function parseProgramInput(data: FormData): AdminResult<ProgramInput> {
   return { ok: true, value: out as unknown as ProgramInput };
 }
 
-type IdTable = PgTable & { id: PgColumn };
+export type IdTable = PgTable & { id: PgColumn };
 
 /** True when every ID is a row of the table. */
-async function allExist(db: Db, table: IdTable, ids: number[]): Promise<boolean> {
+export async function allExist(db: Db, table: IdTable, ids: number[]): Promise<boolean> {
   if (ids.length === 0) return true;
   const rows = await db.select({ id: table.id }).from(table).where(inArray(table.id, ids));
   return rows.length === ids.length;

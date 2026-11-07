@@ -10,7 +10,7 @@ const errorClass = "text-sm font-semibold text-red-700";
 const checkRowClass = "flex min-h-9 items-center gap-2";
 
 /** A group of checkboxes that sends one `name` value per checked box. */
-function Checks({
+export function Checks({
   name,
   legend,
   hint,
