@@ -18,7 +18,7 @@ export const instant = false;
  */
 export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   return (
-    <main id={EMBED_ROOT_ID} className="mx-auto w-full max-w-6xl px-4 py-8">
+    <main id={EMBED_ROOT_ID} className="mx-auto w-full max-w-6xl px-4 py-8 lg:has-[[data-view=map]]:max-w-none lg:has-[[data-view=map]]:py-4">
       <Directory params={await searchParams} embed />
     </main>
   );

@@ -183,6 +183,15 @@ works.
 - A note tells families that Documents are in the list view.
 - Mobile: the map sits above the cards, and a selected pin shows a small card (Program, Organization,
   distance, "Get directions"). The "Map" button becomes "List View".
+- Desktop (`lg`, 1024 px and up): the Directory uses the full width. The title stays for screen readers
+  only. Row 1 holds the search, the "Filters" button (with the count of active filters), and List/Map on
+  the right. Row 2 is 720 px high: a card column (result count, sort, chips, the Documents note, cards,
+  help box) that scrolls inside itself, and the map in the rest of the row. The height is in px, not
+  `vh`: in the Embed, `vh` is the iframe height, which the iframe takes from the content, so it would
+  grow without end.
+- Desktop map view has no filter column: "Filters" opens the filter sheet as a left drawer. Without
+  JavaScript, the filter column shows below the map row and "Filters" jumps to it. Between `md` and
+  `lg` the map view keeps the filter column on the left, like the list view.
 - The map fits the Program pins. It never centers on the family's ZIP code or location, and it has no
   "you are here" marker.
 - OpenStreetMap gets only tile requests: the map area, and the page origin as the Referer. It never

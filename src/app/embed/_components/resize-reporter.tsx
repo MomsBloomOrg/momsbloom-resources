@@ -44,6 +44,14 @@ export function ResizeReporter({ share, program }: { share?: string; program?: s
       const hash = decodeURIComponent(location.hash.slice(1));
       if (hash.startsWith("program-")) target = document.getElementById(hash);
     } catch {}
+    // Desktop map view: the card is in a column that scrolls inside itself. Scroll the column to the card,
+    // then ask the host to scroll to the column (the card's own offset is not a host scroll target).
+    for (let box = target?.parentElement; target && box && box !== root; box = box.parentElement) {
+      if (box.scrollHeight > box.clientHeight && /auto|scroll/.test(getComputedStyle(box).overflowY)) {
+        box.scrollTop += target.getBoundingClientRect().top - box.getBoundingClientRect().top;
+        target = box;
+      }
+    }
     const top = root.hasAttribute("data-scroll-top") ? 0 : target ? Math.max(0, target.getBoundingClientRect().top - root.getBoundingClientRect().top) : null;
     if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
     return () => observer.disconnect();

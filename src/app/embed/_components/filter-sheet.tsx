@@ -10,6 +10,7 @@ const TRIGGER = "[data-action=open-filters]";
  * off, the <dialog> is never opened and shows as a normal block (the column). Below `md`, with
  * JavaScript, the "Filters" link opens it with showModal(): top layer, the page behind is inert,
  * Escape closes, focus stays inside. One copy of the checkboxes, so only one set submits with the form.
+ * Desktop map view (`sheetOnly`) has no column at lg either: the Filters link opens it there too, as a left drawer.
  *
  * Inside the iframe, the iframe is as tall as its content, so `bottom: 0` would be the bottom of the
  * iframe, not the phone screen. On open, an IntersectionObserver gives the part of the page that is
@@ -17,7 +18,18 @@ const TRIGGER = "[data-action=open-filters]";
  * shortcut: the host page is not inert, so a scroll outside the sheet moves it away with the iframe;
  * upgrade to an `overlay` embed message (embed.js makes the iframe full-screen) if families hit this.
  */
-export function FilterSheet({ total, clearAllHref, children }: { total: number; clearAllHref: string | null; children: ReactNode }) {
+export function FilterSheet({
+  total,
+  clearAllHref,
+  sheetOnly = false,
+  children,
+}: {
+  total: number;
+  clearAllHref: string | null;
+  /** Desktop map view: no column at lg either; with JavaScript, the Filters link opens the sheet as a left drawer. */
+  sheetOnly?: boolean;
+  children: ReactNode;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -50,7 +62,8 @@ export function FilterSheet({ total, clearAllHref, children }: { total: number; 
       aria-labelledby="filters-heading"
       // Safari does not focus a tapped link, so the native focus return is not enough.
       onClose={() => document.querySelector<HTMLElement>(TRIGGER)?.focus()}
-      className="group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit max-md:data-js:not-open:hidden open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] backdrop:bg-ink/60"
+      // At md and up it only opens in desktop map view: a left drawer, not a full-width bottom sheet.
+      className={`group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit max-md:data-js:not-open:hidden ${sheetOnly ? "lg:data-js:not-open:hidden" : ""} open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] md:open:right-auto md:open:top-(--sheet-top) md:open:h-(--sheet-height) md:open:max-w-sm md:open:rounded-none md:open:rounded-r-2xl md:open:motion-safe:animate-none backdrop:bg-ink/60`}
     >
       <button
         type="button"

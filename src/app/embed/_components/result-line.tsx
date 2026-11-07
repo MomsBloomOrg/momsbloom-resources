@@ -1,8 +1,6 @@
-import type { ReactNode } from "react";
 import type { Sort } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import { DIRECTORY_FORM_ID } from "./search-bar";
-import { ViewToggle } from "./view-toggle";
 
 const SORT_LABELS: Record<Sort, string> = { nearest: "Nearest", az: "A to Z", verified: "Recently verified" };
 
@@ -28,18 +26,16 @@ export function ResultSummary({ results }: { results: DirectoryResults }) {
 }
 
 /**
- * The toolbar: `children` (the mobile Filters link), the view link, and the sort dropdown. The select is a
- * field of the search form. Its default option sends no `sort` (the URL stays clean); without JavaScript
- * the "Sort" button submits it, with JavaScript DirectoryLive submits on change.
+ * The sort dropdown. The select is a field of the search form. Its default option sends no `sort` (the URL
+ * stays clean); without JavaScript the "Sort" button submits it, with JavaScript DirectoryLive submits on
+ * change. The Directory places it: in the toolbar row, or at the top of the card column in desktop map view.
  */
-export function ResultToolbar({ results, children }: { results: DirectoryResults; children?: ReactNode }) {
+export function SortSelect({ results, className = "" }: { results: DirectoryResults; className?: string }) {
   const sorts: Sort[] = results.origin ? ["nearest", "az", "verified"] : ["az", "verified"];
   const valueOf = (sort: Sort) => (sort === sorts[0] ? "" : sort);
   return (
-    <div className="flex items-center gap-2 max-md:justify-between md:gap-4">
-      {children}
-      <ViewToggle query={results.query} />
-      <label className="flex min-w-0 items-center gap-1 text-sm max-md:flex-1">
+    <div className={`flex min-w-0 items-center gap-2 max-md:flex-1 ${className}`}>
+      <label className="flex min-w-0 flex-1 items-center gap-1 text-sm">
         <span className="text-muted max-md:sr-only">Sort:</span>
         <select
           // Keyed: a new sort remounts it, so the browser never keeps a stale choice after Back or a chip click.

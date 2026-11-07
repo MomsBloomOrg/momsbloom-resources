@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl px-4 py-12">
+      <main className="mx-auto w-full max-w-6xl px-4 py-12 lg:has-[[data-view=map]]:max-w-none lg:has-[[data-view=map]]:py-4">
         <Directory params={await searchParams} />
       </main>
     </>

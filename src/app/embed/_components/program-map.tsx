@@ -27,8 +27,9 @@ const cardOf = (id: string) => document.getElementById(`program-${id}`);
  *
  * `compact` is the small map on the detail page: one pin, no popup, no card highlight, zoom 15.
  *
- * The container has a fixed pixel height: the iframe grows to fit its content, so a height in
- * `vh` or `h-full` would grow the iframe without end.
+ * The iframe grows to fit its content, so a height in `vh` would grow the iframe without end. Below lg the
+ * container has a fixed pixel height. At lg it is `h-full`, safe only because the Directory's map row has a
+ * fixed pixel height.
  */
 export function ProgramMap({ programs, compact = false }: { programs: MapProgram[]; compact?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
@@ -187,7 +188,7 @@ export function ProgramMap({ programs, compact = false }: { programs: MapProgram
       role="region"
       aria-label={compact ? "Map of the location" : "Map of the places in the results"}
       data-testid="program-map"
-      className={`w-full rounded-2xl border border-line ${compact ? "h-[200px]" : "h-80 lg:h-[640px]"}`}
+      className={`w-full rounded-2xl border border-line ${compact ? "h-[200px]" : "h-80 lg:h-full"}`}
     />
   );
 }

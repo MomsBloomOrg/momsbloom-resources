@@ -106,7 +106,9 @@ test("zip-never-shared: a ZIP search stays out of the host URL", async ({ page }
 
 test("view-map-height-stable: mbr-view=map keeps the iframe height steady and under a cap", async ({ page }) => {
   await page.goto(`${HOST}/?mbr-view=map`);
-  await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
+  // The test host column is 960 px; widen it so the iframe is at lg and shows the fixed-height desktop map row.
+  await page.addStyleTag({ content: ".content { max-width: none; }" });
+  await expect(page.frameLocator(IFRAME).getByTestId("program-map")).toBeVisible();
   await page.waitForTimeout(1000);
   const first = await iframeHeight(page);
   await page.waitForTimeout(1000);
