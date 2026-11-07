@@ -95,8 +95,11 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - **Document card:** title, description, tags, "PDF" and languages, and "Download".
 - The green box "Can't find what you need?" (call or text 211, or contact MomsBloom) always comes
   last.
-- The heading is "Postpartum Resources" with the line "Find nearby support that fits your family,
-  your insurance, and your needs." (no small heading above it).
+- Desktop: the heading is "Postpartum Resources" with the line "Find nearby support that fits your
+  family, your insurance, and your needs." (no small heading above it).
+- Mobile: the mobile list frame (`5:353`) has the same heading as desktop. The mobile map frame
+  (`95:1903`) still shows a small green "POSTPARTUM RESOURCE DIRECTORY" label above the heading
+  "Find support that fits your family". Follow the list frame until the designer confirms.
 - **Open question:** Figma has a "No distance" version of the list view
   (`desktop-directory-list-no-distance.png`): no ZIP code field, no Distance filter, no List/Map
   toggle, and "Sort: A-Z". It does not say when it applies (before a ZIP code is entered, or always,

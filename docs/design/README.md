@@ -3,9 +3,9 @@
 These are screenshots of the Figma designs for the resource directory. The first captures were taken
 on 2026-11-07 and refreshed later the same day, at the native size of each frame. The Figma file is
 [WFG 2026 - MomsBloom](https://www.figma.com/design/XNxEurTwFpvw3kvVLPlea4/WFG-2026---MomsBloom),
-pages "Resources Page Designs" and "Admin Designs". The Figma file is the source of truth: if a screenshot here and Figma
-disagree, Figma wins. Each section links to its frame, so you can open it and measure spacing,
-colors, and text in Figma. (Most of us have view access only, so Figma will not let us export.)
+pages "Resources Page Designs" and "Admin Designs". The Figma file is the source of truth: if a
+screenshot here and Figma disagree, Figma wins. Each section links to its frame, so you can open
+it and measure spacing, colors, and text in Figma. (Most of us have view access only, so Figma will not let us export.)
 
 The data in the designs is made up ("Maria Sample", `example.org`). The real data comes from the
 MomsBloom spreadsheet, which the database will import.
@@ -17,8 +17,8 @@ MomsBloom spreadsheet, which the database will import.
   the header above it. Start at the part below the header.
 - **Some screens are not designed yet.** The designer's to-do list (at the end of this page) still
   has the page before a search, the "no results" page, the loading state, and the error states. The
-  Admin has one screen so far (the resource list, below). Until those exist, use the text in the Dev Handoff doc ("States and edge cases"),
-  and keep the style of the screens below.
+  Admin has one screen so far (the resource list, below). Until those exist, use the text in the
+  Dev Handoff doc ("States and edge cases"), and keep the style of the screens below.
 - Colors and the font are already set up in `src/app/globals.css` (Tailwind classes such as
   `bg-primary`, `text-muted`) and `src/app/layout.tsx` (Nunito). Use those classes, not hex values.
 - The bright orange (#FD7A00) fails the contrast rules for text. Use
@@ -46,7 +46,8 @@ Notes:
 - "List" and "Map" switch the view. "Sort" offers Nearest (and more; see the handoff doc).
 - The green box at the bottom ("Can't find what you need?") always shows at the end of the results.
 - The heading is "Postpartum Resources", with the line "Find nearby support that fits your family,
-  your insurance, and your needs." There is no small heading above it.
+  your insurance, and your needs." There is no small heading above it. The mobile list frame
+  matches; the mobile map frame still has the older heading (see the spec).
 
 ### Mobile
 
@@ -64,7 +65,8 @@ Notes:
 
 Figma calls these frames "Resources Landing - No Distance".
 
-[Open desktop in Figma](https://www.figma.com/design/XNxEurTwFpvw3kvVLPlea4/WFG-2026---MomsBloom?node-id=95-1275) ·
+[Open desktop in Figma](https://www.figma.com/design/XNxEurTwFpvw3kvVLPlea4/WFG-2026---MomsBloom?node-id=95-1275)
+
 [Open mobile in Figma](https://www.figma.com/design/XNxEurTwFpvw3kvVLPlea4/WFG-2026---MomsBloom?node-id=95-1710)
 
 ![Desktop directory, list view, no distance](desktop-directory-list-no-distance.png)
@@ -79,7 +81,7 @@ Notes:
   only, no Map button.
 - The cards still show a distance and the chips still show "Within 10 mi". We think that these are
   left over from the copied frame.
-- Figma does not say when this version applies (see the open questions in the build notes).
+- Figma does not say when this version applies (see the open question in the public directory spec).
 
 ## Mobile filters sheet
 
@@ -195,8 +197,8 @@ list view above.
 
 ![Icons](icons.png)
 
-There are 14 icons, at 16 px with a 1.5 px line: search, map pin, close (x), check, file, chevron down, phone, globe,
-map, list, arrow right, download, filter, and user. They look like the free
+There are 14 icons, at 16 px with a 1.5 px line: search, map pin, close (x), check, file, chevron
+down, phone, globe, map, list, arrow right, download, filter, and user. They look like the free
 [Lucide](https://lucide.dev/icons) icon set (the `lucide-react` package). Compare them in Figma
 before you add that package.
 
@@ -206,8 +208,9 @@ before you add that package.
 
 ![Branding](branding.png)
 
-This capture is from the first set; the refresh did not take it again. The logo in orange and in white, and the three brand colors: green (#9DBB86), orange (#FD7A00), and
-white. The embed does not show the logo, because the Squarespace header already does.
+This capture is from the first set; the refresh did not take it again. The logo in orange and in
+white, and the three brand colors: green (#9DBB86), orange (#FD7A00), and white. The embed does
+not show the logo, because the Squarespace header already does.
 
 ## Designer to-do list
 
@@ -238,6 +241,7 @@ Notes:
   Program row and "Organization" for an Organization row.
 - Status badges: Active (green), Inactive (gray), and Deleted (red). "Deleted" is not a Status in
   CONTEXT.md.
+- The capture shows the Organizations tab selected. "Needs review" is not shown.
 - Build work: issue #38.
 
 ## Not captured
