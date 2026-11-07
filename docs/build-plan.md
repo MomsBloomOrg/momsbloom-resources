@@ -27,7 +27,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Last updated 2026-11-07.
 | `seed-import` | Done (seeded outside the repo). | [data import spec](specs/data-import.md) |
 | `admin-login` | Done. Login link by email (Auth.js + Resend), allow-list in `ADMIN_EMAILS`, rate limits, database sessions, Admin shell at `/admin` with a placeholder home. Follow-up: run migration `0001` on the Neon dev branch and on prod (`migrate-dev-prod`), then set the Vercel env. | [ADR 0003](adr/0003-admin-login-by-email-link-first.md), [admin spec](specs/admin.md) |
 | `migrate-dev-prod` | Next. Run `pnpm db:migrate` (migration `0001`, login tables) on the Neon dev branch, test a login on a Preview, then on prod. Until then, `/login` on that database says it could not send the link. | `drizzle/0001_*.sql` |
-| `admin-pages` | After `admin-login`. No design yet: plain forms. | [admin spec](specs/admin.md) |
+| `admin-pages` | In progress, six slices. `admin-nav-and-org-list` done: nav (Organizations, Documents, Settings), UI kit, Organizations list at `/admin` with search, Status filter and sort, `createDirectoryTestDb()`, `pnpm db:seed-sample`. Next: `org-edit`, `program-edit`, `contacts-and-documents`, `facet-settings`, `address-geocoding`. | [admin spec](specs/admin.md) |
 | `directory-map-view` | Done. List/Map toggle (`view=map`), Leaflet map beside numbered cards, pins for the shown pages; small 200 px map in the detail page Location card (hidden without a location or for virtual-only Programs). | `src/app/embed/_components/program-map.tsx`, `e2e/directory-map.spec.ts`, [public directory spec](specs/public-directory.md) |
 
 ## Decisions

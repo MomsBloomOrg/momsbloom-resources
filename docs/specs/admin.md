@@ -33,20 +33,18 @@ to-do list. Until a design exists:
 
 ## Pages
 
-### Home (`/admin`)
+### Screens
 
-A short summary that tells a staff member what needs attention:
+| Route | Screen |
+|---|---|
+| `/admin` | **Organizations** list, the Admin home. Columns: name, Status, Programs (count, "n need review"), Last verified. Search by name. Status filter links (All, Active, Needs review, Inactive), each with its count. "Sort oldest verified first". There is no separate summary page and no global Programs table: staff reach a Program through its Organization. |
+| `/admin/organizations/new`, `/admin/organizations/[id]` | Organization form, then its Programs table and "Add program". |
+| `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
+| `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
+| `/admin/settings` | Filter options: one card for each Facet (see "Facet values" below). |
 
-- How many Programs, Organizations, and Documents are Active, Needs review, and Inactive.
-- A list of records with Status **Needs review**.
-- A list of the records with the oldest **Last verified** dates (for example, older than 6 months).
-  Each row links to the record.
-
-### Programs (`/admin/programs`)
-
-- A table: Program name, Organization, Categories, Status, Last verified.
-- Search by name. Filter by Status, Category, and Organization.
-- "Add program" opens an empty form.
+The nav is **Organizations, Documents, Settings**. IDs in the Admin are database integers (`12`), as in
+[CONTEXT.md](../../CONTEXT.md).
 
 ### Program form
 
@@ -79,7 +77,7 @@ Buttons:
   confirms nothing changed, without editing anything else.
 - **View on site.** Opens the public Program detail in a new tab.
 
-### Organizations (`/admin/organizations`)
+### Organizations (`/admin`, `/admin/organizations/[id]`)
 
 - A table and a form like the Program ones. Fields: name, about text, website, email, main phone,
   address, Status, Last verified, internal notes, and map coordinates (see the open question below).
@@ -94,7 +92,7 @@ Buttons:
   languages, PDF link (required, a full URL), Status, Last verified, internal notes.
 - The PDF stays where it is today (momsbloom.org). We store the link, not the file.
 
-### Facet values (`/admin/facets`)
+### Facet values (`/admin/settings`, headed "Filter options")
 
 One section for each **Facet**: Categories (with their Subcategories), Insurance plans, Languages,
 Who it serves, Cost, and Service format.
@@ -111,10 +109,10 @@ Who it serves, Cost, and Service format.
 
 - **No hard deletes for records.** Staff hide an Organization, Program, or Document by setting it
   to Inactive. That keeps the history, and a mistake is easy to undo. Contacts can be removed.
-- **IDs stay.** New records get the next ID in the same format as the spreadsheet (`O-047`,
-  `P-055`, `D-002`). IDs never change and are never reused, because public links use them.
-- **Record who changed what.** Each Organization, Program, and Document stores when it was last
-  changed and the email of the Staff admin who changed it. Show it at the bottom of the form.
+- **IDs stay.** New records get the next database integer. IDs never change and are never reused,
+  because public links use them. (`O-047` style IDs exist only in the spreadsheet.)
+- **Last changed.** Each Organization, Program, and Document shows "Last changed <date>" at the bottom
+  of the form, from `updated_at`. Recording the email of the editor (`updated_by`) is deferred.
 - **A save shows at once.** After a save, the next page load of the Directory shows the change.
   Every save action calls `updateTag("directory")`, which throws away the Directory's cached
   copy of the data ([ADR 0004](../adr/0004-search-filters-a-cached-snapshot-on-the-server.md)).
