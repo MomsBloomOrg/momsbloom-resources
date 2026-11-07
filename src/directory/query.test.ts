@@ -77,6 +77,26 @@ describe("chips and checkboxes", () => {
   });
 });
 
+describe("view", () => {
+  it("view=map parses; any other value is the list", () => {
+    expect(parseDirectoryQuery(new URLSearchParams("view=map")).view).toBe("map");
+    expect(parseDirectoryQuery(new URLSearchParams("view=other")).view).toBe("list");
+    expect(parseDirectoryQuery(new URLSearchParams("")).view).toBe("list");
+  });
+
+  it("serializing leaves out the default list and keeps map", () => {
+    expect(serializeDirectoryQuery({ ...EMPTY_QUERY, view: "list" })).toBe("");
+    expect(serializeDirectoryQuery({ ...EMPTY_QUERY, view: "map" })).toBe("view=map");
+  });
+
+  it("checkboxes, chips, and Clear all keep the map view", () => {
+    const query = parseDirectoryQuery(new URLSearchParams("view=map&ins=medicaid"));
+    expect(toggleFilter(query, "language", "spanish").view).toBe("map");
+    expect(removeFilter(query, "insurance", "medicaid").view).toBe("map");
+    expect(clearFilters(query).view).toBe("map");
+  });
+});
+
 describe("isBadZip", () => {
   it("is false for empty, blank, and 5 digits (trimmed)", () => {
     for (const zip of ["", "  ", "49301", " 49301 "]) expect(isBadZip(zip)).toBe(false);

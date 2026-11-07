@@ -3,6 +3,8 @@ import { embedFrameAncestors, NO_FRAME_ANCESTORS } from "./src/embed/frame-ances
 
 const nextConfig: NextConfig = {
   async headers() {
+    // Map view loads tiles from https://tile.openstreetmap.org (img). The only CSP directive today is
+    // frame-ancestors; if anyone adds default-src or img-src, it must allow that host.
     // When two rules set the same header, the last one wins: the embed rule must come last.
     // `/embed/:path*` also matches `/embed` itself.
     return [

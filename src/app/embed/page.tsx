@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SlidersHorizontal } from "lucide-react";
+import { FileText, SlidersHorizontal } from "lucide-react";
 import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
 import { getDirectorySnapshot } from "@/directory/snapshot";
@@ -12,7 +12,8 @@ import { activeFilterCount, FilterColumn } from "./_components/filter-column";
 import { FilterSheet } from "./_components/filter-sheet";
 import { HelpBox } from "./_components/help-box";
 import { NoResults } from "./_components/no-results";
-import { detailsHref, ProgramCard } from "./_components/program-card";
+import { addressText, detailsHref, ProgramCard } from "./_components/program-card";
+import { ProgramMap, type MapProgram } from "./_components/program-map";
 import { ResizeReporter } from "./_components/resize-reporter";
 import { ResultLine } from "./_components/result-line";
 import { SearchBar } from "./_components/search-bar";
@@ -55,6 +56,42 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   const zipInvalid = isBadZip(rawZip);
   const filterCount = activeFilterCount(query);
 
+  const mapView = query.view === "map";
+  // Map view: each shown Program with a point gets a pin number, in card order. Virtual and phone
+  // Programs stay cards with no pin.
+  const mapPrograms: MapProgram[] = [];
+  if (mapView) {
+    for (const { program, distanceMiles, group } of results.programs) {
+      if (group === "virtual-and-phone" || !program.location) continue;
+      mapPrograms.push({
+        id: program.id,
+        number: mapPrograms.length + 1,
+        name: program.name,
+        organizationName: program.organization.name,
+        distanceMiles,
+        lat: program.location.lat,
+        lng: program.location.lng,
+        detailsHref: detailsHref(program.id, search),
+        directionsHref: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+          program.address ? addressText(program.address) : `${program.location.lat},${program.location.lng}`,
+        )}`,
+      });
+    }
+  }
+  const numberOf = new Map(mapPrograms.map((program) => [program.id, program.number]));
+  const documentsNote =
+    mapView && results.documents.length > 0 ? (
+      <p className="flex items-start gap-2 rounded-xl bg-secondary-soft p-3 text-sm">
+        <FileText aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+        <span>
+          {results.documents.length} {results.documents.length === 1 ? "guide or download matches" : "guides and downloads match"} your search.{" "}
+          <a href={`?${serializeDirectoryQuery({ ...query, view: "list" })}`} className="font-bold text-primary-text underline">
+            Switch to list view to see {results.documents.length === 1 ? "it" : "them"}.
+          </a>
+        </span>
+      </p>
+    ) : null;
+
   const cards = (list: ProgramResult[]) => (
     <ul className="flex flex-col gap-4">
       {list.map((result) => (
@@ -63,6 +100,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
             result={result}
             labelOf={labelOf}
             detailsHref={detailsHref(result.program.id, search)}
+            number={numberOf.get(result.program.id)}
           />
         </li>
       ))}
@@ -109,23 +147,34 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
               <ActiveChips query={query} labelOf={labelOf} organizationName={organizationName} clearAllHref={clearAllHref} />
             )}
 
-            <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
-              <h2 id="programs-heading" className="text-xl font-extrabold">
-                {results.origin ? "Places near you" : "Programs"}
-              </h2>
-              {results.totalPrograms === 0 ? <NoResults keyword={query.q} clearFiltersHref={clearAllHref} widenHref={widenHref} /> : cards(nearby)}
-            </section>
-            {virtual.length > 0 && (
-              <section aria-labelledby="virtual-heading" className="flex flex-col gap-4">
-                <h2 id="virtual-heading" className="text-xl font-extrabold">
-                  Virtual and phone
-                </h2>
-                {cards(virtual)}
-              </section>
-            )}
-            {results.hasMore && <ShowMore query={query} remaining={results.totalPrograms - results.programs.length} />}
+            {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
+            <div className={mapView ? "grid gap-4 lg:grid-cols-[20rem_1fr]" : "contents"}>
+              <div className="flex min-w-0 flex-col gap-4">
+                {documentsNote}
+                <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
+                  <h2 id="programs-heading" className="text-xl font-extrabold">
+                    {results.origin ? "Places near you" : "Programs"}
+                  </h2>
+                  {results.totalPrograms === 0 ? <NoResults keyword={query.q} clearFiltersHref={clearAllHref} widenHref={widenHref} /> : cards(nearby)}
+                </section>
+                {virtual.length > 0 && (
+                  <section aria-labelledby="virtual-heading" className="flex flex-col gap-4">
+                    <h2 id="virtual-heading" className="text-xl font-extrabold">
+                      Virtual and phone
+                    </h2>
+                    {cards(virtual)}
+                  </section>
+                )}
+                {results.hasMore && <ShowMore query={query} remaining={results.totalPrograms - results.programs.length} />}
+              </div>
+              {mapView && results.totalPrograms > 0 && (
+                <div className="order-first lg:order-last">
+                  <ProgramMap programs={mapPrograms} />
+                </div>
+              )}
+            </div>
 
-            {results.documents.length > 0 && (
+            {!mapView && results.documents.length > 0 && (
               <section aria-labelledby="documents-heading" className="mt-4 flex flex-col gap-4">
                 <h2 id="documents-heading" className="text-xl font-extrabold">
                   Guides and downloads{" "}
