@@ -6,6 +6,7 @@ import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { addressText, detailsHref, formatText, Tag, telHref, webUrl } from "../../_components/program-card";
+import { ProgramMap } from "../../_components/program-map";
 import { ResizeReporter } from "../../_components/resize-reporter";
 
 export const metadata: Metadata = {
@@ -135,6 +136,26 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           <h2 id="location" className={heading}>
             Location and hours
           </h2>
+          {program.location && !program.virtualOnly && (
+            <div className="mt-2">
+              <ProgramMap
+                compact
+                programs={[
+                  {
+                    id: program.id,
+                    number: 1,
+                    name: program.name,
+                    organizationName: organization.name,
+                    distanceMiles: null,
+                    lat: program.location.lat,
+                    lng: program.location.lng,
+                    detailsHref: "",
+                    directionsHref: "",
+                  },
+                ]}
+              />
+            </div>
+          )}
           <div className="mt-2">
             <Field name="Address">
               {place && (

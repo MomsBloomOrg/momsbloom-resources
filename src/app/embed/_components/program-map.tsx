@@ -25,10 +25,12 @@ const cardOf = (id: string) => document.getElementById(`program-${id}`);
  * It fits the pins and never centers on the family's ZIP code or location (spec, "Map view").
  * Leaflet is loaded here, in the browser, only when the map shows.
  *
+ * `compact` is the small map on the detail page: one pin, no popup, no card highlight, zoom 15.
+ *
  * The container has a fixed pixel height: the iframe grows to fit its content, so a height in
  * `vh` or `h-full` would grow the iframe without end.
  */
-export function ProgramMap({ programs }: { programs: MapProgram[] }) {
+export function ProgramMap({ programs, compact = false }: { programs: MapProgram[]; compact?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   // shortcut: the map is rebuilt when the shown Programs change; fine for 10 to 30 pins, keep one map if it feels slow.
   const key = JSON.stringify(programs);
@@ -113,6 +115,7 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
           item.append(title, meta, links);
           popup.append(item);
         }
+        if (compact) continue;
         marker.bindPopup(popup);
         marker.on("click", () => {
           activate(selected, false);
@@ -130,7 +133,12 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
           (program) => [program.lat, program.lng] as [number, number],
         ),
       );
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      if (compact) map.setView(bounds.getCenter(), 15);
+      else map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      if (compact) {
+        cleanup = () => map.remove();
+        return;
+      }
 
       // Hover or focus on a card highlights its pin (one listener each, by `program-<id>`).
       const hover = (on: boolean) => (event: Event) => {
@@ -169,9 +177,9 @@ export function ProgramMap({ programs }: { programs: MapProgram[] }) {
     <div
       ref={container}
       role="region"
-      aria-label="Map of the places in the results"
+      aria-label={compact ? "Map of the location" : "Map of the places in the results"}
       data-testid="program-map"
-      className="h-80 w-full rounded-2xl border border-line lg:h-[640px]"
+      className={`w-full rounded-2xl border border-line ${compact ? "h-[200px]" : "h-80 lg:h-[640px]"}`}
     />
   );
 }
