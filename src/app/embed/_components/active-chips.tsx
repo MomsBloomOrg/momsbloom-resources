@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { removeFilter, serializeDirectoryQuery, type DirectoryQuery } from "@/directory/query";
 import { FACET_KEYS } from "@/directory/types";
+import type { LabelOf } from "./program-card";
 
 /** A dark chip per active filter; its "x" link removes that filter. "Clear all" keeps the keyword and ZIP. */
 export function ActiveChips({
@@ -10,13 +11,13 @@ export function ActiveChips({
   clearAllHref,
 }: {
   query: DirectoryQuery;
-  labelOf: (key: string) => string;
+  labelOf: LabelOf;
   organizationName: string | null;
   clearAllHref: string;
 }) {
   const chips = FACET_KEYS.flatMap((facet) =>
     query.filters[facet].map((value) => ({
-      label: labelOf(value),
+      label: labelOf(facet, value),
       href: `?${serializeDirectoryQuery(removeFilter(query, facet, value))}`,
     })),
   );

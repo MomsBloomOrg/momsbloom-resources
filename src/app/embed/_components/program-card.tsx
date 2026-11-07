@@ -1,21 +1,31 @@
 import { ArrowRight, Check, Globe, MapPin, Phone, User } from "lucide-react";
 import type { ProgramResult } from "@/directory/results";
-import type { PostalAddress } from "@/directory/types";
+import type { FacetKey, FacetValueKeys, PostalAddress } from "@/directory/types";
+
+/** The label of a Facet value, or the key itself when the snapshot has no such value. */
+export type LabelOf = (facet: FacetKey, key: string) => string;
 
 /** The small light-green pill. Text is `ink`: green text on green fails contrast. */
 export function Tag({ children }: { children: string }) {
   return <li className="rounded-md bg-secondary-soft px-2 py-0.5 text-xs">{children}</li>;
 }
 
-/** "In person and virtual", or the format labels joined. */
-export function formatText(keys: readonly string[], labelOf: (key: string) => string): string | null {
-  if (keys.includes("in-person") && keys.includes("virtual")) return "In person and virtual";
-  return keys.length ? keys.map(labelOf).join(", ") : null;
+/** The "Type of support" tags: Categories, then Subcategories. `id` holds the Facet, because Category "1" and Subcategory "1" differ. */
+export function supportTags(values: FacetValueKeys, labelOf: LabelOf): { id: string; label: string }[] {
+  return (["category", "subcategory"] as const).flatMap((facet) =>
+    values[facet].map((key) => ({ id: `${facet}-${key}`, label: labelOf(facet, key) })),
+  );
+}
+
+/** "In person and virtual" when there are two or more formats, else the one format label. */
+export function formatText(keys: readonly string[], labelOf: LabelOf): string | null {
+  if (keys.length > 1) return "In person and virtual";
+  return keys.length ? labelOf("format", keys[0]) : null;
 }
 
 /** "Accepts Medicaid + 2 plans". Unknown (null) shows nothing: never show it as "No". */
-export function insuranceText(plans: readonly string[], accepts: ProgramResult["program"]["acceptsInsurance"], labelOf: (key: string) => string) {
-  if (plans.length) return `Accepts ${labelOf(plans[0])}${plans.length > 1 ? ` + ${plans.length - 1} more` : ""}`;
+export function insuranceText(plans: readonly string[], accepts: ProgramResult["program"]["acceptsInsurance"], labelOf: LabelOf) {
+  if (plans.length) return `Accepts ${labelOf("insurance", plans[0])}${plans.length > 1 ? ` + ${plans.length - 1} more` : ""}`;
   if (accepts === "yes") return "Accepts insurance";
   if (accepts === "no") return "Does not take insurance";
   return null;
@@ -49,7 +59,7 @@ export function ProgramCard({
   number,
 }: {
   result: ProgramResult;
-  labelOf: (key: string) => string;
+  labelOf: LabelOf;
   detailsHref: string;
   /** The pin number on the map (map view only), so card 3 matches pin 3. */
   number?: number;
@@ -58,10 +68,11 @@ export function ProgramCard({
   const format = formatText(values.format, labelOf);
   const facts = [
     insuranceText(values.insurance, program.acceptsInsurance, labelOf),
-    ...values.cost.map(labelOf),
-    values.language.map(labelOf).join(", "),
+    ...values.cost.map((key) => labelOf("cost", key)),
+    values.language.map((key) => labelOf("language", key)).join(", "),
     format,
   ].filter((fact): fact is string => Boolean(fact));
+  const tags = supportTags(values, labelOf);
   const [contact, ...otherContacts] = program.contacts;
   const { address } = program;
   const website = webUrl(program.website);
@@ -90,10 +101,10 @@ export function ProgramCard({
         )}
       </div>
       <h3 className="mt-1 text-xl font-extrabold">{program.name}</h3>
-      {values.category.length + values.subcategory.length > 0 && (
+      {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-2 flex flex-wrap gap-1.5">
-          {[...values.category, ...values.subcategory].map((key) => (
-            <Tag key={key}>{labelOf(key)}</Tag>
+          {tags.map((tag) => (
+            <Tag key={tag.id}>{tag.label}</Tag>
           ))}
         </ul>
       )}

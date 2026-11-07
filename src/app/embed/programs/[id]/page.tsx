@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, Globe, MapPin, Phone, User } from "lucide-react";
 import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { IS_SAMPLE_DATA } from "@/directory/sample-flag";
+import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
-import { addressText, detailsHref, formatText, Tag, telHref, webUrl } from "../../_components/program-card";
+import { addressText, detailsHref, formatText, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
 import { ProgramMap } from "../../_components/program-map";
 import { ResizeReporter } from "../../_components/resize-reporter";
@@ -51,14 +52,14 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
   const program = snapshot.programs.find((candidate) => candidate.id === id);
   if (!program) redirect(`/embed?${search ? `${search}&` : ""}unavailable=1`);
 
-  const labels = new Map(snapshot.facets.flatMap((facet) => facet.values.map((value) => [value.key, value.label])));
-  const labelOf = (key: string) => labels.get(key) ?? key;
+  const findLabel = facetLabelLookup(snapshot.facets);
+  const labelOf: LabelOf = (facet, key) => findLabel(facet, key) ?? key;
   const values = program.facetValues;
   const { address, organization } = program;
   const place = address && !program.virtualOnly ? addressText(address) : null;
   const orgHref = `/embed?org=${organization.id}`;
   const siblings = snapshot.programs.filter((other) => other.organization.id === organization.id && other.id !== program.id);
-  const tags = [...values.category, ...values.subcategory];
+  const tags = supportTags(values, labelOf);
   const website = webUrl(program.website);
   const hasInsurance = Boolean(program.acceptsInsurance || values.insurance.length || values.cost.length || program.eligibilityNotes);
   const hasWho = values.language.length > 0 || values.whoItServes.length > 0;
@@ -118,8 +119,8 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
       <h1 className="mt-1 text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
       {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-3 flex flex-wrap gap-1.5">
-          {tags.map((key) => (
-            <Tag key={key}>{labelOf(key)}</Tag>
+          {tags.map((tag) => (
+            <Tag key={tag.id}>{tag.label}</Tag>
           ))}
         </ul>
       )}
@@ -212,11 +213,11 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
               {values.insurance.length > 0 && (
                 <ul aria-label="Insurance plans" className="mt-2 flex flex-wrap gap-1.5">
                   {values.insurance.map((key) => (
-                    <Tag key={key}>{labelOf(key)}</Tag>
+                    <Tag key={key}>{labelOf("insurance", key)}</Tag>
                   ))}
                 </ul>
               )}
-              <Field name="Cost">{values.cost.map(labelOf).join(", ")}</Field>
+              <Field name="Cost">{values.cost.map((key) => labelOf("cost", key)).join(", ")}</Field>
               <Field name="Eligibility notes">{program.eligibilityNotes}</Field>
             </div>
           </section>
@@ -227,8 +228,8 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
               Languages and who it&apos;s for
             </h2>
             <div className="mt-2">
-              <Field name="Languages">{values.language.map(labelOf).join(", ")}</Field>
-              <Field name="Who it's for">{values.whoItServes.map(labelOf).join(", ")}</Field>
+              <Field name="Languages">{values.language.map((key) => labelOf("language", key)).join(", ")}</Field>
+              <Field name="Who it's for">{values.whoItServes.map((key) => labelOf("whoItServes", key)).join(", ")}</Field>
             </div>
           </section>
         )}
@@ -245,7 +246,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
                     <span>
                       <span className="block">{other.name}</span>
                       <span className="block text-sm text-muted">
-                        {[...other.facetValues.category, ...other.facetValues.subcategory].map(labelOf).join(" · ")}
+                        {supportTags(other.facetValues, labelOf).map((tag) => tag.label).join(" · ")}
                       </span>
                     </span>
                     <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-primary-text" />

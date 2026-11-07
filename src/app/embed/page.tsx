@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { FileText, SlidersHorizontal } from "lucide-react";
 import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
+import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
+import { FACET_KEYS } from "@/directory/types";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { ActiveChips } from "./_components/active-chips";
 import { AnalyticsReporter } from "./_components/analytics-reporter";
@@ -13,7 +15,7 @@ import { activeFilterCount, FilterColumn } from "./_components/filter-column";
 import { FilterSheet } from "./_components/filter-sheet";
 import { HelpBox } from "./_components/help-box";
 import { NoResults } from "./_components/no-results";
-import { addressText, detailsHref, ProgramCard } from "./_components/program-card";
+import { addressText, detailsHref, ProgramCard, type LabelOf } from "./_components/program-card";
 import { ProgramMap, type MapProgram } from "./_components/program-map";
 import { ResizeReporter } from "./_components/resize-reporter";
 import { ResultLine } from "./_components/result-line";
@@ -43,8 +45,8 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
   const results = searchDirectory(snapshot, parseDirectoryQuery(params));
   const { query } = results;
 
-  const labels = new Map(snapshot.facets.flatMap((facet) => facet.values.map((value) => [value.key, value.label])));
-  const labelOf = (key: string) => labels.get(key) ?? key;
+  const findLabel = facetLabelLookup(snapshot.facets);
+  const labelOf: LabelOf = (facet, key) => findLabel(facet, key) ?? key;
   const search = serializeDirectoryQuery(query);
   const clearAllHref = hasActiveFilters(query) ? `?${serializeDirectoryQuery(clearFilters(query))}` : null;
   const organizationName = snapshot.programs.find((program) => program.organization.id === query.org)?.organization.name ?? null;
@@ -202,7 +204,7 @@ export default async function EmbedPage({ searchParams }: PageProps<"/embed">) {
         </div>
       </DirectoryLive>
       <ResizeReporter share={shareSearch(query)} />
-      <AnalyticsReporter search={{ q: query.q, total: results.totalPrograms, filters: Object.values(query.filters).flat().filter((value) => labels.has(value)).join(",") }} />
+      <AnalyticsReporter search={{ q: query.q, total: results.totalPrograms, filters: FACET_KEYS.flatMap((facet) => query.filters[facet].filter((value) => findLabel(facet, value) !== undefined)).join(",") }} />
     </main>
   );
 }

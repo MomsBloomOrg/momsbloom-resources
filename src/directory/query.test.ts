@@ -14,11 +14,16 @@ import {
 describe("parseDirectoryQuery", () => {
   it("reads every key, with repeated keys as several values", () => {
     const query = parseDirectoryQuery(
-      new URLSearchParams("q=yoga&zip=49508&r=5&cat=postpartum-recovery&ins=medicaid&ins=priority-health&org=o-001&sort=az&n=2"),
+      new URLSearchParams("q=yoga&zip=49508&r=5&cat=postpartum-recovery&ins=medicaid&ins=priority-health&org=O-001&sort=az&n=2"),
     );
     expect(query).toMatchObject({ q: "yoga", zip: "49508", radius: 5, org: "O-001", sort: "az", pages: 2 });
     expect(query.filters.category).toEqual(["postpartum-recovery"]);
     expect(query.filters.insurance).toEqual(["medicaid", "priority-health"]);
+  });
+
+  it("reads an Organization ID as an opaque string: database ids and fixture ids", () => {
+    expect(parseDirectoryQuery(new URLSearchParams("org=12")).org).toBe("12");
+    expect(parseDirectoryQuery(new URLSearchParams("org=O-001")).org).toBe("O-001");
   });
 
   it("reads Next.js searchParams objects too", () => {
@@ -30,10 +35,12 @@ describe("parseDirectoryQuery", () => {
 
   it("drops bad values instead of failing", () => {
     const query = parseDirectoryQuery(
-      new URLSearchParams("zip=4950&r=7&sort=best&n=-3&org=Riverbend&near=999,1&cat=&cat=yoga&cat=yoga"),
+      new URLSearchParams("zip=4950&r=7&sort=best&n=-3&org=Riverbend%20Health&near=999,1&cat=&cat=yoga&cat=yoga"),
     );
     expect(query).toMatchObject({ zip: null, radius: null, sort: null, pages: 1, org: null, near: null });
     expect(query.filters.category).toEqual(["yoga"]);
+    expect(parseDirectoryQuery(new URLSearchParams("org=a%26b")).org).toBeNull();
+    expect(parseDirectoryQuery(new URLSearchParams(`org=${"1".repeat(21)}`)).org).toBeNull();
   });
 
   it("rounds a location to 2 decimals, so the URL never holds an exact address", () => {
