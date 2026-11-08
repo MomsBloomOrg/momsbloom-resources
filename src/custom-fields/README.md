@@ -59,6 +59,8 @@ page, **Settings → Custom fields** (`/admin/settings/custom-fields`), for Admi
 | **More details** (in the form, before Status) | This record's answers. They save with the form's **Save** button, with the rest of the record. Leave a field blank if you don't know. |
 | **Settings → Custom fields** (one open section for Programs and one for Organizations) | The questions. Add, edit, move, archive, and restore fields here. A change applies to **every** Program (or every Organization), and the section says how many. **Who sees it** ("Families see it" or "Staff only") is a required choice with no default; the server refuses a form without it. "More details" on a record links here (Admins only). |
 
+Each Add and Edit form has a **How families see it** panel beside it. It shows the detail page line and the filter group, with a sample answer, and it follows the form as staff type. It uses the public pages' own code, so it shows what they will show.
+
 Contacts and Documents have no Admin form yet, so they get custom fields later. The code already
 supports them (`CUSTOM_FIELD_ENTITIES`); `ADMIN_ENTITIES` in `form.ts` lists the ones the Admin shows.
 
