@@ -64,7 +64,7 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
       it changes how pages render).
 - [x] When the schema lands, check it against `src/directory/types.ts` and the data import spec's
       column list.
-- [x] ~~Skeleton on first load~~ Not done, on purpose: streamed Suspense content stays hidden when JavaScript is off, so it breaks the no-JS promise. The snapshot is cached, and `DirectoryLive` already fades old results.
+- [x] ~~Skeleton on first load~~ Not done, on purpose: streamed Suspense content stays hidden when JavaScript is off, so it breaks the no-JS promise. The snapshot is cached, and `DirectoryLive` already fades old results. Later, a spinner on the Host page (in `embed.js`, outside the iframe) replaced the skeleton (#84).
 - [ ] Test the embed in Safari and on iOS, and when reached from the Squarespace menu.
 - [ ] The README says a Code block also works; only the Embed block was tested.
 - [ ] Ask the designer for the Admin design and the empty, loading, and error states (Designer To Do list).
