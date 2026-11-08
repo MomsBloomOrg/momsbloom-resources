@@ -69,48 +69,48 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
         </p>
       </OrganizationForm>
 
-        <Card
-          title={sectionTitle("Programs")}
-          actions={
-            <Link href={`/admin/programs/new?org=${id}`} className={buttonClass("secondary", "sm")}>
-              Add program
-            </Link>
-          }
-        >
-          {programs.length === 0 ? (
-            <EmptyState>This Organization has no Programs yet.</EmptyState>
-          ) : (
-            <table role="table" className={stackTableClass}>
-              <caption className="sr-only">Programs of {organization.name}</caption>
-              <thead role="rowgroup" className={stackTheadClass}>
-                <tr role="row" className={stackTheadRowClass}>
-                  <th role="columnheader" scope="col" className={thClass}>Name</th>
-                  <th role="columnheader" scope="col" className={thClass}>Status</th>
-                  <th role="columnheader" scope="col" className={thClass}>Last verified</th>
-                  <th role="columnheader" scope="col" className={thClass}><span className="sr-only">Edit</span></th>
+      <Card
+        title={sectionTitle("Programs")}
+        actions={
+          <Link href={`/admin/programs/new?org=${id}`} className={buttonClass("secondary", "sm")}>
+            Add program
+          </Link>
+        }
+      >
+        {programs.length === 0 ? (
+          <EmptyState>This Organization has no Programs yet.</EmptyState>
+        ) : (
+          <table role="table" className={stackTableClass}>
+            <caption className="sr-only">Programs of {organization.name}</caption>
+            <thead role="rowgroup" className={stackTheadClass}>
+              <tr role="row" className={stackTheadRowClass}>
+                <th role="columnheader" scope="col" className={thClass}>Name</th>
+                <th role="columnheader" scope="col" className={thClass}>Status</th>
+                <th role="columnheader" scope="col" className={thClass}>Last verified</th>
+                <th role="columnheader" scope="col" className={thClass}><span className="sr-only">Edit</span></th>
+              </tr>
+            </thead>
+            <tbody role="rowgroup" className={stackTbodyClass}>
+              {programs.map((p) => (
+                <tr key={p.id} role="row" className={stackRowClass}>
+                  <td role="cell" className={`${stackTdClass} font-semibold`}>{p.name}</td>
+                  <td role="cell" data-label="Status" className={stackTdClass}>
+                    <Badge tone={p.showOnSite ? "good" : "neutral"}>{p.statusName}</Badge>
+                  </td>
+                  <td role="cell" data-label="Last verified" className={stackTdClass}>{formatDate(p.lastVerified)}</td>
+                  <td role="cell" className={stackTdClass}>
+                    <Link href={`/admin/programs/${p.id}`} className={linkClass} aria-label={`Edit ${p.name}`}>
+                      Edit
+                    </Link>
+                  </td>
                 </tr>
-              </thead>
-              <tbody role="rowgroup" className={stackTbodyClass}>
-                {programs.map((p) => (
-                  <tr key={p.id} role="row" className={stackRowClass}>
-                    <td role="cell" className={`${stackTdClass} font-semibold`}>{p.name}</td>
-                    <td role="cell" data-label="Status" className={stackTdClass}>
-                      <Badge tone={p.showOnSite ? "good" : "neutral"}>{p.statusName}</Badge>
-                    </td>
-                    <td role="cell" data-label="Last verified" className={stackTdClass}>{formatDate(p.lastVerified)}</td>
-                    <td role="cell" className={stackTdClass}>
-                      <Link href={`/admin/programs/${p.id}`} className={linkClass} aria-label={`Edit ${p.name}`}>
-                        Edit
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Card>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
 
-        {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
+      {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
     </div>
   );
 }
