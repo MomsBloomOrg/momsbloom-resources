@@ -301,7 +301,7 @@ export function ProgramForm({
                 name="statusId"
                 defaultValue={String(p?.statusId ?? options.statuses[0]?.id ?? "")}
                 aria-describedby={describedBy("statusId")}
-                className="min-h-9 rounded-full border border-muted/70 bg-secondary-soft px-4 py-1.5 text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
+                className="min-h-11 rounded-full border border-muted/70 bg-secondary-soft px-4 py-2 text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
               >
                 {options.statuses.map((s) => (
                   <option key={s.id} value={s.id}>
