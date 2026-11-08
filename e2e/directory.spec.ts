@@ -356,6 +356,16 @@ test.describe("sort-dropdown", () => {
     expect(names).not.toContain("Pelvic floor therapy");
   });
 
+  test("featured-badge: only the featured cards show the Featured pill, in list and map view", async ({ page }) => {
+    for (const url of ["/embed?tab=programs&zip=49508", "/embed?tab=programs&zip=49508&view=map"]) {
+      await page.goto(url);
+      const cards = programCards(page);
+      await expect(cards.nth(0)).toContainText("Featured");
+      await expect(cards.nth(1)).toContainText("Featured");
+      await expect(cards.nth(2)).not.toContainText("Featured");
+    }
+  });
+
   test.describe("sort-no-js", () => {
     test.use({ javaScriptEnabled: false });
     test("the Sort button applies the choice", async ({ page }) => {

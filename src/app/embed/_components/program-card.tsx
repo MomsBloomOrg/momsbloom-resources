@@ -15,6 +15,11 @@ export function Tag({ children, words = [] }: { children: string; words?: readon
   );
 }
 
+/** The "Featured" pill of a featured Program. Real text, so color is not the only signal. */
+export function FeaturedBadge() {
+  return <p className="shrink-0 rounded-md bg-secondary px-2 py-0.5 text-sm text-ink">Featured</p>;
+}
+
 /** The "Type of support" tags: Categories, then Subcategories. `id` holds the Facet, because Category "1" and Subcategory "1" differ. */
 /** Category and Subcategory tags. A label shows once: a Category and a Subcategory can share a name. */
 export function supportTags(values: Pick<FacetValueKeys, "category" | "subcategory">, labelOf: LabelOf): { id: string; label: string }[] {
@@ -98,12 +103,19 @@ export function ProgramCard({
   const [contact, ...otherContacts] = program.contacts;
   const { address } = program;
   const website = webUrl(program.website);
+  const featured = program.featuredRank !== null;
+  const distance = distanceMiles !== null && (
+    <span className="flex shrink-0 items-center gap-1">
+      <MapPin aria-hidden="true" className="size-4" />
+      {distanceMiles} mi
+    </span>
+  );
 
   return (
     <article
       id={`program-${program.id}`}
       // data-active is set by ProgramMap when the family selects the card's pin.
-      className="rounded-2xl border border-line bg-surface p-5 data-[active]:border-primary-text data-[active]:ring-2 data-[active]:ring-primary-text"
+      className={`rounded-2xl bg-surface p-5 data-[active]:border-primary-text data-[active]:ring-2 data-[active]:ring-primary-text ${featured ? "border-2 border-secondary" : "border border-line"}`}
     >
       <div className="flex items-start justify-between gap-3 text-sm text-muted">
         <p>
@@ -117,12 +129,7 @@ export function ProgramCard({
             <Highlight text={program.organization.name} words={words} />
           </a>
         </p>
-        {distanceMiles !== null && (
-          <p className="flex shrink-0 items-center gap-1">
-            <MapPin aria-hidden="true" className="size-4" />
-            {distanceMiles} mi
-          </p>
-        )}
+        {featured ? <FeaturedBadge /> : distance}
       </div>
       <h3 className="mt-1 text-xl font-extrabold">
         <Highlight text={program.name} words={words} />
@@ -141,12 +148,15 @@ export function ProgramCard({
       </p>
       <div className="mt-3 flex flex-col gap-1 text-sm">
         {/* No address (or virtual only): show how to connect instead (spec, "States and edge cases"). */}
-        <p className="flex items-start gap-2">
-          <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          {address && !program.virtualOnly
-            ? addressText(address)
-            : (format ?? "Virtual and phone")}
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="flex items-start gap-2">
+            <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            {address && !program.virtualOnly
+              ? addressText(address)
+              : (format ?? "Virtual and phone")}
+          </p>
+          {featured && distance}
+        </div>
         {(program.phone || website) && (
           <p className="flex flex-wrap items-center gap-x-4">
             {program.phone && (

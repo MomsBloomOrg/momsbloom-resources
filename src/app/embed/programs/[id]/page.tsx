@@ -5,7 +5,7 @@ import { parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/dir
 import { facetLabelLookup } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
-import { addressText, formatText, organizationHref, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
+import { addressText, FeaturedBadge, formatText, organizationHref, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
 import { CustomField, Field, RequestUpdate } from "../../_components/detail-fields";
 import { ProgramMap } from "../../_components/program-map";
@@ -121,7 +121,10 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           {organization.name}
         </a>
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h1 className="text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
+        {program.featuredRank !== null && <FeaturedBadge />}
+      </div>
       {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-3 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
