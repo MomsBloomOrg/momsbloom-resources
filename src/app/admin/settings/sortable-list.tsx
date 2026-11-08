@@ -11,7 +11,7 @@ import { AddValueForm, Message, ValueRow } from "./facet-forms";
 
 const screenReaderInstructions = {
   draggable:
-    "To move this value, press Space or Enter. Use the up and down arrow keys to move it, then press Space or Enter to drop it. Press Escape to cancel. You can also use Move up and Move down in the More actions menu.",
+    "To move this option, press Space or Enter. Use the up and down arrow keys to move it, then press Space or Enter to drop it. Press Escape to cancel. You can also use Move up and Move down in the More actions menu.",
 };
 
 /**
