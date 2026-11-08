@@ -153,6 +153,8 @@ describe("Staff admins", () => {
       ok: false,
       error: "You cannot change your own role. Ask another Staff admin.",
     });
+    // An address that was added and later put on ADMIN_EMAILS has added_at set: still an Owner.
+    await db.update(staffAdmins).set({ addedAt: sql`now()` }).where(eq(staffAdmins.id, owner.id));
     expect(await setStaffAdminRole(db, added.id, owner.id, "editor", ENV)).toEqual({
       ok: false,
       error: "You cannot change an Owner's role. Owners are always Admin.",
