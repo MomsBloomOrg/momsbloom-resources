@@ -175,7 +175,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
                     {...(mapView
                       ? { "data-results-pane": "", tabIndex: 0, role: "region", "aria-label": "Results list" }
                       : {})}
-                    className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[800px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
+                    className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[800px] lg:overflow-y-auto lg:overscroll-contain lg:p-1 lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
                   >
                     <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
                       <h2 id="programs-heading" className="sr-only">
