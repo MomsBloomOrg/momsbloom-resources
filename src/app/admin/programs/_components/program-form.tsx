@@ -7,7 +7,7 @@ import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } fro
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Card, Field, Notice, PageHeader, buttonClass, hintClass, inputClass, labelClass, sectionTitle, statusPillClass } from "../../_components/ui";
-import { lastGoodPin } from "../../_components/last-good-pin";
+import { useLastGoodPin } from "../../_components/last-good-pin";
 import { useMapPointLookup } from "../../_components/use-map-point-lookup";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
@@ -165,9 +165,7 @@ export function ProgramForm({
   const errors = state.status === "invalid" ? state.errors : {};
   const p = program;
   // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
-  const [pin, setPin] = useState({ latitude: p?.latitude, longitude: p?.longitude });
-  const next = lastGoodPin(pin, state);
-  if (next !== pin) setPin(next);
+  const [pin, setPin] = useLastGoodPin({ latitude: p?.latitude, longitude: p?.longitude }, state);
   // The Program's own street: with none, it inherits the Organization's point and never looks up.
   const unplaced = Boolean(p?.streetAddress) && p?.latitude == null && p?.longitude == null;
   const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced);
@@ -205,7 +203,7 @@ export function ProgramForm({
           defaultValue={((fromPin ? pin : p)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
           placeholder={inherited == null ? undefined : String(inherited)}
           aria-invalid={errors[name] ? true : undefined}
-          aria-describedby={describedBy(name, extra.hint)}
+          aria-describedby={[describedBy(name, extra.hint), name === "latitude" && "program-map-point-status"].filter(Boolean).join(" ") || undefined}
           className={inputClass}
         />
       </Field>
@@ -339,7 +337,10 @@ export function ProgramForm({
             {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634", inherit: "latitude" })}
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
           </div>
-          {lookupNotice && <Notice tone="warning" role="status">{lookupNotice}</Notice>}
+          {/* Always in the page, so a screen reader announces the text when it appears. Hidden while the save shows its own notice. */}
+          <div id="program-map-point-status" role="status">
+            {lookupNotice && !(state.status === "saved" && state.notice) && <Notice tone="warning">{lookupNotice}</Notice>}
+          </div>
           {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
           {select("serviceFormatId", "How you'll connect", options.serviceFormats, "Not set")}
         </div>

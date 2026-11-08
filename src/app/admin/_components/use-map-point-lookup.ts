@@ -56,6 +56,7 @@ export function useMapPointLookup(setPin: (pin: Pin) => void, lookUpOnLoad: bool
       inFlight.current = controller;
       lastKey.current = addressKey(address);
       void fetchPoint(address, controller.signal).then((point) => {
+        if (inFlight.current !== controller) return; // a newer lookup started, or the form unmounted
         // undefined: aborted by a newer lookup, or no answer; Save looks the address up instead.
         // The inputs are keyed on the pin, so the default value is the pin: a different value means staff edited it.
         if (point === undefined || [field(ref.current, "latitude"), field(ref.current, "longitude")].some((f) => f && f.value.trim() !== f.defaultValue)) return;
@@ -71,7 +72,10 @@ export function useMapPointLookup(setPin: (pin: Pin) => void, lookUpOnLoad: bool
     const address = read();
     lastKey.current = addressKey(address);
     if (onLoad && address.streetAddress) lookUp(address);
-    return () => inFlight.current?.abort();
+    return () => {
+      inFlight.current?.abort();
+      inFlight.current = null;
+    };
   }, [onLoad, read, lookUp]);
 
   const onBlur = (event: FocusEvent<HTMLDivElement>) => {
