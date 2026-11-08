@@ -269,27 +269,28 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
         <EmptyState>No resources match.</EmptyState>
       ) : (
         <div className="rounded-2xl border border-line bg-surface px-4 lg:px-0">
-          <table role="table" className={stackTableClass}>
+          {/* Fixed column widths (lg), so they do not change with each tab's rows. Name takes the rest. */}
+          <table role="table" className={`${stackTableClass} lg:table-fixed`}>
             <caption className="sr-only">Resources</caption>
             <thead role="rowgroup" className={stackTheadClass}>
               <tr role="row" className={stackTheadRowClass}>
                 <SortHeader column="name" label="Name" current={current} className="lg:first:pl-10" />
-                <SortHeader column="type" label="Type" current={current} />
+                <SortHeader column="type" label="Type" current={current} className="lg:w-[30%]" />
                 {/* Ascending: oldest first; never verified counts as oldest. */}
-                <SortHeader column="verified" label="Last Verified" current={current} align="right" />
-                <SortHeader column="status" label="Status" current={current} align="right" className="lg:last:pr-8" />
+                <SortHeader column="verified" label="Last Verified" current={current} align="right" className="lg:w-44" />
+                <SortHeader column="status" label="Status" current={current} align="right" className="lg:w-44 lg:last:pr-8" />
               </tr>
             </thead>
             <tbody role="rowgroup" className={stackTbodyClass}>
               {rows.map((row) => (
                 <tr key={`${row.type}-${row.id}`} role="row" className={stackRowClass}>
-                  <td role="cell" className={`${stackTdClass} lg:py-5 lg:first:pl-10`}>
+                  <td role="cell" className={`${stackTdClass} break-words lg:py-5 lg:first:pl-10`}>
                     <Link href={row.href} className="font-semibold underline decoration-1 underline-offset-4 hover:text-primary-text">
                       {row.name}
                     </Link>
                     {row.organizationName && <div className="text-sm text-muted">{row.organizationName}</div>}
                   </td>
-                  <td role="cell" data-label="Type" className={`${stackTdClass} lg:py-5`}>
+                  <td role="cell" data-label="Type" className={`${stackTdClass} break-words lg:py-5`}>
                     {row.typeText}
                   </td>
                   <td role="cell" data-label="Last verified" className={`${stackTdClass} lg:py-5 lg:text-right`}>
