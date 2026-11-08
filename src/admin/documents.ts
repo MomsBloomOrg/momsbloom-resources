@@ -33,6 +33,8 @@ export interface DocumentFields {
   /** Staff admin email. Left out: the column does not change (see stampVerifiedBy). */
   lastVerifiedBy?: string | null;
   statusId: number;
+  /** Optional: the Document also shows on this Organization's page. */
+  organizationId: number | null;
   internalNotes: string | null;
 }
 
@@ -75,6 +77,11 @@ export function parseDocumentInput(data: FormData): AdminResult<DocumentInput> {
   out.statusId = parseId(raw.statusId);
   if (out.statusId === null) errors.statusId = "Select a Status.";
 
+  // Blank means no Organization; any other value must be an ID.
+  const organization = str(raw, "organizationId");
+  out.organizationId = organization ? parseId(organization) : null;
+  if (organization && out.organizationId === null) errors.organizationId = RELOAD;
+
   for (const key of DOCUMENT_LISTS) {
     const ids = data.getAll(key).map(parseId);
     if (ids.some((id) => id === null)) errors[key] = RELOAD;
@@ -91,6 +98,8 @@ async function checkReferences(db: Db, input: DocumentInput): Promise<AdminResul
     ({ ok: false, error: FIX_FIELDS, fieldErrors: { [key]: message } }) as const;
 
   if (!(await statusExists(db, input.statusId))) return NO_STATUS;
+  if (input.organizationId !== null && !(await allExist(db, t.organizations, [input.organizationId])))
+    return refused("organizationId", "That Organization does not exist. Reload the page.");
   if (!(await allExist(db, t.categories, input.categoryIds))) return refused("categoryIds");
   if (!(await allExist(db, t.languages, input.languageIds))) return refused("languageIds");
   if (input.subcategoryIds.length > 0) {
@@ -194,11 +203,12 @@ export interface DocumentFormOptions {
   categories: Option[];
   subcategories: (Option & { categoryId: number })[];
   languages: Option[];
+  organizations: Option[];
 }
 
 /** Every choice the Document form shows. `used` is the saved record: its hidden values stay, marked "(hidden)". */
 export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput> = {}): Promise<DocumentFormOptions> {
-  const [statuses, allCategories, allSubcategories, allLanguages] = await Promise.all([
+  const [statuses, allCategories, allSubcategories, allLanguages, organizations] = await Promise.all([
     listStatuses(db),
     db.select({ id: t.categories.id, name: t.categories.name, hidden: t.categories.hidden }).from(t.categories).orderBy(t.categories.sortOrder, t.categories.id),
     db
@@ -206,6 +216,7 @@ export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput
       .from(t.subcategories)
       .orderBy(t.subcategories.sortOrder, t.subcategories.id),
     db.select({ id: t.languages.id, name: t.languages.name, hidden: t.languages.hidden }).from(t.languages).orderBy(t.languages.sortOrder, t.languages.id),
+    db.select({ id: t.organizations.id, name: t.organizations.name }).from(t.organizations).orderBy(t.organizations.name, t.organizations.id),
   ]);
   const categories = shownOptions(allCategories, used.categoryIds);
   return {
@@ -213,5 +224,6 @@ export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput
     categories,
     subcategories: shownSubcategories(allSubcategories, categories, used.subcategoryIds),
     languages: shownOptions(allLanguages, used.languageIds),
+    organizations,
   };
 }

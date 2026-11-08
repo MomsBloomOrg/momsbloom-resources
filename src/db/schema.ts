@@ -102,6 +102,8 @@ export const documents = pgTable("documents", {
 	lastVerified: date("last_verified"),
 	lastVerifiedBy: text("last_verified_by"),
 	statusId: integer("status_id").notNull(),
+	/** Optional: the Document also shows on this Organization's page. */
+	organizationId: integer("organization_id"),
 	internalNotes: text("internal_notes"),
 	custom: custom(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
@@ -112,6 +114,11 @@ export const documents = pgTable("documents", {
 			foreignColumns: [statuses.id],
 			name: "documents_status_id_statuses_id_fk"
 		}).onDelete("restrict"),
+	foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organizations.id],
+			name: "documents_organization_id_organizations_id_fk"
+		}).onDelete("set null"),
 ]);
 
 export const organizations = pgTable("organizations", {

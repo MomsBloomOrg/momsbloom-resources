@@ -50,7 +50,7 @@ export interface DirectoryRows {
     | PlaceFields
   >[];
   contacts: Pick<Row<typeof schema.contacts>, "programId" | "name" | "title" | "specialty" | "email" | "phone" | "showOnWebsite">[];
-  documents: Pick<Row<typeof schema.documents>, "id" | "title" | "description" | "searchKeywords" | "url" | "lastVerified" | "statusId">[];
+  documents: Pick<Row<typeof schema.documents>, "id" | "title" | "description" | "searchKeywords" | "url" | "lastVerified" | "statusId" | "organizationId">[];
   categories: ListRow[];
   subcategories: (ListRow & { categoryId: number })[];
   insurancePlans: ListRow[];
@@ -222,6 +222,7 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
     const pdfUrl = toWebsite(document.url);
     // A Document with no usable link has nothing to download, so it is left out.
     if (!shown.has(document.statusId) || !pdfUrl) return [];
+    const org = document.organizationId === null ? undefined : organizations.get(document.organizationId);
     return [{
       id: String(document.id),
       title: document.title,
@@ -237,6 +238,7 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
         format: [],
       },
       pdfUrl,
+      organization: org ? { id: String(org.id), name: org.name } : null,
       lastVerified: document.lastVerified,
     }];
   });

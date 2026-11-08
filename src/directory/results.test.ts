@@ -68,10 +68,26 @@ describe("filters", () => {
     expect(results.query.filters.category).toEqual([]);
   });
 
-  it("the Organization filter shows that Organization's Programs and no Documents", () => {
+  it("the Organization filter shows that Organization's Programs and its linked Documents only", () => {
     const results = search("org=O-003");
     expect(results.programs.map((r) => r.program.id)).toEqual(["P-004", "P-005"]);
     expect(results.documents).toEqual([]);
+
+    const linked = {
+      ...TEST_SNAPSHOT,
+      documents: TEST_SNAPSHOT.documents.map((d) => (d.id === "D-002" ? { ...d, organization: { id: "O-003", name: "Lakeshore" } } : d)),
+    };
+    expect(search("org=O-003", linked).documents.map((d) => d.id)).toEqual(["D-002"]);
+    expect(search("org=O-003&q=zzzz", linked).documents).toEqual([]); // the keyword still applies
+    expect(search("org=O-001", linked).documents).toEqual([]);
+  });
+
+  it("a keyword finds a Document by its Organization's name", () => {
+    const linked = {
+      ...TEST_SNAPSHOT,
+      documents: TEST_SNAPSHOT.documents.map((d) => (d.id === "D-002" ? { ...d, organization: { id: "O-003", name: "Arbor Circle" } } : d)),
+    };
+    expect(search("q=arbor", linked).documents.map((d) => d.id)).toEqual(["D-002"]);
   });
 
   it("Documents follow the Category and Language filters, and ignore the others", () => {

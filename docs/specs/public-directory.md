@@ -39,7 +39,7 @@ verified.
 
 - One keyword box. Search runs across: Program name, Organization name, description, search
   keywords, Category and Subcategory names, and Contact names and titles. Documents search their
-  title, description, keywords, and Categories.
+  title, description, keywords, Categories, and the name of their Organization (when linked).
 - Not case-sensitive, matches part of a word ("lact" finds "Lactation"), ignores extra spaces.
 - Search runs about 250 ms after the family stops typing (this delay is called "debounce"). The
   Search button and the Enter key also run it.
@@ -119,7 +119,8 @@ See the four `*-detail-*.png` captures.
 - Mobile: one column, with Call, Directions, and Website at the top. Desktop: two columns, with the
   actions, location, and "More from ..." on the right. Below 900 px wide it becomes one column.
 - "Part of [Organization]" opens the Organization detail page. "See all programs at ..." opens the
-  results filtered to that Organization.
+  results filtered to that Organization. That filter keeps only the Documents linked to that
+  Organization (still narrowed by keyword and Facets); a Document with no Organization is hidden by it.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
 - "Request an update" follows "Last verified" and links to a form. **Open question:** MomsBloom
@@ -136,6 +137,8 @@ See `desktop-organization-detail.png` (desktop only in Figma). Route: `/embed/or
   arrow) that open their Program detail.
 - "More details": the Organization's custom field answers, public fields only (as on Program detail).
   Hidden when there are none.
+- "Guides and downloads": the Documents linked to this Organization, as Document cards (the guide also
+  still shows in Guides and downloads on the results page). After Programs. Hidden when there are none.
 - Call, Directions, and Website, then a Location card with a map and the address. These use the
   Organization's own phone, website, and address only, never one from its Programs.
 - "Last verified" at the bottom.

@@ -10,7 +10,7 @@
  *    Programs with no map point, go to the "Virtual and phone" group and are never dropped.
  * 4. Count the filter options (from the Programs left after step 3).
  * 5. Apply the filters, sort, and cut out the pages that are shown.
- * 6. Documents: keyword and their three Facets only. Never paged, never limited by distance.
+ * 6. Documents: the Organization filter (its linked Documents only), keyword, and their three Facets. Never paged, never limited by distance.
  */
 import { cleanCustomFilters, countCustomFilterValues, matchesCustomFilters } from "@/custom-fields/filter";
 import { distanceMiles, roundMiles } from "./distance";
@@ -134,16 +134,14 @@ export function searchDirectory(snapshot: DirectorySnapshot, query: DirectoryQue
   const shown = query.pages * PAGE_SIZE;
 
   // Step 6: Documents.
-  const documents =
-    query.org !== null
-      ? []
-      : snapshot.documents
-          .filter(
-            (document) =>
-              matchesWords(cachedText(document, (d) => documentSearchText(d, labelOf)), words) &&
-              matchesFilters(document.facetValues, filters, { facets: DOCUMENT_FACETS }),
-          )
-          .sort((a, b) => byName(a.title, b.title));
+  const documents = snapshot.documents
+    .filter(
+      (document) =>
+        (query.org === null || document.organization?.id === query.org) &&
+        matchesWords(cachedText(document, (d) => documentSearchText(d, labelOf)), words) &&
+        matchesFilters(document.facetValues, filters, { facets: DOCUMENT_FACETS }),
+    )
+    .sort((a, b) => byName(a.title, b.title));
 
   return {
     query: { ...query, filters, custom },
