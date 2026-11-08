@@ -15,11 +15,11 @@ import {
   stackTheadRowClass,
   thClass,
 } from "../_components/ui";
+import type { StaffRole } from "@/auth/config";
 import { addStaffAdminAction, removeStaffAdminAction, setStaffAdminRoleAction, type StaffAdminFormState } from "./actions";
 
 const idle: StaffAdminFormState = { result: "idle" };
 
-type Role = "admin" | "editor";
 const ROLE_OPTIONS = (
   <>
     <option value="editor">Editor</option>
@@ -66,7 +66,7 @@ export interface StaffAdminRow {
   /** "Owner", or "Added <date>". */
   label: string;
   owner: boolean;
-  role: Role;
+  role: StaffRole;
   /** The row id when this row can be removed and its role changed (an added Staff admin that is not you); else null. */
   removeId: string | null;
   you: boolean;

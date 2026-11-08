@@ -5,7 +5,7 @@ SSO was dropped. Updated 2026-11-07 (admin-users): Owners in `ADMIN_EMAILS`, plu
 that are added in the Admin. Amended 2026-11-07 (issue #73): Staff admins have a role, Admin or
 Editor; "there are no roles" no longer applies.
 
-Three MomsBloom staff members edit the directory. All three have the same rights. Families never
+Three MomsBloom staff members edit the directory. All three had the same rights (before the 2026-11-07 amendment; roles are in Consequences). Families never
 log in.
 
 The login is an email link (also called a "magic link"): a staff member types their email address,
@@ -42,7 +42,7 @@ sessions that last 7 days.
   Nobody can remove an Owner or themselves in the Admin, so the Admin always keeps a Staff admin,
   and the developer can always get back in through `ADMIN_EMAILS`.
 - Keep at least one Owner in `ADMIN_EMAILS`; it is the way back in. (Two added Staff admins can
-  remove each other at the same time.)
+  remove or demote each other at the same time.)
 - A row that an Owner's first login made has `added_at` null. When that address leaves
   `ADMIN_EMAILS`, the row no longer allows a login.
 - Email links can be abused. The app limits link requests for an allowed address: **20 per hour per

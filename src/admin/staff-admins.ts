@@ -5,9 +5,10 @@
  * Two kinds: Owners are the addresses on `ADMIN_EMAILS` (only the developer changes them), and added
  * Staff admins are `staff_admins` rows with `added_at` set. A Staff admin with the `admin` role can add or
  * remove an added Staff admin and change their role. Nobody can remove an Owner or themselves, or change
- * an Owner's role or their own, so the Admin always keeps one Staff admin with the `admin` role.
+ * an Owner's role or their own. Owners always have the `admin` role, so the Admin keeps an Admin while
+ * `ADMIN_EMAILS` has an Owner.
  */
-import { asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { authVerificationTokens, staffAdmins } from "@/db/schema";
 import type { Db } from "@/db/types";
 import type { StaffRole } from "@/auth/config";
@@ -126,7 +127,8 @@ export async function setStaffAdminRole(
     const [row] = await tx
       .select({ id: staffAdmins.id, email: staffAdmins.email })
       .from(staffAdmins)
-      .where(eq(staffAdmins.id, targetId))
+      // Only added rows: a stale first-login row is not on the page.
+      .where(and(eq(staffAdmins.id, targetId), isNotNull(staffAdmins.addedAt)))
       .for("update");
     if (!row) return NOT_FOUND;
     if (row.id === actorId) return refuse("You cannot change your own role. Ask another Staff admin.");

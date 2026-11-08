@@ -167,4 +167,14 @@ describe("Staff admins", () => {
     expect((await rowOf("added@example.org")).role).toBe("admin");
     expect((await rowOf("owner@example.org")).role).toBe("admin");
   });
+
+  it("refuses to change a stale first-login row (not an added Staff admin)", async () => {
+    const owner = await ownerRow();
+    const [stale] = await db.insert(staffAdmins).values({ email: "former-owner@example.org" }).returning();
+    expect(await setStaffAdminRole(db, owner.id, stale.id, "editor", ENV)).toEqual({
+      ok: false,
+      error: "This Staff admin does not exist. Reload the page.",
+    });
+    expect((await rowOf("former-owner@example.org")).role).toBe("admin");
+  });
 });
