@@ -3,7 +3,7 @@
  * checklist of docs/specs/public-directory.md.
  */
 import { describe, expect, it } from "vitest";
-import { AGES, DOULA, PARKING, TEST_FIELDS } from "@/custom-fields/test-fixtures";
+import { AGES, DOULA, PARKING, TEST_FIELDS, WORKSHEET } from "@/custom-fields/test-fixtures";
 import type { CustomValues } from "@/custom-fields/types";
 import { parseDirectoryQuery } from "./query";
 import { searchDirectory } from "./results";
@@ -218,6 +218,34 @@ describe("custom field filters", () => {
     const filtered = search(`cf${DOULA.id}=yes`, snapshot).counts;
     const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a, b) => a + b, 0);
     expect(sum(filtered.category)).toBeLessThan(sum(all.category));
+  });
+
+  describe("Document field filters", () => {
+    const docAnswers: Record<string, Record<string, unknown>> = { "D-001": { [WORKSHEET.id]: true }, "D-002": { [WORKSHEET.id]: false } };
+    const both: DirectorySnapshot = {
+      ...snapshot,
+      customFields: [...TEST_FIELDS, WORKSHEET],
+      documents: TEST_SNAPSHOT.documents.map((d) => ({ ...d, custom: (docAnswers[d.id] ?? {}) as CustomValues })),
+    };
+    const docIds = (url: string) => search(url, both).documents.map((d) => d.id).sort();
+    const programIds = (url: string) => search(url, both).programs.map((r) => r.program.id).sort();
+
+    it("narrows Documents only; Programs are unchanged", () => {
+      expect(docIds(`cf${WORKSHEET.id}=yes`)).toEqual(["D-001"]);
+      expect(docIds(`cf${WORKSHEET.id}=no`)).toEqual(["D-002"]);
+      expect(programIds(`cf${WORKSHEET.id}=yes`)).toEqual(programIds(""));
+    });
+
+    it("a Program filter leaves Documents unchanged", () => {
+      expect(docIds(`cf${DOULA.id}=yes`)).toEqual(docIds(""));
+      expect(programIds(`cf${DOULA.id}=yes`)).toEqual(["P-001"]);
+    });
+
+    it("counts Document values over Documents, with the other filters applied", () => {
+      const results = search(`cf${DOULA.id}=yes`, both);
+      expect(results.customCounts[WORKSHEET.id]).toEqual({ yes: 1, no: 1 });
+      expect(results.customCounts[PARKING.id]).toEqual({ "1": 1 });
+    });
   });
 
   it("drops filters for fields that are not filters, hidden options, and unknown fields", () => {

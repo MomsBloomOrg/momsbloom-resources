@@ -6,6 +6,7 @@ import {
   CHOICE_TYPES,
   CUSTOM_FIELD_ENTITIES,
   CUSTOM_FIELD_TYPES,
+  FILTER_ENTITIES,
   FILTERABLE_TYPES,
   type CustomFieldDefinition,
   type CustomFieldEntity,
@@ -207,7 +208,7 @@ function check<T extends NewCustomFieldDefinition>(
   }
 
   if (draft.filterable) {
-    if (draft.entity !== "program") errors.filterable = "Only Program fields can be filters.";
+    if (!(FILTER_ENTITIES as readonly string[]).includes(draft.entity)) errors.filterable = "Only Program and Document fields can be filters.";
     else if (!FILTERABLE_TYPES.includes(draft.type)) {
       errors.filterable = "Only Yes / No and list fields can be filters.";
     } else if (!draft.showOnWebsite) errors.filterable = "A filter must also be shown on the website.";

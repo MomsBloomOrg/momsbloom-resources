@@ -293,6 +293,23 @@ test("results-tabs: Programs & Providers and Guides & Downloads are two tabs wit
   await expect(page.getByRole("navigation", { name: "View" })).toHaveCount(0);
 });
 
+test("document-field-filter: a Document field filters the Guides tab only; its chip stays on the Programs tab", async ({ page }) => {
+  const downloads = page.locator('a[data-event="document_download"]');
+  await page.goto("/embed?tab=guides");
+  const before = await downloads.count();
+  const group = page.getByRole("group", { name: "Printable worksheet" });
+  await group.getByRole("checkbox", { name: /^Yes/ }).check();
+  await expect(page).toHaveURL(/cf3=yes/);
+  await expect(downloads).toHaveCount(1);
+  expect(before).toBeGreaterThan(1);
+  await expect(page.getByRole("link", { name: "Remove Printable worksheet: Yes" })).toBeVisible();
+  // The Programs tab has no Document group, keeps the chip, and its Programs are not filtered.
+  await page.goto("/embed?tab=programs&cf3=yes");
+  await expect(page.getByRole("group", { name: "Printable worksheet" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Remove Printable worksheet: Yes" })).toBeVisible();
+  await expect(resultLine(page)).toHaveText("14 results");
+});
+
 test.describe("sort-dropdown", () => {
   const sort = (page: Page) => page.getByRole("combobox", { name: "Sort" });
 

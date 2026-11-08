@@ -5,7 +5,7 @@ example "Parking" or "Doula on staff", without a developer and without a databas
 
 **Status: live in the Admin.** Staff can add fields and fill in answers on the Program and Organization
 pages (below). The database change (migration 0004) is on Neon. Families see Program and Organization
-answers on the Program detail page, and Program fields marked as filters in the filter column
+answers on the Program detail page, and Program and Document fields marked as filters in the filter column
 (URL key `cf<field id>`, for example `cf12=1`).
 
 ## The idea: a field is a question, each record has its own answer
@@ -41,7 +41,7 @@ Once the Directory uses custom fields:
 - **Program detail page:** one line per field that has an answer, for example **Parking:** Covered.
   Fields with no answer don't appear at all.
 - **Filters:** a field marked as a filter becomes a group of checkboxes after the usual ones, for
-  example "Parking: Covered, Standard Lot". Like the other filters, an option with a count of 0 is
+  example "Parking: Covered, Standard Lot". A Program field filters Programs and shows on the Programs tab; a Document field filters Documents and shows on the Guides tab. Like the other filters, an option with a count of 0 is
   hidden.
 - **Blank means "we don't know".** A blank answer is never shown as "No" and never matches a filter.
   A Program with no Parking answer is not in the results for "Covered" or "Standard Lot".
@@ -76,7 +76,7 @@ These keep the feature simple and safe. The code enforces all of them.
   garage" updates every record that has it. A hidden option can't be picked any more, but records
   that already have it keep it.
 - **No two active fields of the same record type can have the same name.**
-- **Filters:** only Program fields, only Yes / No and list fields, and only if shown on the website.
+- **Filters:** only Program and Document fields, only Yes / No and list fields, and only if shown on the website.
 - **Every answer is checked on the server when it's saved:** numbers, dates, phone numbers, emails,
   website links, and list options. The database itself does not check answers.
 
@@ -105,7 +105,7 @@ These keep the feature simple and safe. The code enforces all of them.
 | `types.ts` | Field types, the field shape, the stored answer shape. |
 | `definitions.ts` | Adding, editing, reordering, archiving, and restoring fields, with the error messages. Pure functions. |
 | `values.ts` | A record's form → the `custom` value to save (checks every answer); formatting answers for pages. Pure functions. |
-| `filter.ts` | Custom fields as Program filters: groups, matching, counts, cleaning filters from old links. Pure functions. |
+| `filter.ts` | Custom fields as Program and Document filters: groups, matching, counts, cleaning filters from old links. Pure functions. |
 | `store.ts` | Reads and writes `custom_fields` and the `custom` columns. No rules: callers check first. |
 | `form.ts` | A record's Admin form: reads the `custom.<id>` inputs and builds the `custom` column to save. Only the fields the form showed (`customFieldIds`) change, so an older form can't blank a newer field. |
 | `manage.ts` | The Settings → Custom fields page: add, edit, move, archive, restore, from form data. |

@@ -30,7 +30,7 @@ export default async function CustomFieldsPage() {
           </li>
           <li>
             <strong>Choose who sees it</strong>: &ldquo;Families see it&rdquo; shows the answer on the website, and &ldquo;Staff only&rdquo;
-            keeps it in the Admin. Yes / No and list fields on Programs can also be filters.
+            keeps it in the Admin. Yes / No and list fields on Programs and Documents can also be filters.
           </li>
         </ol>
       </div>

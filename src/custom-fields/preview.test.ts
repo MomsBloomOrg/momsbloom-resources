@@ -23,6 +23,12 @@ describe("previewFromForm", () => {
     expect(p.filter?.values.map((v) => v.label)).toEqual(["Yes", "No"]);
   });
 
+  it("shows the filter group for a public Document filter", () => {
+    const p = previewFromForm("document", "yesNo", form({ label: "Printable worksheet", visibility: "public", filterable: "on" }));
+    expect(p.where).toBe("card");
+    expect(p.filter?.values.map((v) => v.label)).toEqual(["Yes", "No"]);
+  });
+
   it("gives an Organization field no filter group", () => {
     const p = previewFromForm("organization", "choice", form({ label: "Type", visibility: "public", filterable: "on", options: "A\nB" }));
     expect(p.shown?.text).toBe("A");
