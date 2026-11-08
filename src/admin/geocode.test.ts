@@ -1,6 +1,6 @@
 /** The Census geocoder never runs for real here: `fetch` is a stub. */
 import { describe, expect, it, vi } from "vitest";
-import { geocodeAddress, geocodeOnSave } from "./geocode";
+import { geocodeAddress, geocodeOnSave, needsMapPoint } from "./geocode";
 
 const reply = (body: unknown, ok = true) => vi.fn().mockResolvedValue({ ok, json: async () => body });
 const match = { result: { addressMatches: [{ coordinates: { x: -84.5, y: 42.7 } }] } };
@@ -60,5 +60,21 @@ describe("geocodeOnSave", () => {
     const old = { ...place, latitude: 1, longitude: 2 };
     const r = await geocodeOnSave({ ...old, city: "Elsewhere" }, old, reply(match));
     expect(r.input).toMatchObject({ latitude: 42.7, longitude: -84.5 });
+  });
+});
+
+describe("needsMapPoint", () => {
+  const VIRTUAL = 2;
+  it("selects a street address with no point", () => {
+    expect(needsMapPoint(place, VIRTUAL)).toBe(true);
+    expect(needsMapPoint({ ...place, latitude: 1 }, VIRTUAL)).toBe(true);
+    expect(needsMapPoint({ ...place, longitude: 1 }, VIRTUAL)).toBe(true);
+  });
+  it("skips a full point, a blank street, and a Virtual-only Program", () => {
+    expect(needsMapPoint({ ...place, latitude: 1, longitude: 2 }, VIRTUAL)).toBe(false);
+    expect(needsMapPoint({ ...place, streetAddress: "  " }, VIRTUAL)).toBe(false);
+    expect(needsMapPoint({ ...place, streetAddress: null }, VIRTUAL)).toBe(false);
+    expect(needsMapPoint({ ...place, serviceFormatId: VIRTUAL }, VIRTUAL)).toBe(false);
+    expect(needsMapPoint({ ...place, serviceFormatId: 1 }, VIRTUAL)).toBe(true);
   });
 });

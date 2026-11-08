@@ -53,3 +53,14 @@ export async function geocodeOnSave<T extends Placed>(input: T, old: Placed | nu
   const point = await geocodeAddress([input.streetAddress, input.city, input.state, input.zip].filter(Boolean).join(", "), fetchFn);
   return point ? { input: { ...input, ...point }, failed: false } : { input: cleared, failed: true };
 }
+
+/**
+ * True when a stored record should get a point from the fill script: it has a street address of its own,
+ * latitude or longitude is empty, and (a Program) its Service format is not Virtual. A Program with no
+ * street inherits the Organization's point; a Virtual-only Program has no place to pin.
+ */
+export function needsMapPoint(row: Placed & { serviceFormatId?: number | null }, virtualFormatId: number | null): boolean {
+  if (!row.streetAddress?.trim()) return false;
+  if (row.latitude != null && row.longitude != null) return false;
+  return virtualFormatId == null || row.serviceFormatId !== virtualFormatId;
+}
