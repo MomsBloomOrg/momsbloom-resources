@@ -55,10 +55,11 @@ test("results with no pins show a line, not an empty map", async ({ page }) => {
   await expect(page.getByText("These places are virtual or by phone, so they have no map pin.")).toBeVisible();
 });
 
-test("Guides and downloads show below the list and map in map view too", async ({ page }) => {
-  await page.goto("/embed?q=yoga&view=map");
-  await expect(page.getByRole("heading", { name: /Guides and downloads/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Switch to list view/ })).toHaveCount(0);
+test("the Guides & Downloads tab has no map and no List/Map links", async ({ page }) => {
+  await page.goto("/embed?q=yoga&view=map&tab=guides");
+  await expect(page.getByRole("heading", { name: /Guides and downloads/ })).toBeAttached();
+  await expect(page.locator(".leaflet-container")).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "View" })).toHaveCount(0);
 });
 
 test.describe("JavaScript off", () => {

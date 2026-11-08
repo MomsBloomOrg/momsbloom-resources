@@ -243,11 +243,21 @@ test("filters-modal-desktop: on desktop, Filters opens a centered modal; the res
   await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
 });
 
-test("documents-height-capped: Guides and downloads scroll in their own box after about two rows", async ({ page }) => {
-  await page.goto("/embed");
-  const pane = page.locator("[data-documents-pane]");
-  await expect(pane).toHaveCSS("overflow-y", "auto");
-  await expect(pane).toHaveCSS("max-height", "416px");
+test("results-tabs: Programs & Providers and Guides & Downloads are two tabs with counts; view and sort only on Programs", async ({ page }) => {
+  await page.goto("/embed?q=yoga");
+  const tabs = page.getByRole("navigation", { name: "Results" });
+  const programsTab = tabs.getByRole("link", { name: /^Programs & Providers \(\d+\)$/ });
+  const guidesTab = tabs.getByRole("link", { name: /^Guides & Downloads \(\d+\)$/ });
+  await expect(programsTab).toHaveAttribute("aria-current", "page");
+  await expect(programCards(page).first()).toBeVisible();
+  await expect(page.locator('a[data-event="document_download"]')).toHaveCount(0);
+  await guidesTab.click();
+  await expect(page).toHaveURL(/tab=guides/);
+  await expect(guidesTab).toHaveAttribute("aria-current", "page");
+  await expect(page.locator('a[data-event="document_download"]').first()).toBeVisible();
+  await expect(programCards(page)).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Sort" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "View" })).toHaveCount(0);
 });
 
 test.describe("sort-dropdown", () => {
@@ -293,17 +303,12 @@ test.describe("sort-dropdown", () => {
 
   test.describe("mobile-one-row", () => {
     test.use({ viewport: { width: 390, height: 844 } });
-    test("Filters, view link, and Sort share one row", async ({ page }) => {
+    test("the view link and Sort share one row", async ({ page }) => {
       await page.goto("/embed?q=yoga&zip=49508");
-      const ys = async () =>
-        Promise.all(
-          [page.getByRole("link", { name: /^Filters/ }), page.getByRole("link", { name: "Map", exact: true }), sort(page)].map(
-            async (locator) => (await locator.boundingBox())!.y,
-          ),
-        );
-      const [filters, view, select] = await ys();
-      expect(Math.abs(filters - view)).toBeLessThanOrEqual(4);
-      expect(Math.abs(filters - select)).toBeLessThanOrEqual(4);
+      const [view, select] = await Promise.all(
+        [page.getByRole("link", { name: "Map", exact: true }), sort(page)].map(async (locator) => (await locator.boundingBox())!.y),
+      );
+      expect(Math.abs(view - select)).toBeLessThanOrEqual(4);
       await page.goto("/embed?q=yoga&zip=49508&view=map");
       await expect(page.getByRole("link", { name: "List View", exact: true })).toBeVisible();
     });

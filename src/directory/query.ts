@@ -61,6 +61,8 @@ export interface DirectoryQuery {
   pages: number;
   /** "map" shows the map beside the cards. Anything else in the URL is the list. */
   view: "list" | "map";
+  /** Results tab: Programs & Providers (the default) or Guides & Downloads ("guides"). */
+  tab: "programs" | "guides";
 }
 
 /** What Next.js gives a page as `searchParams`, or a plain URLSearchParams. */
@@ -81,6 +83,7 @@ export const EMPTY_QUERY: DirectoryQuery = {
   sort: null,
   pages: 1,
   view: "list",
+  tab: "programs",
 };
 
 function getAll(input: SearchParamsInput, key: string): string[] {
@@ -149,6 +152,7 @@ export function parseDirectoryQuery(input: SearchParamsInput): DirectoryQuery {
     sort: (SORTS as readonly string[]).includes(sort ?? "") ? (sort as Sort) : null,
     pages: Number.isFinite(pages) ? Math.min(Math.max(pages, 1), MAX_PAGES) : 1,
     view: getFirst(input, "view") === "map" ? "map" : "list",
+    tab: getFirst(input, "tab") === "guides" ? "guides" : "programs",
   };
 }
 
@@ -169,6 +173,7 @@ export function serializeDirectoryQuery(query: DirectoryQuery): string {
   if (query.sort) params.set("sort", query.sort);
   if (query.pages > 1) params.set("n", String(query.pages));
   if (query.view === "map") params.set("view", "map");
+  if (query.tab === "guides") params.set("tab", "guides");
   return params.toString();
 }
 

@@ -87,6 +87,10 @@ export async function Directory({ params, embed = false }: { params: Record<stri
       ))}
     </ul>
   );
+  const tabs = [
+    { key: "programs", label: "Programs & Providers", count: results.totalPrograms },
+    { key: "guides", label: "Guides & Downloads", count: results.documents.length },
+  ] as const;
   const nearby = results.programs.filter((result) => result.group !== "virtual-and-phone");
   const virtual = results.programs.filter((result) => result.group === "virtual-and-phone");
 
@@ -98,104 +102,116 @@ export async function Directory({ params, embed = false }: { params: Record<stri
         <div className="mt-6">
           <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
-        {/* The filters live in a modal (FilterSheet), opened by the "Filters" button in the result line. Without
+        {/* The filters live in a modal (FilterSheet), opened by the "Filters" button above the tabs. Without
             JavaScript the dialog is a plain block at the bottom of the page, and the button jumps to it. */}
-        <div className="mt-8 flex flex-col gap-6">
+        <div className="mt-6 flex flex-col gap-6">
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
-            {/* One toolbar grid. Mobile order (CSS `order`, one copy of each element): toolbar, chips, count. */}
-            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-              <div className="order-3 md:order-1">
-                <ResultSummary results={results} />
-              </div>
-              <div className="order-1 min-w-0 md:order-2">
-                <ResultToolbar results={results}>
-                  {/* Every width: opens the filters modal (FilterSheet). Without JavaScript it jumps to the filters at the bottom. */}
-                  <a
-                    href="#filters"
-                    data-action="open-filters"
-                    aria-haspopup="dialog"
-                    className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 font-bold hover:border-ink md:min-h-8 md:px-3 md:text-sm"
-                  >
-                    <SlidersHorizontal aria-hidden="true" className="size-4" />
-                    Filters
-                    {filterCount > 0 && (
-                      <span className="rounded-full bg-primary-text px-2 text-sm text-white">
-                        {filterCount}
-                        <span className="sr-only"> active</span>
-                      </span>
-                    )}
-                  </a>
-                </ResultToolbar>
-              </div>
+            <ResultSummary results={results} />
+            {/* The Filters button, then the active filter chips. The filters apply to both tabs. */}
+            <div className="flex min-w-0 items-center gap-3">
+              <a
+                href="#filters"
+                data-action="open-filters"
+                aria-haspopup="dialog"
+                className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:border-ink md:min-h-8 md:px-3"
+              >
+                <SlidersHorizontal aria-hidden="true" className="size-4" />
+                Filters
+                {filterCount > 0 && (
+                  <span className="rounded-full bg-primary-text px-2 text-white">
+                    {filterCount}
+                    <span className="sr-only"> active</span>
+                  </span>
+                )}
+              </a>
               {clearAllHref && (
-                <div className="order-2 md:order-3 md:col-span-2">
+                <div className="min-w-0">
                   <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
                 </div>
               )}
             </div>
 
-            {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
-            <div className={mapView ? "grid gap-4 lg:grid-cols-[22rem_1fr]" : "contents"}>
-              {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[800px]),
-                  so a long list never runs past the map. Focusable, so keyboard users can scroll it. `relative`: absolute
-                  children (sr-only text) must be clipped by the box, or they stretch the page to the list's full height. */}
-              <div
-                {...(mapView
-                  ? { "data-results-pane": "", tabIndex: 0, role: "region", "aria-label": "Results list" }
-                  : {})}
-                className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[800px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
-              >
-                <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
-                  <h2 id="programs-heading" className="text-xl font-extrabold">
-                    {results.origin ? "Places near you" : "Programs"}
-                  </h2>
-                  {results.totalPrograms === 0 ? <NoResults keyword={query.q} clearFiltersHref={clearAllHref} widenHref={widenHref} /> : cards(nearby)}
-                </section>
-                {virtual.length > 0 && (
-                  <section aria-labelledby="virtual-heading" className="flex flex-col gap-4">
-                    <h2 id="virtual-heading" className="text-xl font-extrabold">
-                      Virtual and phone
-                    </h2>
-                    {cards(virtual)}
-                  </section>
-                )}
-                {results.hasMore && <ShowMore query={query} remaining={results.totalPrograms - results.programs.length} />}
-              </div>
-              {mapView && mapPrograms.length > 0 && (
-                <div className="order-first lg:order-last">
-                  <ProgramMap programs={mapPrograms} />
-                </div>
-              )}
-              {mapView && results.totalPrograms > 0 && mapPrograms.length === 0 && (
-                <p className="order-first rounded-xl border border-line bg-surface p-4 text-sm lg:order-last">
-                  These places are virtual or by phone, so they have no map pin.
-                </p>
-              )}
-            </div>
-
-            {results.documents.length > 0 && (
-              <section aria-labelledby="documents-heading" className="mt-4 flex flex-col gap-4">
-                <h2 id="documents-heading" className="text-xl font-extrabold">
-                  Guides and downloads{" "}
-                  <span className="text-sm font-normal text-muted">
-                    {results.documents.length} {results.documents.length === 1 ? "result" : "results"}
-                  </span>
-                </h2>
-                {/* About two rows of cards, then the list scrolls in its own box (like the map view's cards).
-                    Focusable, so keyboard users can scroll it. */}
-                <ul
-                  tabIndex={0}
-                  aria-labelledby="documents-heading"
-                  data-documents-pane=""
-                  className="relative grid max-h-[26rem] gap-4 overflow-y-auto overscroll-contain pr-2 focus-visible:outline-2 focus-visible:outline-primary-text lg:grid-cols-2"
+            {/* Two tabs, as links (they work without JavaScript). The count is in each tab. */}
+            <nav aria-label="Results" className="flex gap-5 border-b border-line md:gap-8">
+              {tabs.map((tab) => (
+                <a
+                  key={tab.key}
+                  href={`?${serializeDirectoryQuery({ ...query, tab: tab.key, pages: 1 })}`}
+                  aria-current={query.tab === tab.key ? "page" : undefined}
+                  className="-mb-px flex min-h-11 items-center gap-1 border-b-3 border-transparent text-sm font-bold whitespace-nowrap text-muted hover:text-ink aria-[current]:border-primary aria-[current]:text-ink md:text-lg"
                 >
-                  {results.documents.map((document) => (
-                    <li key={document.id}>
-                      <DocumentCard document={document} labelOf={labelOf} />
-                    </li>
-                  ))}
-                </ul>
+                  {tab.label}
+                  <span className="font-normal text-muted">({tab.count})</span>
+                </a>
+              ))}
+            </nav>
+
+            {query.tab === "programs" ? (
+              <>
+                <ResultToolbar results={results} />
+                {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
+                <div className={mapView ? "grid gap-4 lg:grid-cols-[22rem_1fr]" : "contents"}>
+                  {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[800px]),
+                      so a long list never runs past the map. Focusable, so keyboard users can scroll it. `relative`: absolute
+                      children (sr-only text) must be clipped by the box, or they stretch the page to the list's full height. */}
+                  <div
+                    {...(mapView
+                      ? { "data-results-pane": "", tabIndex: 0, role: "region", "aria-label": "Results list" }
+                      : {})}
+                    className={`flex min-w-0 flex-col gap-4 ${mapView ? "lg:relative lg:max-h-[800px] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 focus-visible:outline-2 focus-visible:outline-primary-text" : ""}`}
+                  >
+                    <section aria-labelledby="programs-heading" className="flex flex-col gap-4">
+                      <h2 id="programs-heading" className="sr-only">
+                        {results.origin ? "Places near you" : "Programs"}
+                      </h2>
+                      {results.totalPrograms === 0 ? <NoResults keyword={query.q} clearFiltersHref={clearAllHref} widenHref={widenHref} /> : cards(nearby)}
+                    </section>
+                    {virtual.length > 0 && (
+                      <section aria-labelledby="virtual-heading" className="flex flex-col gap-4">
+                        <h2 id="virtual-heading" className="text-xl font-extrabold">
+                          Virtual and phone
+                        </h2>
+                        {cards(virtual)}
+                      </section>
+                    )}
+                    {results.hasMore && <ShowMore query={query} remaining={results.totalPrograms - results.programs.length} />}
+                  </div>
+                  {mapView && mapPrograms.length > 0 && (
+                    <div className="order-first lg:order-last">
+                      <ProgramMap programs={mapPrograms} />
+                    </div>
+                  )}
+                  {mapView && results.totalPrograms > 0 && mapPrograms.length === 0 && (
+                    <p className="order-first rounded-xl border border-line bg-surface p-4 text-sm lg:order-last">
+                      These places are virtual or by phone, so they have no map pin.
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <section aria-labelledby="documents-heading" className="flex flex-col gap-4">
+                <h2 id="documents-heading" className="sr-only">
+                  Guides and downloads
+                </h2>
+                {results.documents.length === 0 ? (
+                  <p className="rounded-xl border border-line bg-surface p-4 text-sm">
+                    No guides or downloads match.{" "}
+                    {clearAllHref && (
+                      <a href={clearAllHref} className="font-bold text-primary-text underline">
+                        Clear filters
+                      </a>
+                    )}
+                  </p>
+                ) : (
+                  <ul className="grid gap-4 lg:grid-cols-2">
+                    {results.documents.map((document) => (
+                      <li key={document.id}>
+                        <DocumentCard document={document} labelOf={labelOf} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
             )}
             <HelpBox />

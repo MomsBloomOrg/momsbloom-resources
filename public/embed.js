@@ -39,7 +39,7 @@
   var MAX_HEIGHT = 50000;
   var MAX_SEARCH = 2000;
   var MAX_VALUE = 100;
-  var KEYS = ["q", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view"];
+  var KEYS = ["q", "cat", "sub", "ins", "cost", "lang", "who", "fmt", "org", "sort", "view", "tab"];
   // Custom field filters (cf12=1): a copy of HOST_CUSTOM_KEY in protocol.ts.
   var CUSTOM_KEY = /^cf\d{1,9}$/;
   var MAX_CUSTOM_KEYS = 20;

@@ -5,7 +5,7 @@ import { removeCustomFilter, removeFilter, serializeDirectoryQuery, type Directo
 import { FACET_KEYS } from "@/directory/types";
 import type { LabelOf } from "./program-card";
 
-/** A dark chip per active filter; its "x" link removes that filter. "Clear all" keeps the keyword and ZIP. */
+/** A light chip per active filter; its "x" link removes that filter. "Clear all" keeps the keyword and ZIP. */
 export function ActiveChips({
   query,
   labelOf,
@@ -43,12 +43,12 @@ export function ActiveChips({
     <div className="flex items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
       <ul className="contents">
         {chips.map((chip) => (
-          <li key={chip.href} className="flex shrink-0 items-center rounded-full bg-muted py-1 pl-3 text-sm text-white">
+          <li key={chip.href} className="flex shrink-0 items-center rounded-full border border-line bg-surface py-0.5 pl-3 text-sm text-ink">
             {chip.label}
             <a
               href={chip.href}
               aria-label={`Remove ${chip.label}`}
-              className="-my-2 flex size-11 items-center justify-center rounded-full md:size-8"
+              className="-my-2 flex size-11 items-center justify-center rounded-full text-muted hover:text-ink md:size-8"
             >
               <X aria-hidden="true" className="size-4" />
             </a>
