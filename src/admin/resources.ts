@@ -30,8 +30,10 @@ export interface ResourceRow {
   type: ResourceType;
   id: number;
   name: string;
-  /** The Type column: a Program's Organization name, else the type ("Organization", "Guide & Download"). */
+  /** The Type column: the record type ("Organization", "Program", "Guide & Download"). */
   typeText: string;
+  /** A Program's Organization name; shown under the name. Programs only. */
+  organizationName?: string;
   statusId: number;
   statusName: string;
   showOnSite: boolean;
@@ -102,7 +104,7 @@ export async function listResourcesForAdmin(db: Db, { type, statusId, q = "", so
   }
   for (const p of programs) {
     const org = orgName.get(p.organizationId) ?? "";
-    push({ type: "program", id: p.id, name: p.name, typeText: org, statusId: p.statusId, lastVerified: p.lastVerified, href: `/admin/programs/${p.id}` }, [p.name, org, p.searchKeywords]);
+    push({ type: "program", id: p.id, name: p.name, typeText: RESOURCE_TYPE_LABELS.program, organizationName: org, statusId: p.statusId, lastVerified: p.lastVerified, href: `/admin/programs/${p.id}` }, [p.name, org, p.searchKeywords]);
   }
   for (const d of documents) {
     push({ type: "guide", id: d.id, name: d.name, typeText: RESOURCE_TYPE_LABELS.guide, statusId: d.statusId, lastVerified: d.lastVerified, href: `/admin/documents/${d.id}` }, [d.name, d.searchKeywords]);

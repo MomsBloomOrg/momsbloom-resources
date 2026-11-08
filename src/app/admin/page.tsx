@@ -288,9 +288,9 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
                     <Link href={row.href} className="font-semibold underline decoration-1 underline-offset-4 hover:text-primary-text">
                       {row.name}
                     </Link>
+                    {row.organizationName && <div className="text-sm text-muted">{row.organizationName}</div>}
                   </td>
                   <td role="cell" data-label="Type" className={`${stackTdClass} lg:py-5`}>
-                    {row.type === "program" && <span className="sr-only">Program of </span>}
                     {row.typeText}
                   </td>
                   <td role="cell" data-label="Last verified" className={`${stackTdClass} lg:py-5 lg:text-right`}>
