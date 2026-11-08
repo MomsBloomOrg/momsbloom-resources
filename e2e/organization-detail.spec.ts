@@ -68,6 +68,7 @@ test("org-request-update-link: Request an update shows with no Last verified dat
   await page.goto("/embed/organizations/O-001");
   const link = page.getByRole("link", { name: /^Request an update/ });
   await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", "noopener");
   await expect(link).toHaveAttribute(
     "href",
     `https://forms.cloud.microsoft/r/0DgyX0L0JS?r14e623fa7c204883bc6d93bbf151541d=${encodeURIComponent("Riverbend Health (Organization O-001)")}`,
