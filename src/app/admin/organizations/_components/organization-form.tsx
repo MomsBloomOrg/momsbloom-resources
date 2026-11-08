@@ -22,6 +22,7 @@ export function OrganizationForm({
   statuses,
   hiddenProgramCount,
   customFields,
+  canManageFields = false,
   title,
   back,
   actions,
@@ -34,6 +35,8 @@ export function OrganizationForm({
   hiddenProgramCount: number;
   /** The active Organization custom fields, in order. */
   customFields: readonly CustomFieldDefinition[];
+  /** Owners get a link to the Custom fields page; editors do not. */
+  canManageFields?: boolean;
   title: string;
   back?: ReactNode;
   /** Header actions before the Status select, for example "View on site". */
@@ -215,7 +218,7 @@ export function OrganizationForm({
               className={inputClass}
             />
           </Field>
-          <CustomFieldInputs idPrefix="org" fields={customFields} values={o?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
+          <CustomFieldInputs idPrefix="org" fields={customFields} values={o?.custom ?? {}} errors={errors} manageHref={canManageFields ? "/admin/settings/custom-fields#organization-fields" : undefined} />
           {children}
         </div>
       </Card>

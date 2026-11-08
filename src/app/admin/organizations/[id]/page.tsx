@@ -21,7 +21,6 @@ import {
   stackTheadRowClass,
   thClass,
 } from "../../_components/ui";
-import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { OrganizationForm } from "../_components/organization-form";
 
 /** Block on the login check (cacheComponents): the page is never prerendered without it. */
@@ -51,6 +50,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
         statuses={statuses}
         hiddenProgramCount={programs.filter((p) => p.showOnSite).length}
         customFields={customFields}
+        canManageFields={admin.role === "admin"}
         title={organization.name}
         back={
           <Link href="/admin?type=organization" className={`${linkClass} inline-flex items-center gap-1`}>
@@ -109,8 +109,6 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
           </table>
         )}
       </Card>
-
-      {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
     </div>
   );
 }

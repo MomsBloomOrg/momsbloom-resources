@@ -11,7 +11,7 @@ import { OrganizationForm } from "../_components/organization-form";
 export const instant = false;
 
 export default async function NewOrganizationPage() {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const db = getDb();
   const [statuses, customFields] = await Promise.all([listStatuses(db), listActiveFields(db, "organization")]);
   return (
@@ -19,6 +19,7 @@ export default async function NewOrganizationPage() {
       statuses={statuses}
       hiddenProgramCount={0}
       customFields={customFields}
+      canManageFields={admin.role === "admin"}
       title="New Organization"
       back={
         <Link href="/admin?type=organization" className={`${linkClass} inline-flex items-center gap-1`}>
