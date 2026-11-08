@@ -20,7 +20,7 @@ not designed yet ("Build out admin experience" is still on the designer's to-do 
   but they do not have to be pretty there.
 
 The resource list design is one list for Organizations and Documents: title "Resources Admin", a
-"New Resource" button, tabs (All, Organizations, Guides & Downloads), "Sign Out", a search box, Type
+"New Resource" button, tabs (All, Organizations, Programs, Guides & Downloads; Programs is our addition, issue #75), "Sign Out", a search box, Type
 and Status menus, a "Show Deleted" checkbox, and a table with Name, Type, and Status. Today the
 Admin has separate Organizations and Documents pages (see "Pages" below). **Open questions:** does
 the design replace those two lists; what "Type" filters (record type or Organization); and what
@@ -49,7 +49,7 @@ never deleted (they become Inactive). Build work: issue #38.
 
 | Route | Screen |
 |---|---|
-| `/admin` | **Organizations** list, the Admin home. Columns: name, Status, Programs (count, "n need review"), Last verified. Search by name. Status filter links (All, Active, Needs review, Inactive), each with its count. "Sort oldest verified first". There is no separate summary page and no global Programs table: staff reach a Program through its Organization. |
+| `/admin` | The Resources list, the Admin home, with tabs All, Organizations, Programs, and Guides & Downloads. Search, Type and Status filters, and sortable columns work on every tab. |
 | `/admin/organizations/new`, `/admin/organizations/[id]` | Organization form, then its Programs table and "Add program". |
 | `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
 | `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
