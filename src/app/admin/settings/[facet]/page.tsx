@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireStaffAdmin } from "@/auth/dal";
+import { requireAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { isFacetKey, listFacetsForAdmin } from "@/admin/facets";
 import { Card, EmptyState, PageHeader } from "../../_components/ui";
@@ -25,7 +25,7 @@ const SINGULAR: Record<string, string> = {
  * of their own: they are in groups under their Category.
  */
 export default async function FacetSettingsPage({ params }: PageProps<"/admin/settings/[facet]">) {
-  await requireStaffAdmin();
+  await requireAdmin();
   const key = (await params).facet;
   if (!isFacetKey(key) || key === "subcategory") notFound();
   const facets = await listFacetsForAdmin(getDb());

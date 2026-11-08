@@ -32,7 +32,7 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function OrganizationPage({ params }: PageProps<"/admin/organizations/[id]">) {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
@@ -96,7 +96,7 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
           )}
         </Card>
 
-        <CustomFieldsManager db={db} entity="organization" />
+        {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
       </div>
     </>
   );

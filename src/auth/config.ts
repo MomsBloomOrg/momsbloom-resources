@@ -18,6 +18,9 @@ import { isStaffEmail, isValidEmail, normalizeEmail } from "./rules";
 
 export const LOGIN_PATH = "/login";
 
+/** `admin`: all of the Admin. `editor`: Resources only (Organizations, Programs, Documents). */
+export type StaffRole = "admin" | "editor";
+
 /** Where Auth.js sends the browser after it sends a Login link. */
 const VERIFY_REQUEST_PATH = "/api/auth/verify-request?provider=resend&type=email";
 
@@ -78,18 +81,24 @@ export async function isAllowedEmail(
  * not an Owner and not added in the Admin (a first-login Owner row whose address left `ADMIN_EMAILS`).
  * The DAL calls it on every request. A refused row also loses all its sessions, so adding it back
  * later does not bring an old session back. A removed Staff admin has no row (sessions cascade).
+ *
+ * The role comes from the row, but an Owner is always `admin`: `ADMIN_EMAILS` is the way back in if
+ * roles go wrong.
  */
 export async function findStaffAdmin(
   db: Db,
   id: string,
   env: Record<string, string | undefined> = process.env,
-): Promise<{ id: string; email: string } | null> {
+): Promise<{ id: string; email: string; role: StaffRole } | null> {
   const [row] = await db
-    .select({ id: staffAdmins.id, email: staffAdmins.email, addedAt: staffAdmins.addedAt })
+    .select({ id: staffAdmins.id, email: staffAdmins.email, addedAt: staffAdmins.addedAt, role: staffAdmins.role })
     .from(staffAdmins)
     .where(eq(staffAdmins.id, id));
   if (!row) return null;
-  if (row.addedAt !== null || isStaffEmail(row.email, env)) return { id: row.id, email: row.email };
+  const owner = isStaffEmail(row.email, env);
+  if (row.addedAt !== null || owner) {
+    return { id: row.id, email: row.email, role: owner || row.role === "admin" ? "admin" : "editor" };
+  }
   await db.delete(authSessions).where(eq(authSessions.userId, row.id));
   return null;
 }
