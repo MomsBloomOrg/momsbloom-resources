@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { keywordWords, matchesWords, normalizeText } from "./search";
+import { highlightRanges, keywordWords, matchesWords, normalizeText } from "./search";
+
+describe("highlightRanges", () => {
+  it("ignores case and marks part of a word", () => {
+    expect(highlightRanges("Lactation help", ["lact"])).toEqual([[0, 4]]);
+  });
+  it("ignores accents but keeps original positions", () => {
+    expect(highlightRanges("Un café bon", ["cafe"])).toEqual([[3, 7]]);
+  });
+  it("merges overlapping ranges", () => {
+    expect(highlightRanges("Lactation", ["lact", "actation"])).toEqual([[0, 9]]);
+  });
+  it("marks every occurrence", () => {
+    expect(highlightRanges("yoga and Yoga", ["yoga"])).toEqual([[0, 4], [9, 13]]);
+  });
+  it("gives [] for no words, a missing word, or a 1-letter word", () => {
+    expect(highlightRanges("Lactation", [])).toEqual([]);
+    expect(highlightRanges("Lactation", ["zzz"])).toEqual([]);
+    expect(highlightRanges("Lactation", ["a"])).toEqual([]);
+  });
+});
 
 describe("keyword search", () => {
   const text = normalizeText("Lactation and feeding · Breastfeeding support (Español)");

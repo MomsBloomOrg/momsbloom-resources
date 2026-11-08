@@ -1,7 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
 import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
 import { searchDirectory, type ProgramResult } from "@/directory/results";
-import { facetLabelLookup } from "@/directory/search";
+import { facetLabelLookup, keywordWords } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { FACET_KEYS } from "@/directory/types";
 import { ActiveChips } from "./active-chips";
@@ -71,6 +71,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
       });
     }
   }
+  const words = keywordWords(query.q);
   const numberOf = new Map(mapPrograms.map((program) => [program.id, program.number]));
   const cards = (list: ProgramResult[]) => (
     <ul className="flex flex-col gap-4">
@@ -82,6 +83,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             detailsHref={detailsHref(result.program.id, search)}
             organizationHref={organizationHref(result.program.organization.id, search)}
             number={numberOf.get(result.program.id)}
+            words={words}
           />
         </li>
       ))}
@@ -207,7 +209,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
                   <ul className="grid gap-4 lg:grid-cols-2">
                     {results.documents.map((document) => (
                       <li key={document.id}>
-                        <DocumentCard document={document} labelOf={labelOf} />
+                        <DocumentCard document={document} labelOf={labelOf} words={words} />
                       </li>
                     ))}
                   </ul>
