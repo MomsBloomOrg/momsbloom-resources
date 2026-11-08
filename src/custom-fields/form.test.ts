@@ -66,6 +66,14 @@ describe("parseCustomForm", () => {
     expect(result).toEqual({ ok: false, fieldErrors: { [customInputName(parking.id)]: "Pick from the list." } });
   });
 
+  it("parses Document answers, and the Document form shows only Document fields", async () => {
+    const worksheet = await insertDefinition(db, definition({ entity: "document", type: "yesNo", label: "Printable worksheet" }));
+    expect((await listActiveFields(db, "document")).map((f) => f.id)).toEqual([worksheet.id]);
+    // Program ids on a Document form are ignored: only the Document's own fields count.
+    const result = await parseCustomForm(db, "document", form([worksheet, parking], { [worksheet.id]: "yes", [parking.id]: "1" }), 1);
+    expect(result).toEqual({ ok: true, values: { [worksheet.id]: true } });
+  });
+
   it("a form without custom fields leaves the column alone", async () => {
     expect(await parseCustomForm(db, "program", new FormData(), ids.yogaProgram)).toEqual({ ok: true, values: null });
   });

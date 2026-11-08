@@ -50,7 +50,7 @@ export interface DirectoryRows {
     | PlaceFields
   >[];
   contacts: Pick<Row<typeof schema.contacts>, "programId" | "name" | "title" | "specialty" | "email" | "phone" | "showOnWebsite">[];
-  documents: Pick<Row<typeof schema.documents>, "id" | "title" | "description" | "searchKeywords" | "url" | "lastVerified" | "statusId" | "organizationId">[];
+  documents: Pick<Row<typeof schema.documents>, "id" | "title" | "description" | "searchKeywords" | "url" | "lastVerified" | "statusId" | "organizationId" | "custom">[];
   categories: ListRow[];
   subcategories: (ListRow & { categoryId: number })[];
   insurancePlans: ListRow[];
@@ -168,7 +168,7 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
 
   // Custom fields: only fields shown on the website, not archived. Answers to other fields are dropped here.
   const customFields = rows.customFields.filter((field) => !field.archived && field.showOnWebsite);
-  const publicValues = (entity: "program" | "organization", values: unknown): CustomValues =>
+  const publicValues = (entity: "program" | "organization" | "document", values: unknown): CustomValues =>
     values && typeof values === "object" && !Array.isArray(values) ? onlyPublicValues(customFields, entity, values as CustomValues) : {};
 
   const contacts = new Map<number, DirectoryContact[]>();
@@ -240,6 +240,7 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
       pdfUrl,
       organization: org ? { id: String(org.id), name: org.name } : null,
       lastVerified: document.lastVerified,
+      custom: publicValues("document", document.custom),
     }];
   });
 

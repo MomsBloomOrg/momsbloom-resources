@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { getDocumentFormOptions } from "@/admin/documents";
+import { listActiveFields } from "@/custom-fields/form";
 import { Card, PageHeader, linkClass } from "../../_components/ui";
 import { DocumentForm } from "../_components/document-form";
 
@@ -9,8 +10,9 @@ import { DocumentForm } from "../_components/document-form";
 export const instant = false;
 
 export default async function NewDocumentPage() {
-  await requireStaffAdmin();
-  const options = await getDocumentFormOptions(getDb());
+  const admin = await requireStaffAdmin();
+  const db = getDb();
+  const [options, customFields] = await Promise.all([getDocumentFormOptions(db), listActiveFields(db, "document")]);
   const uploadPrefix = process.env.VERCEL_ENV === "production" ? "documents/" : "preview/documents/";
   return (
     <>
@@ -23,7 +25,7 @@ export default async function NewDocumentPage() {
         }
       />
       <Card>
-        <DocumentForm options={options} uploadPrefix={uploadPrefix} />
+        <DocumentForm options={options} customFields={customFields} canManageFields={admin.role === "admin"} uploadPrefix={uploadPrefix} />
       </Card>
     </>
   );

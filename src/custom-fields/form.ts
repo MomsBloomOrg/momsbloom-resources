@@ -1,5 +1,5 @@
 /**
- * Custom field answers on a record's Admin form (Program, Organization). The inputs are named
+ * Custom field answers on a record's Admin form (Program, Organization, Document). The inputs are named
  * `custom.<field id>`, and the form also sends `customFieldIds`: the fields it showed. Only those
  * fields change on save, so a form opened before a field was added (or restored) cannot blank it.
  */
@@ -9,8 +9,8 @@ import { getCustomValues, listDefinitions } from "./store";
 import type { CustomFieldDefinition, CustomFieldEntity, CustomValues } from "./types";
 import { parseCustomValues, type CustomFieldFormInput } from "./values";
 
-/** The record types that have an Admin form today. Contacts and Documents get theirs later. */
-export const ADMIN_ENTITIES = ["program", "organization"] as const satisfies readonly CustomFieldEntity[];
+/** The record types that have an Admin form today. Contacts get theirs later. */
+export const ADMIN_ENTITIES = ["program", "organization", "document"] as const satisfies readonly CustomFieldEntity[];
 export type AdminEntity = (typeof ADMIN_ENTITIES)[number];
 
 export const isAdminEntity = (value: unknown): value is AdminEntity => ADMIN_ENTITIES.includes(value as AdminEntity);

@@ -218,6 +218,9 @@ const PARKING = sampleField({
   ],
 });
 const ENTRANCE = sampleField({ id: "2", entity: "organization", label: "Accessible entrance", type: "text" });
+// Not a filter in this slice: Document filters come with the Guides tab work.
+const WORKSHEET = sampleField({ id: "3", entity: "document", label: "Printable worksheet", type: "yesNo" });
+const DOCUMENT_CUSTOM: Record<string, CustomValues> = { "D-001": { [WORKSHEET.id]: true } };
 const PROGRAM_CUSTOM: Record<string, CustomValues> = {
   "P-001": { [PARKING.id]: "1" },
   "P-003": { [PARKING.id]: "2" },
@@ -268,9 +271,13 @@ const organizations: DirectoryOrganization[] = [
   custom: ORGANIZATION_CUSTOM[org.id] ?? {},
 }));
 
-export const SAMPLE_SNAPSHOT: DirectorySnapshot = { ...TEST_SNAPSHOT, customFields: [PARKING, ENTRANCE],
+export const SAMPLE_SNAPSHOT: DirectorySnapshot = { ...TEST_SNAPSHOT, customFields: [PARKING, ENTRANCE, WORKSHEET],
   programs,
   organizations,
   // D-002 is linked to Northside Family Center (O-005): its page and `?org=O-005` show it.
-  documents: TEST_SNAPSHOT.documents.map((d) => (d.id === "D-002" ? { ...d, organization: { id: "O-005", name: "Northside Family Center" } } : d)),
+  documents: TEST_SNAPSHOT.documents.map((d) => ({
+    ...d,
+    custom: DOCUMENT_CUSTOM[d.id] ?? {},
+    ...(d.id === "D-002" ? { organization: { id: "O-005", name: "Northside Family Center" } } : {}),
+  })),
 };

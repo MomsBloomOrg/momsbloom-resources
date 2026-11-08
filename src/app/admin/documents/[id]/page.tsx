@@ -4,6 +4,7 @@ import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { getDocumentForAdmin, getDocumentFormOptions } from "@/admin/documents";
 import { parseId } from "@/admin/organizations";
+import { listActiveFields } from "@/custom-fields/form";
 import { Card, PageHeader, hintClass, linkClass } from "../../_components/ui";
 import { DocumentForm } from "../_components/document-form";
 
@@ -11,14 +12,14 @@ import { DocumentForm } from "../_components/document-form";
 export const instant = false;
 
 export default async function DocumentPage({ params }: PageProps<"/admin/documents/[id]">) {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
   const detail = await getDocumentForAdmin(db, id);
   if (!detail) notFound();
   // The saved record goes in: its hidden values stay on the form.
-  const options = await getDocumentFormOptions(db, detail.document);
+  const [options, customFields] = await Promise.all([getDocumentFormOptions(db, detail.document), listActiveFields(db, "document")]);
   const { document } = detail;
   const uploadPrefix = process.env.VERCEL_ENV === "production" ? "documents/" : "preview/documents/";
 
@@ -33,7 +34,7 @@ export default async function DocumentPage({ params }: PageProps<"/admin/documen
         }
       />
       <Card title="Document">
-        <DocumentForm key={id} id={id} document={document} options={options} uploadPrefix={uploadPrefix} />
+        <DocumentForm key={id} id={id} document={document} options={options} customFields={customFields} canManageFields={admin.role === "admin"} uploadPrefix={uploadPrefix} />
         <p className={`${hintClass} mt-4`}>
           Last changed {new Date(document.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
         </p>

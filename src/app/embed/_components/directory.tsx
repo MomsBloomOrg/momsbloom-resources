@@ -223,7 +223,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
                   <ul className="grid gap-4 lg:grid-cols-2">
                     {results.documents.map((document) => (
                       <li key={document.id}>
-                        <DocumentCard document={document} labelOf={labelOf} words={words} />
+                        <DocumentCard document={document} labelOf={labelOf} customFields={snapshot.customFields} words={words} />
                       </li>
                     ))}
                   </ul>

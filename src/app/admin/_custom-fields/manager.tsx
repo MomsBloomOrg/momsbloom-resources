@@ -1,9 +1,9 @@
 /**
- * "Program fields" (or "Organization fields"): one open section on the Admin Custom fields page
+ * "Program fields" (or "Organization fields", "Document fields"): one open section on the Admin Custom fields page
  * where staff add, edit, move, archive, and restore fields (src/custom-fields/README.md).
  *
  * A field belongs to every record of its type, so the section names the count. The section `id`
- * (`program-fields`, `organization-fields`) is the anchor the record forms link to.
+ * (`program-fields`, `organization-fields`, `document-fields`) is the anchor the record forms link to.
  */
 import type { AdminEntity } from "@/custom-fields/form";
 import { countRecords, listFieldsForAdmin } from "@/custom-fields/manage";
@@ -14,6 +14,7 @@ import { AddFieldForm, ArchivedFieldRow, FieldRow } from "./field-forms";
 const NAMES: Record<AdminEntity, { one: string; many: string }> = {
   program: { one: "Program", many: "Programs" },
   organization: { one: "Organization", many: "Organizations" },
+  document: { one: "Document", many: "Documents" },
 };
 
 export async function CustomFieldsManager({ db, entity }: { db: Db; entity: AdminEntity }) {

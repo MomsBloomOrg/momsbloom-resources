@@ -1,11 +1,25 @@
 import { Download, FileText } from "lucide-react";
+import { publicCustomValues } from "@/custom-fields/values";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
 import type { DirectoryDocument } from "@/directory/types";
+import { CustomField } from "./detail-fields";
 import { Highlight } from "./highlight";
 import { supportTags, Tag, type LabelOf } from "./program-card";
 
-/** One Document in "Guides and downloads": title, description, tags, "PDF" + languages, Download. */
-export function DocumentCard({ document, labelOf, words = [] }: { document: DirectoryDocument; labelOf: LabelOf; words?: readonly string[] }) {
+/** One Document in "Guides and downloads": title, description, tags, custom field answers, "PDF" + languages, Download. */
+export function DocumentCard({
+  document,
+  labelOf,
+  customFields,
+  words = [],
+}: {
+  document: DirectoryDocument;
+  labelOf: LabelOf;
+  customFields: readonly CustomFieldDefinition[];
+  words?: readonly string[];
+}) {
   const values = document.facetValues;
+  const details = publicCustomValues(customFields, "document", document.custom);
   const tags = supportTags(values, labelOf);
   return (
     <article className="flex gap-4 rounded-2xl border border-line bg-surface p-5">
@@ -27,6 +41,13 @@ export function DocumentCard({ document, labelOf, words = [] }: { document: Dire
               </Tag>
             ))}
           </ul>
+        )}
+        {details.length > 0 && (
+          <div>
+            {details.map((field) => (
+              <CustomField key={field.fieldId} field={field} />
+            ))}
+          </div>
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <p className="text-muted">{["PDF", values.language.map((key) => labelOf("language", key)).join(", ")].filter(Boolean).join(" · ")}</p>
