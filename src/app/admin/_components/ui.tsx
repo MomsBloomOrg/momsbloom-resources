@@ -38,6 +38,11 @@ export const linkClass = "text-primary-hover underline decoration-1 underline-of
 export const inputClass =
   "w-full rounded-lg border border-muted/70 bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
+/** The Status select in an edit page header: a pill, not a boxed field. */
+export const statusPillClass =
+  "min-h-11 rounded-full border border-muted/70 bg-secondary-soft px-4 py-2 text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
+/** The heading of a form card: smaller than the Card default, as in the Edit Resource design. */
+export const sectionTitle = (title: string) => <span className="text-xl font-semibold text-muted">{title}</span>;
 export const labelClass = "font-semibold text-ink";
 export const hintClass = "text-sm text-muted";
 

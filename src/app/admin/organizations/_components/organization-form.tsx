@@ -1,11 +1,11 @@
 "use client";
 
 import { NOT_PLACED } from "@/admin/geocode";
-import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { OrganizationInput, StatusOption } from "@/admin/organizations";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
-import { Field, Notice, buttonClass, inputClass } from "../../_components/ui";
+import { Card, Field, Notice, PageHeader, buttonClass, inputClass, sectionTitle, statusPillClass } from "../../_components/ui";
 import { lastGoodPin } from "../../_components/last-good-pin";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
 
@@ -22,6 +22,10 @@ export function OrganizationForm({
   statuses,
   hiddenProgramCount,
   customFields,
+  title,
+  back,
+  actions,
+  children,
 }: {
   id?: number;
   organization?: OrganizationInput;
@@ -30,6 +34,12 @@ export function OrganizationForm({
   hiddenProgramCount: number;
   /** The active Organization custom fields, in order. */
   customFields: readonly CustomFieldDefinition[];
+  title: string;
+  back?: ReactNode;
+  /** Header actions before the Status select, for example "View on site". */
+  actions?: ReactNode;
+  /** The end of the Admin card, for example "Last changed". */
+  children?: ReactNode;
 }) {
   const [state, dispatch, pending] = useActionState(saveOrganizationAction, IDLE);
   const [statusId, setStatusId] = useState(String(organization?.statusId ?? statuses[0]?.id ?? ""));
@@ -85,89 +95,137 @@ export function OrganizationForm({
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (o?.lastVerified ?? "");
   const verifiedBy = state.status === "saved" && state.lastVerifiedBy !== undefined ? state.lastVerifiedBy : o?.lastVerifiedBy;
 
+  const saveLabel = id === undefined ? "Create Organization" : "Save Changes";
+  /** The save result. `live` gives the boxes their roles; the copy by the bottom Save has none, so a screen reader reads it once. */
+  const notices = (live: boolean) => (
+    <>
+      {state.status === "saved" && <Notice tone="success" role={live ? "status" : undefined}>{state.message}</Notice>}
+      {notice && <Notice tone="warning" role={live ? "status" : undefined}>{notice}</Notice>}
+      {state.status === "invalid" && <Notice tone="error" role={live ? "alert" : undefined}>{state.message}</Notice>}
+    </>
+  );
+
   return (
-    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-6">
       <input type="hidden" name="id" value={id ?? ""} />
-      {text("name", "Name")}
-      <Field id="org-about" label="About" error={errors.about}>
-        <textarea id="org-about" name="about" rows={4} defaultValue={o?.about ?? ""} className={inputClass} />
-      </Field>
-      <section className="flex flex-col gap-4">
-        <h3 className="text-xl font-semibold text-muted">Location</h3>
-        {text("streetAddress", "Street address")}
-        {text("suite", "Suite")}
-        <div className="grid gap-4 sm:grid-cols-3">
-          {text("city", "City")}
-          {text("state", "State")}
-          {text("zip", "ZIP")}
-        </div>
-        {text("county", "County")}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
-          {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
-        </div>
-      </section>
-      <section className="flex flex-col gap-4">
-        <h3 className="text-xl font-semibold text-muted">Phone, Email &amp; Website</h3>
-        {text("phone", "Phone", { type: "tel" })}
-        {text("email", "Email", { type: "email" })}
-        {text("website", "Website", { hint: "Starts with https://", type: "url" })}
-      </section>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="org-statusId" label="Status" error={errors.statusId}>
-          <select
-            id="org-statusId"
-            name="statusId"
-            value={statusId}
-            onChange={(e) => setStatusId(e.target.value)}
-            className={inputClass}
-          >
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {s.showOnSite ? "" : " (hidden from families)"}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field id="org-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
-          {/* key: a new value from "Mark verified" replaces what the input shows. */}
-          <input
-            key={lastVerified}
-            id="org-lastVerified"
-            name="lastVerified" aria-describedby={verifiedBy ? "org-lastVerified-hint" : undefined}
-            type="date"
-            defaultValue={lastVerified}
-            className={inputClass}
-          />
-        </Field>
-      </div>
-      <CustomFieldInputs idPrefix="org" fields={customFields} values={o?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
-      <Field id="org-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
-        <textarea
-          id="org-internalNotes"
-          name="internalNotes"
-          rows={3}
-          defaultValue={o?.internalNotes ?? ""}
-          aria-describedby="org-internalNotes-hint"
-          className={inputClass}
+      <div>
+        <PageHeader
+          title={title}
+          back={back}
+          actions={
+            <div className="flex flex-wrap items-center gap-3">
+              {actions}
+              <label htmlFor="org-statusId" className="sr-only">
+                Status
+              </label>
+              <select
+                id="org-statusId"
+                name="statusId"
+                value={statusId}
+                onChange={(e) => setStatusId(e.target.value)}
+                aria-describedby={errors.statusId ? "org-statusId-error" : undefined}
+                className={statusPillClass}
+              >
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.showOnSite ? "" : " (hidden from families)"}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" disabled={pending} className={buttonClass("primary")}>
+                {saveLabel}
+              </button>
+            </div>
+          }
         />
-      </Field>
-
-      {state.status === "saved" && <Notice tone="success" role="status">{state.message}</Notice>}
-      {notice && <Notice tone="warning" role="status">{notice}</Notice>}
-      {state.status === "invalid" && <Notice tone="error" role="alert">{state.message}</Notice>}
-
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={pending} className={buttonClass("primary")}>
-          {id === undefined ? "Create Organization" : "Save"}
-        </button>
-        {id !== undefined && (
-          <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>
-            Mark verified
-          </button>
+        {errors.statusId && (
+          <p id="org-statusId-error" role="alert" className="mb-4 text-sm font-semibold text-red-700">
+            {errors.statusId}
+          </p>
         )}
+        <div className="flex flex-col gap-3">{notices(true)}</div>
       </div>
+
+      <Card title={sectionTitle("Title")}>
+        <div className="flex flex-col gap-5">{text("name", "Name")}</div>
+      </Card>
+
+      <Card title={sectionTitle("Location")}>
+        <div className="flex flex-col gap-5">
+          {text("streetAddress", "Street address")}
+          {text("suite", "Suite")}
+          <div className="grid gap-4 sm:grid-cols-3">
+            {text("city", "City")}
+            {text("state", "State")}
+            {text("zip", "ZIP")}
+          </div>
+          {text("county", "County")}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
+            {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
+          </div>
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Phone, Email & Website")}>
+        <div className="flex flex-col gap-5">
+          {text("phone", "Phone", { type: "tel" })}
+          {text("email", "Email", { type: "email" })}
+          {text("website", "Website", { hint: "Starts with https://", type: "url" })}
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("About")}>
+        <div className="flex flex-col gap-5">
+          <Field id="org-about" label="About" error={errors.about}>
+            <textarea id="org-about" name="about" rows={6} defaultValue={o?.about ?? ""} className={inputClass} />
+          </Field>
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Admin")}>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-end gap-3">
+            <Field id="org-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
+              {/* key: a new value from "Mark verified" replaces what the input shows. */}
+              <input
+                key={lastVerified}
+                id="org-lastVerified"
+                name="lastVerified"
+                aria-describedby={verifiedBy ? "org-lastVerified-hint" : undefined}
+                type="date"
+                defaultValue={lastVerified}
+                className={inputClass}
+              />
+            </Field>
+            {id !== undefined && (
+              <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>
+                Mark verified
+              </button>
+            )}
+          </div>
+          <Field id="org-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
+            <textarea
+              id="org-internalNotes"
+              name="internalNotes"
+              rows={3}
+              defaultValue={o?.internalNotes ?? ""}
+              aria-describedby="org-internalNotes-hint"
+              className={inputClass}
+            />
+          </Field>
+          <CustomFieldInputs idPrefix="org" fields={customFields} values={o?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
+          {children}
+        </div>
+      </Card>
+
+      <div aria-hidden="true" className="flex flex-col gap-3">
+        {notices(false)}
+      </div>
+      <button type="submit" disabled={pending} className={`${buttonClass("primary")} w-full max-w-sm self-center`}>
+        {saveLabel}
+      </button>
     </form>
   );
 }

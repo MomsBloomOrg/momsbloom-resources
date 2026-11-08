@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
@@ -8,9 +9,10 @@ import {
   Badge,
   Card,
   EmptyState,
-  PageHeader,
   buttonClass,
+  hintClass,
   linkClass,
+  sectionTitle,
   stackRowClass,
   stackTableClass,
   stackTbodyClass,
@@ -41,22 +43,34 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
   const { organization, programs } = detail;
 
   return (
-    <>
-      <PageHeader
+    <div className="flex flex-col gap-6">
+      <OrganizationForm
+        key={id}
+        id={id}
+        organization={organization}
+        statuses={statuses}
+        hiddenProgramCount={programs.filter((p) => p.showOnSite).length}
+        customFields={customFields}
         title={organization.name}
         back={
-          <Link href="/admin?type=organization" className={linkClass}>
+          <Link href="/admin?type=organization" className={`${linkClass} inline-flex items-center gap-1`}>
+            <ArrowLeft size={14} aria-hidden />
             Back to Organizations
           </Link>
         }
-      />
-      <div className="flex flex-col gap-6">
-        <Card title="Organization">
-          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} hiddenProgramCount={programs.filter((p) => p.showOnSite).length} customFields={customFields} />
-        </Card>
+        actions={
+          <a href={`/embed/organizations/${id}`} target="_blank" rel="noopener" className={buttonClass("secondary")}>
+            View on site<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        }
+      >
+        <p className={hintClass}>
+          Last changed {new Date(organization.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
+        </p>
+      </OrganizationForm>
 
         <Card
-          title="Programs"
+          title={sectionTitle("Programs")}
           actions={
             <Link href={`/admin/programs/new?org=${id}`} className={buttonClass("secondary", "sm")}>
               Add program
@@ -97,7 +111,6 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
         </Card>
 
         {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
-      </div>
-    </>
+    </div>
   );
 }

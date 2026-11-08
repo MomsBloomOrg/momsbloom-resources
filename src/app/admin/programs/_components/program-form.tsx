@@ -6,7 +6,7 @@ import { startTransition, useActionState, useRef, useState, type FormEvent, type
 import type { Option, OrganizationOption, ProgramFormOptions, ProgramInput } from "@/admin/programs";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
-import { Card, Field, Notice, PageHeader, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
+import { Card, Field, Notice, PageHeader, buttonClass, hintClass, inputClass, labelClass, sectionTitle, statusPillClass } from "../../_components/ui";
 import { lastGoodPin } from "../../_components/last-good-pin";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
@@ -53,9 +53,6 @@ export function Checks({
     </fieldset>
   );
 }
-
-/** The heading of a form card: smaller than the Card default, as in the Edit Resource design. */
-export const sectionTitle = (title: string) => <span className="text-xl font-semibold text-muted">{title}</span>;
 
 /** One checkbox of a ChipSelect. It sends `name=id` when checked. */
 export interface ChipOption {
@@ -301,7 +298,7 @@ export function ProgramForm({
                 name="statusId"
                 defaultValue={String(p?.statusId ?? options.statuses[0]?.id ?? "")}
                 aria-describedby={describedBy("statusId")}
-                className="min-h-11 rounded-full border border-muted/70 bg-secondary-soft px-4 py-2 text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1"
+                className={statusPillClass}
               >
                 {options.statuses.map((s) => (
                   <option key={s.id} value={s.id}>

@@ -2,8 +2,7 @@
 
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import type { ContactRow } from "@/admin/contacts";
-import { Badge, Card, EmptyState, Field, Notice, buttonClass, inputClass } from "../../../_components/ui";
-import { sectionTitle } from "../../_components/program-form";
+import { Badge, Card, EmptyState, Field, Notice, buttonClass, inputClass, sectionTitle } from "../../../_components/ui";
 import { saveContactAction, type ContactFormState } from "./contact-actions";
 
 const IDLE: ContactFormState = { status: "idle" };
