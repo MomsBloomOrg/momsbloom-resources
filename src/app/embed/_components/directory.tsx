@@ -119,14 +119,14 @@ export async function Directory({ params, embed = false }: { params: Record<stri
       <DirectoryHeader />
 
       <DirectoryLive>
-        <div className="mt-16">
+        <div className="mt-10">
           <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
         {/* The filters (FilterSheet): from lg in list view, a column on the left of the results, always shown. In map
             view (lg: a "Filters" button in the toolbar) and below lg (the button above the tabs), a modal. The tabs and
             toolbar stay put when the view changes; only what is under them changes. Without JavaScript the dialog is a
             plain block after the results, and the button jumps to it. */}
-        <div className="mt-8 flex flex-col gap-6">
+        <div className="mt-16 flex flex-col gap-6">
           <div className="flex min-w-0 flex-col gap-4">
             <ResultSummary results={results} />
             {/* The Filters button, then the active filter chips. The filters apply to both tabs. */}
