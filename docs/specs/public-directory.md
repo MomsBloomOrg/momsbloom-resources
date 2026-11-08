@@ -70,7 +70,8 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 
 ## Distance
 
-- The family types a ZIP code or selects "Use my location".
+- The family types a ZIP code or selects "Use my location". On desktop it is an icon at the right end of
+  the ZIP field (accessible name "Use my location"); on mobile it is a text link.
 - Look up the ZIP code in a small table of Michigan ZIP code centers that ships with the app (the
   US Census publishes these for free).
 - **The ZIP code and the location go only to our own server.** They never go to another company,

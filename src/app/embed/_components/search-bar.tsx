@@ -4,7 +4,8 @@ import type { DirectoryQuery } from "@/directory/query";
 export const DIRECTORY_FORM_ID = "directory-form";
 
 /**
- * Keyword, ZIP, "Use my location", and Search. A plain GET form, so it works without JavaScript.
+ * Keyword, ZIP, "Use my location", and Search. On desktop "Use my location" is an icon at the right end of the
+ * ZIP field; on mobile it is a text link. A plain GET form, so it works without JavaScript.
  * The filter checkboxes in the filter column belong to this form too (form={DIRECTORY_FORM_ID}).
  * DirectoryLive adds the live behavior (debounce, no page reload, location).
  */
@@ -25,7 +26,7 @@ export function SearchBar({
       role="search"
       // No browser validation: a half-typed ZIP must not block the keyword search. A bad ZIP shows the ZIP message.
       noValidate
-      className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-start md:rounded-full md:bg-surface md:p-2 md:shadow-md"
+      className="mx-auto flex max-w-3xl flex-col gap-3 md:max-w-[55rem] md:flex-row md:items-start md:rounded-full md:border md:border-line md:bg-surface md:p-2 md:shadow-md"
     >
       {/* Keep the Organization filter, the view, and the tab when the family searches again. */}
       {query.org && <input type="hidden" name="org" value={query.org} />}
@@ -43,7 +44,7 @@ export function SearchBar({
           className="w-full bg-transparent py-2 outline-none"
         />
       </label>
-      <div className="flex flex-col gap-1 md:w-56 md:border-l md:border-line">
+      <div className="flex flex-col gap-1 md:relative md:w-56 md:before:absolute md:before:inset-y-2 md:before:left-0 md:before:w-px md:before:bg-line">
         <div className="flex items-center gap-3">
           <label className="flex min-h-12 flex-1 items-center gap-2 rounded-full border border-line bg-surface px-4 md:border-0">
             <MapPin aria-hidden="true" className="size-4 shrink-0" />
@@ -62,6 +63,7 @@ export function SearchBar({
               className="w-full bg-transparent py-2 outline-none"
             />
           </label>
+          {/* Mobile: a text link beside the ZIP field. */}
           <button
             type="button"
             data-action="locate"
@@ -69,6 +71,16 @@ export function SearchBar({
           >
             <LocateFixed aria-hidden="true" className="size-4" />
             Use my location
+          </button>
+          {/* Desktop: an icon at the right end of the ZIP field. Same accessible name and data-action. */}
+          <button
+            type="button"
+            data-action="locate"
+            aria-label="Use my location"
+            title="Use my location"
+            className="hidden size-11 shrink-0 items-center justify-center rounded-full text-primary-text hover:bg-line/40 md:-ml-3 md:flex"
+          >
+            <LocateFixed aria-hidden="true" className="size-4" />
           </button>
         </div>
         {zipNotFound && (
@@ -79,16 +91,8 @@ export function SearchBar({
       </div>
       <div className="flex items-center gap-3">
         <button
-          type="button"
-          data-action="locate"
-          className="hidden min-h-12 items-center gap-1 px-2 text-sm font-bold text-primary-text md:flex"
-        >
-          <LocateFixed aria-hidden="true" className="size-4" />
-          Use my location
-        </button>
-        <button
           type="submit"
-          className="min-h-12 w-full rounded-full bg-primary-text px-6 font-bold text-white hover:bg-primary-hover md:w-auto"
+          className="min-h-12 w-full rounded-full bg-primary-text px-6 font-bold text-white hover:bg-primary-hover md:min-h-11 md:w-auto md:px-5"
         >
           Search
         </button>
