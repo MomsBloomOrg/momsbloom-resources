@@ -1,18 +1,20 @@
 /**
- * Data Access Layer for auth. Every Admin page and every server action calls `requireStaffAdmin()`;
- * the proxy's cookie check and a hidden form are not checks.
+ * Data Access Layer for auth. Every Admin page and every server action calls `requireStaffAdmin()`,
+ * or `requireAdmin()` when only the `admin` role may use it (Staff admins, Settings, Content, the
+ * custom-fields manager). The proxy's cookie check and a hidden form or link are not checks.
  */
 import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { getDb } from "@/db";
-import { findStaffAdmin } from "./config";
+import { findStaffAdmin, type StaffRole } from "./config";
 import { LOGIN_PATH, auth } from "./index";
 
 export interface CurrentStaffAdmin {
   id: string;
   email: string;
+  role: StaffRole;
 }
 
 /**
@@ -34,5 +36,12 @@ export const getCurrentStaffAdmin = cache(async (): Promise<CurrentStaffAdmin | 
 export async function requireStaffAdmin(): Promise<CurrentStaffAdmin> {
   const admin = await getCurrentStaffAdmin();
   if (!admin) redirect(LOGIN_PATH);
+  return admin;
+}
+
+/** The logged-in Staff admin with the `admin` role; an editor goes to the Admin home. */
+export async function requireAdmin(): Promise<CurrentStaffAdmin> {
+  const admin = await requireStaffAdmin();
+  if (admin.role !== "admin") redirect("/admin");
   return admin;
 }

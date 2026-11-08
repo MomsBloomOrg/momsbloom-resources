@@ -16,7 +16,7 @@ import { ContactsSection } from "./_components/contacts-section";
 export const instant = false;
 
 export default async function ProgramPage({ params }: PageProps<"/admin/programs/[id]">) {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const id = parseId((await params).id);
   if (id === null) notFound();
   const db = getDb();
@@ -55,7 +55,7 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
         </p>
       </ProgramForm>
       <ContactsSection programId={id} contacts={contacts} />
-      <CustomFieldsManager db={db} entity="program" />
+      {admin.role === "admin" && <CustomFieldsManager db={db} entity="program" />}
     </div>
   );
 }
