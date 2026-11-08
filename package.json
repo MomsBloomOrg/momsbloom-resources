@@ -14,6 +14,7 @@
     "db:down": "docker compose down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:fill-map-points": "tsx scripts/fill-map-points.ts",
     "db:list-bad-phones": "tsx scripts/list-bad-phones.ts",
     "db:seed-sample": "tsx scripts/seed-sample.ts",
     "db:studio": "drizzle-kit studio",
