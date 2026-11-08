@@ -18,6 +18,7 @@ export default async function StaffAdminsPage() {
       email: s.email,
       label: s.kind === "owner" ? "Owner" : `Added ${s.addedAt ? addedDate.format(s.addedAt) : ""}`.trim(),
       owner: s.kind === "owner",
+      role: s.role,
       removeId: s.kind === "added" && !you ? s.id : null,
       you,
     };
@@ -27,9 +28,11 @@ export default async function StaffAdminsPage() {
     <>
       <PageHeader title="Staff admins" />
       <p className="mb-6 max-w-2xl">
-        These people can log in to the Admin, and all have the same rights. Owners come from the site
-        settings, and only the developer can change them. Add a Staff admin here; they log in at /login
-        with a Login link. When you remove a Staff admin, they are logged out at once.
+        These people can log in to the Admin. An Editor can change Resources: Organizations, Programs,
+        Contacts, and Documents. An Admin can also change Settings, Content, the custom fields, and this
+        page. Owners come from the site settings, are always Admins, and only the developer can change
+        them. Add a Staff admin here; they log in at /login with a Login link. When you remove a Staff
+        admin, they are logged out at once. You cannot change your own role.
       </p>
       <Card className="mb-8">
         <StaffAdminTable rows={rows} />

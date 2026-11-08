@@ -157,7 +157,7 @@ describe("Auth.js wiring", () => {
 
   describe("an added Staff admin", () => {
     beforeEach(async () => {
-      expect(await addStaffAdmin(db, ADDED, ENV)).toMatchObject({ ok: true });
+      expect(await addStaffAdmin(db, ADDED, "admin", ENV)).toMatchObject({ ok: true });
     });
 
     it("gets one token and one email", async () => {
@@ -200,7 +200,7 @@ describe("Auth.js wiring", () => {
       expect(await db.select().from(staffAdmins).where(eq(staffAdmins.email, ADDED))).toEqual([]);
     });
 
-    it("gets the role from its row; the migration default is admin", async () => {
+    it("gets the role from its row", async () => {
       const [added] = await db.select().from(staffAdmins);
       expect(added.role).toBe("admin");
       await db.update(staffAdmins).set({ role: "editor" }).where(eq(staffAdmins.id, added.id));
@@ -303,7 +303,7 @@ describe("Auth.js wiring", () => {
     });
 
     it("an added Staff admin has the same limit: the 11th request gets no email and no token", async () => {
-      await addStaffAdmin(db, ADDED, ENV);
+      await addStaffAdmin(db, ADDED, undefined, ENV);
       for (let i = 0; i < 10; i++) await requestLink(ADDED);
       expect(mailer.sendMagicLink).toHaveBeenCalledTimes(10);
       await requestLink(ADDED);
