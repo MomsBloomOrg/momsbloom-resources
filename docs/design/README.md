@@ -61,7 +61,7 @@ Notes:
 - The filters move into a sheet that opens from the "Filters" button (next section). The number on
   the button is how many filters are active.
 - "Use my location" is an alternative to typing a ZIP code. The desktop frame does not show it; the app
-  puts it in the ZIP field as an icon (Hope to confirm). Mobile keeps the text link.
+  puts it in the ZIP field as an icon (pending designer confirmation). Mobile keeps the text link.
 
 ### No distance (desktop and mobile)
 
