@@ -49,7 +49,7 @@ never deleted (they become Inactive). Build work: issue #38.
 
 | Route | Screen |
 |---|---|
-| `/admin` | **Organizations** list, the Admin home. Columns: name, Status, Programs (count, "n need review"), Last verified. Search by name. Status filter links (All, Active, Needs review, Inactive), each with its count. "Sort oldest verified first". There is no separate summary page and no global Programs table: staff reach a Program through its Organization. |
+| `/admin` | The Resources list, the Admin home, with tabs All, Organizations, Programs, and Guides & Downloads. Search, Type and Status filters, and sortable columns work on every tab. |
 | `/admin/organizations/new`, `/admin/organizations/[id]` | Organization form, then its Programs table and "Add program". |
 | `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
 | `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
