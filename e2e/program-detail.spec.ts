@@ -78,3 +78,13 @@ test("detail-map: the map shows for a Program with a point and not for a virtual
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByTestId("program-map")).toHaveCount(0);
 });
+
+test("actions-one-row-desktop: Call, Directions, and Website share one row at 900 px", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.goto("/embed/programs/P-001");
+  const ys = await Promise.all(
+    [/^Call/, /^Directions/, /^Website/].map(async (name) => (await page.getByRole("link", { name }).first().boundingBox())?.y),
+  );
+  expect(ys[0]).toBeDefined();
+  expect(new Set(ys).size).toBe(1);
+});

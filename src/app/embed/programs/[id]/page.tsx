@@ -24,7 +24,7 @@ const MORE_LIMIT = 3;
 const backLink = "flex min-h-11 w-fit items-center gap-2 font-bold text-primary-text min-[900px]:min-h-6";
 const card = "rounded-2xl border border-line bg-surface p-5";
 const heading = "text-base font-extrabold";
-const pill = "flex min-h-11 items-center gap-2 rounded-full border px-4 font-bold min-[900px]:min-h-10";
+const pill = "flex min-h-11 items-center gap-2 rounded-full border px-4 font-bold min-[900px]:min-h-10 min-[900px]:text-sm";
 const pillPlain = `${pill} border-line bg-surface`;
 const link = "flex min-h-11 items-center font-bold text-primary-text underline min-[900px]:min-h-6";
 const verified = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -135,7 +135,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           rows across the columns and left gaps). Below 900 px the stacks are `contents`, and `order-*` puts the
           cards in the mobile order: About, Location, Contacts, Insurance, Languages, More details, the
           Organization's details, More from. */}
-      <div className="mt-6 flex flex-col gap-4 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_22rem] min-[900px]:items-start">
+      <div className="mt-6 flex flex-col gap-4 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_25rem] min-[900px]:items-start">
         <div className="contents min-[900px]:flex min-[900px]:flex-col min-[900px]:gap-4">
           <section aria-labelledby="about" className={`${card} order-1`}>
             <h2 id="about" className={heading}>
