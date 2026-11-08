@@ -91,6 +91,8 @@ describe("Document edit", () => {
     expect(parse({}).organizationId).toBeNull();
     expect(parseDocumentInput(form({ organizationId: "x" })).ok).toBe(false);
     expect(options.organizations.map((o) => o.id)).toContain(ids.organizations.cedar);
+    // Lakeshore has a hidden Status in the sample data: the select marks it.
+    expect(options.organizations.find((o) => o.id === ids.organizations.lakeshore)?.name).toMatch(/\(hidden\)$/);
 
     expect(await saveDocument(db, null, parse({ organizationId: "999999" }))).toMatchObject({ ok: false, fieldErrors: { organizationId: expect.any(String) } });
 

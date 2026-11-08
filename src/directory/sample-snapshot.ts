@@ -268,7 +268,8 @@ const organizations: DirectoryOrganization[] = [
   custom: ORGANIZATION_CUSTOM[org.id] ?? {},
 }));
 
-export const SAMPLE_SNAPSHOT: DirectorySnapshot = { ...TEST_SNAPSHOT, customFields: [PARKING, ENTRANCE], programs,
+export const SAMPLE_SNAPSHOT: DirectorySnapshot = { ...TEST_SNAPSHOT, customFields: [PARKING, ENTRANCE],
+  programs,
   organizations,
   // D-002 is linked to Northside Family Center (O-005): its page and `?org=O-005` show it.
   documents: TEST_SNAPSHOT.documents.map((d) => (d.id === "D-002" ? { ...d, organization: { id: "O-005", name: "Northside Family Center" } } : d)),

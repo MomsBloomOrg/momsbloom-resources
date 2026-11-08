@@ -39,7 +39,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
   const labelOf: LabelOf = (facet, key) => findLabel(facet, key) ?? key;
   const search = serializeDirectoryQuery(query);
   const clearAllHref = hasActiveFilters(query) ? `?${serializeDirectoryQuery(clearFilters(query))}` : null;
-  const organizationName = snapshot.programs.find((program) => program.organization.id === query.org)?.organization.name ?? null;
+  const organizationName = snapshot.organizations.find((org) => org.id === query.org)?.name ?? null;
   const widenHref =
     results.origin && typeof results.radius === "number" && results.radius < 25
       ? `?${serializeDirectoryQuery({ ...query, radius: 25, pages: 1 })}`

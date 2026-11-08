@@ -193,7 +193,7 @@ export function DocumentForm({
           <input key={lastVerified} id="document-lastVerified" name="lastVerified" aria-describedby={verifiedBy ? "document-lastVerified-hint" : undefined} type="date" defaultValue={lastVerified} className={inputClass} />
         </Field>
       </div>
-      <Field id="document-organizationId" label="Organization" hint="Optional. The guide also shows on this Organization's page." error={errors.organizationId}>
+      <Field id="document-organizationId" label="Organization" hint="Optional. The guide also shows on this Organization's page. Shows on the Organization's page only while the Organization is shown." error={errors.organizationId}>
         <select
           id="document-organizationId"
           name="organizationId"

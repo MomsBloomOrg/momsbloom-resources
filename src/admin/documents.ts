@@ -216,7 +216,11 @@ export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput
       .from(t.subcategories)
       .orderBy(t.subcategories.sortOrder, t.subcategories.id),
     db.select({ id: t.languages.id, name: t.languages.name, hidden: t.languages.hidden }).from(t.languages).orderBy(t.languages.sortOrder, t.languages.id),
-    db.select({ id: t.organizations.id, name: t.organizations.name }).from(t.organizations).orderBy(t.organizations.name, t.organizations.id),
+    db
+      .select({ id: t.organizations.id, name: t.organizations.name, showOnSite: t.statuses.showOnSite })
+      .from(t.organizations)
+      .innerJoin(t.statuses, eq(t.statuses.id, t.organizations.statusId))
+      .orderBy(t.organizations.name, t.organizations.id),
   ]);
   const categories = shownOptions(allCategories, used.categoryIds);
   return {
@@ -224,6 +228,7 @@ export async function getDocumentFormOptions(db: Db, used: Partial<DocumentInput
     categories,
     subcategories: shownSubcategories(allSubcategories, categories, used.subcategoryIds),
     languages: shownOptions(allLanguages, used.languageIds),
-    organizations,
+    // An Organization with a hidden Status is marked: the guide shows on its page only while the Organization is shown.
+    organizations: organizations.map((o) => ({ id: o.id, name: o.showOnSite ? o.name : `${o.name} (hidden)` })),
   };
 }
