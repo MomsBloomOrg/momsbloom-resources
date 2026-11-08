@@ -45,7 +45,7 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
           </Link>
         }
         actions={
-          <a href={`/embed/programs/${id}`} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}>
+          <a href={`/embed/programs/${id}`} target="_blank" rel="noopener" className={buttonClass("secondary")}>
             View on site<span className="sr-only"> (opens in a new tab)</span>
           </a>
         }
