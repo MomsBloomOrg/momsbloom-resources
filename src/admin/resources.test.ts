@@ -31,10 +31,10 @@ describe("listResourcesForAdmin", () => {
     expect(statuses.map((s) => s.name)).toEqual(["Active", "Needs review", "Inactive"]);
   });
 
-  it("the Type column: a Program's Organization, else the type", async () => {
+  it("the Type column: the record type; a Program also carries its Organization", async () => {
     const { rows } = await listResourcesForAdmin(db);
     const by = (name: string) => rows.find((r) => r.name === name)!;
-    expect(by("Sample Mom and Baby Yoga")).toMatchObject({ type: "program", typeText: "Sample Riverbend Health", href: expect.stringMatching(/^\/admin\/programs\/\d+$/) });
+    expect(by("Sample Mom and Baby Yoga")).toMatchObject({ type: "program", typeText: "Program", organizationName: "Sample Riverbend Health", href: expect.stringMatching(/^\/admin\/programs\/\d+$/) });
     expect(by("Sample Riverbend Health")).toMatchObject({ type: "organization", typeText: "Organization", href: `/admin/organizations/${ids.organizations.riverbend}` });
     expect(by("Sample Old Guide")).toMatchObject({ type: "guide", typeText: "Guide & Download", href: expect.stringMatching(/^\/admin\/documents\/\d+$/) });
   });
@@ -66,18 +66,15 @@ describe("listResourcesForAdmin", () => {
   it("sorts by any column, both ways; ties stay A to Z by name", async () => {
     expect(await names({ type: "organization", dir: "desc" })).toEqual(["Sample Riverbend Health", "Sample Lakeshore Support", "Sample Cedar Family Center"]);
 
-    const byType = (await listResourcesForAdmin(db, { type: "program", sort: "type" })).rows;
-    expect(byType.map((r) => r.typeText)).toEqual([...Array(3).fill("Sample Cedar Family Center"), ...Array(3).fill("Sample Riverbend Health")]);
-    // Within one Organization, Programs stay A to Z even when the Type sort is descending.
-    const byTypeDesc = (await listResourcesForAdmin(db, { type: "program", sort: "type", dir: "desc" })).rows;
-    expect(byTypeDesc.map((r) => r.name)).toEqual([
-      "Sample Breastfeeding Circle",
-      "Sample Mom and Baby Yoga",
-      "Sample Postpartum Support Group",
-      "Sample Home Visits",
-      "Sample Lactation Visits",
-      "Sample Parent Classes",
-    ]);
+    // The Type sort groups by record type; inside a type, rows stay A to Z by name, in both directions.
+    const typeOrder = async (dir: "asc" | "desc") => (await listResourcesForAdmin(db, { sort: "type", dir })).rows;
+    const asc = await typeOrder("asc");
+    expect([...new Set(asc.map((r) => r.typeText))]).toEqual(["Guide & Download", "Organization", "Program"]);
+    const programsAsc = asc.filter((r) => r.type === "program").map((r) => r.name);
+    expect(programsAsc).toEqual([...programsAsc].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" })));
+    const desc = await typeOrder("desc");
+    expect([...new Set(desc.map((r) => r.typeText))]).toEqual(["Program", "Organization", "Guide & Download"]);
+    expect(desc.filter((r) => r.type === "program").map((r) => r.name)).toEqual(programsAsc);
   });
 
   it("Status sorts in the Status order (Active, Needs review, Inactive), not A to Z", async () => {
