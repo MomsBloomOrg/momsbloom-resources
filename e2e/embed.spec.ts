@@ -69,6 +69,11 @@ test("host-scroll-test: the Need more assistance link scrolls the host page to t
   await frame.getByRole("link", { name: "Need more assistance" }).click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await expect(frame.locator("#help")).toBeInViewport();
+  // A second click, with the hash already #help, must scroll again.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(frame.locator("#help")).not.toBeInViewport();
+  await frame.getByRole("link", { name: "Need more assistance" }).click();
+  await expect(frame.locator("#help")).toBeInViewport();
 });
 
 // Link sync (ADR 0005). The host URL gets mbr- keys; other host keys stay as they are.

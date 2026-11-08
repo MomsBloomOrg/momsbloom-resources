@@ -48,15 +48,16 @@ export function ResizeReporter({ share, program }: { share?: string; program?: s
     if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
     // The "Need more assistance?" link (#help): the iframe has no scroll bar, so the host page must scroll.
     // Only #help; "#filters" must never scroll the host.
-    const onHashChange = () => {
-      if (location.hash !== "#help") return;
+    // A click listener, not `hashchange`: that does not fire when the hash is already #help.
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest('a[href="#help"]')) return;
       const help = document.getElementById("help");
       if (help) window.parent.postMessage({ type: SCROLL_MESSAGE, top: Math.max(0, help.getBoundingClientRect().top - root.getBoundingClientRect().top) }, "*");
     };
-    window.addEventListener("hashchange", onHashChange);
+    document.addEventListener("click", onClick);
     return () => {
       observer.disconnect();
-      window.removeEventListener("hashchange", onHashChange);
+      document.removeEventListener("click", onClick);
     };
   }, []);
   // Its own effect with its own deps: a filter change posts a location, and never re-runs the scroll above.
