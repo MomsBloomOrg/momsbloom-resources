@@ -173,3 +173,13 @@ test("loader-until-iframe-loads: the host page shows a spinner and text until th
   await expect(loader).toHaveCount(0);
   await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
 });
+
+test("loader-gives-up: the loader goes away after 20 s when /embed never answers", async ({ page }) => {
+  await page.clock.install();
+  await page.route(`${APP}/embed`, () => {}); // never answers
+  await page.goto(HOST, { waitUntil: "domcontentloaded" });
+  const loader = page.locator("[data-momsbloom-loader]");
+  await expect(loader).toBeVisible();
+  await page.clock.fastForward(21_000);
+  await expect(loader).toHaveCount(0);
+});
