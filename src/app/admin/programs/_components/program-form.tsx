@@ -344,23 +344,6 @@ export function ProgramForm({
             </select>
           </Field>
           {text("name", "Program name")}
-        </div>
-      </Card>
-
-      <Card title={sectionTitle("Location & Hours")}>
-        <div className="flex flex-col gap-5">
-          <p className={hintClass}>Leave an address, phone, or website field blank to use the Organization&apos;s value, shown in grey.</p>
-          {text("streetAddress", "Street address", { inherit: "streetAddress" })}
-          <div className="grid gap-4 sm:grid-cols-4">
-            {text("suite", "Suite", { inherit: "suite" })}
-            {text("city", "City", { inherit: "city" })}
-            {text("state", "State", { inherit: "state" })}
-            {text("zip", "ZIP", { inherit: "zip" })}
-          </div>
-          {text("website", "Website", { type: "url", hint: "Starts with https://", inherit: "website" })}
-          {text("phone", "Phone", { type: "tel", inherit: "phone" })}
-          {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
-          {select("serviceFormatId", "How you'll connect", options.serviceFormats, "Not set")}
           <ChipSelect
             id="program-categories"
             legend="Categories"
@@ -370,10 +353,33 @@ export function ProgramForm({
             onToggle={onToggle}
             error={errors.categoryIds ?? errors.subcategoryIds}
           />
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Location & Hours")}>
+        <div className="flex flex-col gap-5">
+          <p className={hintClass}>Leave an address field blank to use the Organization&apos;s value, shown in grey.</p>
+          {text("streetAddress", "Street address", { inherit: "streetAddress" })}
+          {text("suite", "Suite", { inherit: "suite" })}
+          <div className="grid gap-4 sm:grid-cols-3">
+            {text("city", "City", { inherit: "city" })}
+            {text("state", "State", { inherit: "state" })}
+            {text("zip", "ZIP", { inherit: "zip" })}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634", inherit: "latitude" })}
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
           </div>
+          {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
+          {select("serviceFormatId", "How you'll connect", options.serviceFormats, "Not set")}
+        </div>
+      </Card>
+
+      <Card title={sectionTitle("Phone & Website")}>
+        <div className="flex flex-col gap-5">
+          <p className={hintClass}>Leave blank to use the Organization&apos;s value, shown in grey.</p>
+          {text("phone", "Phone", { type: "tel", inherit: "phone" })}
+          {text("website", "Website", { type: "url", hint: "Starts with https://", inherit: "website" })}
         </div>
       </Card>
 
