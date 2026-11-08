@@ -1,26 +1,31 @@
 /**
- * Custom fields as Program filters. They work like Facets: inside one field, values combine with
+ * Custom fields as Program and Document filters. They work like Facets: inside one field, values combine with
  * OR; between fields (and with the Facets), with AND.
  *
  * Filter value keys: a list field uses its option keys; a Yes / No field uses "yes" and "no".
  */
 import { fieldsFor } from "./definitions";
-import { FILTERABLE_TYPES, type CustomFieldDefinition, type CustomValues } from "./types";
+import { FILTERABLE_TYPES, type CustomFieldDefinition, type CustomFieldEntity, type CustomValues } from "./types";
+
+/** The record types that can have filters. A filter only touches its own record type. */
+type FilterEntity = Extract<CustomFieldEntity, "program" | "document">;
 
 /** Field id → the checked value keys. */
 export type CustomFilters = Readonly<Record<string, readonly string[]>>;
 
 export interface CustomFilterGroup {
   fieldId: string;
+  entity: FilterEntity;
   /** The group title on screen: the field's label. */
   label: string;
   values: readonly { key: string; label: string }[];
 }
 
-/** The custom filter groups to show after the Facets, in the order staff set. */
-export function customFilterGroups(definitions: readonly CustomFieldDefinition[]): CustomFilterGroup[] {
-  return filterFields(definitions).map((field) => ({
+/** The custom filter groups to show after the Facets, in the order staff set. Without `entity`: both record types. */
+export function customFilterGroups(definitions: readonly CustomFieldDefinition[], entity?: FilterEntity): CustomFilterGroup[] {
+  return filterFields(definitions, entity).map((field) => ({
     fieldId: field.id,
+    entity: field.entity as FilterEntity,
     label: field.label,
     values:
       field.type === "yesNo"
@@ -49,11 +54,12 @@ export function cleanCustomFilters(definitions: readonly CustomFieldDefinition[]
 /** True when the record passes every active custom filter. `skip` leaves one field out; the counts use it. */
 export function matchesCustomFilters(
   definitions: readonly CustomFieldDefinition[],
+  entity: FilterEntity,
   values: CustomValues,
   filters: CustomFilters,
   { skip }: { skip?: string } = {},
 ): boolean {
-  return filterFields(definitions).every((field) => {
+  return filterFields(definitions, entity).every((field) => {
     const selected = filters[field.id] ?? [];
     if (field.id === skip || selected.length === 0) return true;
     const has = valueKeys(field, values);
@@ -67,14 +73,15 @@ export function matchesCustomFilters(
  */
 export function countCustomFilterValues<T extends { custom: CustomValues }>(
   definitions: readonly CustomFieldDefinition[],
+  entity: FilterEntity,
   records: readonly T[],
   filters: CustomFilters,
 ): Record<string, Record<string, number>> {
   const counts: Record<string, Record<string, number>> = {};
-  for (const field of filterFields(definitions)) {
+  for (const field of filterFields(definitions, entity)) {
     counts[field.id] = {};
     for (const record of records) {
-      if (!matchesCustomFilters(definitions, record.custom, filters, { skip: field.id })) continue;
+      if (!matchesCustomFilters(definitions, entity, record.custom, filters, { skip: field.id })) continue;
       for (const key of valueKeys(field, record.custom)) {
         counts[field.id][key] = (counts[field.id][key] ?? 0) + 1;
       }
@@ -83,8 +90,8 @@ export function countCustomFilterValues<T extends { custom: CustomValues }>(
   return counts;
 }
 
-function filterFields(definitions: readonly CustomFieldDefinition[]): CustomFieldDefinition[] {
-  return fieldsFor(definitions, "program").filter(
+function filterFields(definitions: readonly CustomFieldDefinition[], entity?: FilterEntity): CustomFieldDefinition[] {
+  return (entity ? fieldsFor(definitions, entity) : [...fieldsFor(definitions, "program"), ...fieldsFor(definitions, "document")]).filter(
     (f) => f.filterable && f.showOnWebsite && FILTERABLE_TYPES.includes(f.type),
   );
 }

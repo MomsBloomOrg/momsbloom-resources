@@ -46,7 +46,7 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
   field?: CustomFieldDefinition;
   errors: Record<string, string>;
 }) {
-  const canFilter = entity === "program" && FILTERABLE_TYPES.includes(type);
+  const canFilter = (entity === "program" || entity === "document") && FILTERABLE_TYPES.includes(type);
   const errorId = `${idPrefix}-visibility-error`;
   const choices = [
     { value: "public", label: "Families see it", checked: field?.showOnWebsite === true },

@@ -10,7 +10,7 @@ import { DIRECTORY_FORM_ID } from "./search-bar";
 const VISIBLE_OPTIONS = 4;
 
 /**
- * One fieldset per Facet, then one per custom field filter (in the order staff set). The inputs belong to the search form (form=...), so without
+ * One fieldset per Facet, then one per custom field filter of this tab's record type (in the order staff set). The inputs belong to the search form (form=...), so without
  * JavaScript the "Apply filters" button submits them; with JavaScript, DirectoryLive submits on change.
  */
 export function FilterColumn({
@@ -57,7 +57,7 @@ export function FilterColumn({
       return <FilterGroup key={facet.key} label={facet.label} options={options} />;
     });
 
-  const customGroups = customFilterGroups(customFields).map((field) => {
+  const customGroups = customFilterGroups(customFields, query.tab === "guides" ? "document" : "program").map((field) => {
     const checkedKeys = query.custom[field.fieldId] ?? [];
     const options = field.values.map((value) => {
       const checked = checkedKeys.includes(value.key);

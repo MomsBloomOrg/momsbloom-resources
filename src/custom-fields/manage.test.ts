@@ -47,7 +47,7 @@ describe("custom fields admin", () => {
       fieldErrors: { label: "Another field already has this name." },
     });
     expect(await addField(db, form({ entity: "organization", type: "yesNo", label: "Y", visibility: "public", filterable: "on" }))).toMatchObject({
-      fieldErrors: { filterable: "Only Program fields can be filters." },
+      fieldErrors: { filterable: "Only Program and Document fields can be filters." },
     });
   });
 

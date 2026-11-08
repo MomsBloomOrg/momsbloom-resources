@@ -64,6 +64,9 @@ export const BILLING_EMAIL = field({
   showOnWebsite: false,
 });
 
+/** A Yes / No Document filter. Not in TEST_FIELDS: add it where a test needs it. */
+export const WORKSHEET = field({ id: "10", entity: "document", label: "Printable worksheet", type: "yesNo", filterable: true });
+
 export const TEST_FIELDS: readonly CustomFieldDefinition[] = [
   DOULA,
   PARKING,

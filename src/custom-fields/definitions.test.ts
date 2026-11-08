@@ -58,14 +58,15 @@ describe("createDefinition", () => {
     ).toMatchObject({ ok: false, errors: { options: "Two options have the same name." } });
   });
 
-  it("allows filters only on Program Yes / No and list fields that are shown on the website", () => {
+  it("allows filters only on Program and Document Yes / No and list fields that are shown on the website", () => {
     const base = { label: "Filter me", filterable: true, showOnWebsite: true } as const;
     expect(createDefinition({ ...base, entity: "program", type: "yesNo" }, TEST_FIELDS).ok).toBe(true);
+    expect(createDefinition({ ...base, entity: "document", type: "yesNo" }, TEST_FIELDS).ok).toBe(true);
     expect(createDefinition({ ...base, entity: "program", type: "text" }, TEST_FIELDS)).toMatchObject({
       errors: { filterable: "Only Yes / No and list fields can be filters." },
     });
     expect(createDefinition({ ...base, entity: "organization", type: "yesNo" }, TEST_FIELDS)).toMatchObject({
-      errors: { filterable: "Only Program fields can be filters." },
+      errors: { filterable: "Only Program and Document fields can be filters." },
     });
     expect(createDefinition({ ...base, entity: "program", type: "yesNo", showOnWebsite: false }, TEST_FIELDS)).toMatchObject({
       errors: { filterable: "A filter must also be shown on the website." },

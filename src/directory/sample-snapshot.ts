@@ -218,8 +218,7 @@ const PARKING = sampleField({
   ],
 });
 const ENTRANCE = sampleField({ id: "2", entity: "organization", label: "Accessible entrance", type: "text" });
-// Not a filter in this slice: Document filters come with the Guides tab work.
-const WORKSHEET = sampleField({ id: "3", entity: "document", label: "Printable worksheet", type: "yesNo" });
+const WORKSHEET = sampleField({ id: "3", entity: "document", label: "Printable worksheet", type: "yesNo", filterable: true });
 const DOCUMENT_CUSTOM: Record<string, CustomValues> = { "D-001": { [WORKSHEET.id]: true } };
 const PROGRAM_CUSTOM: Record<string, CustomValues> = {
   "P-001": { [PARKING.id]: "1" },
