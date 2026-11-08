@@ -99,12 +99,12 @@ export async function Directory({ params, embed = false }: { params: Record<stri
       <DirectoryHeader />
 
       <DirectoryLive>
-        <div className="mt-6">
+        <div className="mt-16">
           <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
         {/* The filters live in a modal (FilterSheet), opened by the "Filters" button above the tabs. Without
             JavaScript the dialog is a plain block at the bottom of the page, and the button jumps to it. */}
-        <div className="mt-6 flex flex-col gap-6">
+        <div className="mt-8 flex flex-col gap-6">
           {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
           <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
             <ResultSummary results={results} />
