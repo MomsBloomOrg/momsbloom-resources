@@ -23,7 +23,7 @@ export default async function NewOrganizationPage() {
           </Link>
         }
       />
-      <Card>
+      <Card title="Organization">
         <OrganizationForm statuses={statuses} hiddenProgramCount={0} customFields={customFields} />
       </Card>
     </>
