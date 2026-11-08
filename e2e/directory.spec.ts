@@ -352,7 +352,7 @@ test.describe("sort-dropdown", () => {
     await page.goto("/embed?tab=programs&cost=free&sort=az");
     const names = await programCards(page).getByRole("heading").allTextContents();
     expect(names[0]).toBe("Baby clothes closet");
-    expect(names.slice(1)).toEqual([...names.slice(1)].sort((a, b) => a.localeCompare(b)));
+    expect(names.slice(1)).toEqual([...names.slice(1)].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" })));
     expect(names).not.toContain("Pelvic floor therapy");
   });
 

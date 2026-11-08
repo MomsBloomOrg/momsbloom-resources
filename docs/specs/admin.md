@@ -88,7 +88,7 @@ Fields, in the order of the data template:
 | Languages, Who it serves | Facet values. |
 | Eligibility notes | Free text. |
 | Status | Active, Needs review, or Inactive. |
-| Featured | A checkbox. Checked puts the Program at the end of the **Featured** list; unchecked takes it off. Admin and Editor roles may both set it. No limit on the count. |
+| Featured | A checkbox. Checked puts the Program at the end of the Featured programs section; unchecked takes it off. Admin and Editor roles may both set it. No limit on the count. |
 | Internal notes | Staff only. Label it "Not shown on the website". |
 | Contacts | A list inside the form: name, title or specialty, phone, email, "Show on website" (yes or no), internal notes. Add, edit, and remove. |
 
@@ -98,6 +98,7 @@ Buttons:
 - **Mark verified.** Sets Last verified to today. A staff member uses it after a phone call that
   confirms nothing changed, without editing anything else.
 - **View on site.** Opens the public Program detail in a new tab.
+
 ### Featured programs (`/admin`, All and Programs tabs)
 
 - A "Featured programs" section above the Resources table. It shows the full ranked list, with each
