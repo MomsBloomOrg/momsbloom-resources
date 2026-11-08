@@ -35,7 +35,7 @@ async function fetchPoint(a: Address, signal: AbortSignal): Promise<Point | null
  * only if staff did not edit them: a match sets the pin; no match blanks it and `notice` is NOT_PLACED.
  * `answered` is true after the first answer, so the form can drop its on-load notice.
  */
-export function useMapPointLookup(setPin: (pin: Pin) => void, lookUpOnLoad: boolean) {
+export function useMapPointLookup(setPin: (pin: Pin) => void, lookUpOnLoad: boolean, saveState: { status: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const lastKey = useRef<string | null>(null);
   const inFlight = useRef<AbortController | null>(null);
@@ -43,6 +43,12 @@ export function useMapPointLookup(setPin: (pin: Pin) => void, lookUpOnLoad: bool
   const [answered, setAnswered] = useState(false);
   // Only the first render's value: a save re-renders with new props, and must not start a new on-load lookup.
   const [onLoad] = useState(lookUpOnLoad);
+  // A good save result sets the coordinates, so an older lookup's notice no longer applies.
+  const [seenSave, setSeenSave] = useState(saveState);
+  if (saveState !== seenSave) {
+    setSeenSave(saveState);
+    if (saveState.status === "saved") setNotice(undefined);
+  }
 
   const read = useCallback((): Address => {
     const v = (name: string) => field(ref.current, name)?.value.trim() || null;

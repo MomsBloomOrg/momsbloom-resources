@@ -168,7 +168,7 @@ export function ProgramForm({
   const [pin, setPin] = useLastGoodPin({ latitude: p?.latitude, longitude: p?.longitude }, state);
   // The Program's own street: with none, it inherits the Organization's point and never looks up.
   const unplaced = Boolean(p?.streetAddress) && p?.latitude == null && p?.longitude == null;
-  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced);
+  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced, state);
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here), until the lookup answers.
   const notice = state.status === "saved" ? state.notice : unplaced && !answered ? NOT_PLACED : undefined;
   const org: OrganizationOption | undefined = options.organizations.find((o) => String(o.id) === orgId);
@@ -338,7 +338,7 @@ export function ProgramForm({
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
           </div>
           {/* Always in the page, so a screen reader announces the text when it appears. Hidden while the save shows its own notice. */}
-          <div id="program-map-point-status" role="status">
+          <div id="program-map-point-status" role="status" className="empty:absolute">
             {lookupNotice && !(state.status === "saved" && state.notice) && <Notice tone="warning">{lookupNotice}</Notice>}
           </div>
           {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}

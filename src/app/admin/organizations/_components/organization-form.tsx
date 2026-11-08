@@ -58,7 +58,7 @@ export function OrganizationForm({
   // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
   const [pin, setPin] = useLastGoodPin({ latitude: o?.latitude, longitude: o?.longitude }, state);
   const unplaced = Boolean(o?.streetAddress) && o?.latitude == null && o?.longitude == null;
-  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced);
+  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced, state);
   // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here), until the lookup answers.
   const notice = state.status === "saved" ? state.notice : unplaced && !answered ? NOT_PLACED : undefined;
 
@@ -172,7 +172,7 @@ export function OrganizationForm({
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
           </div>
           {/* Always in the page, so a screen reader announces the text when it appears. Hidden while the save shows its own notice. */}
-          <div id="org-map-point-status" role="status">
+          <div id="org-map-point-status" role="status" className="empty:absolute">
             {lookupNotice && !(state.status === "saved" && state.notice) && <Notice tone="warning">{lookupNotice}</Notice>}
           </div>
         </div>

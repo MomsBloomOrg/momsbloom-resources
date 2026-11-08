@@ -9,17 +9,18 @@ export function lastGoodPin(pin: Pin, state: SaveState): Pin {
   return state.latitude === pin.latitude && state.longitude === pin.longitude ? pin : { latitude: state.latitude, longitude: state.longitude };
 }
 
-/**
- * The form's pin: the page-load pin, then the pin of each good save, kept across a refused save. A save's
- * pin is applied once, when `state` changes, so a later `setPin` (the map point lookup) is not reverted
- * while the page still holds that save's state.
- */
+/** A save's pin applies only when the save state is a new one: the page keeps the last state, and a later lookup must not be reverted. */
+export function pinForState(pin: Pin, state: SaveState, seen: SaveState): Pin {
+  return state === seen ? pin : lastGoodPin(pin, state);
+}
+
+/** The form's pin: the page-load pin, then the pin of each good save (see pinForState), kept across a refused save. */
 export function useLastGoodPin(initial: Pin, state: SaveState) {
   const [pin, setPin] = useState(initial);
   const [seen, setSeen] = useState(state);
   if (state !== seen) {
     setSeen(state);
-    const next = lastGoodPin(pin, state);
+    const next = pinForState(pin, state, seen);
     if (next !== pin) setPin(next);
   }
   return [pin, setPin] as const;
