@@ -162,6 +162,7 @@ export function ProgramForm({
   organizationId,
   options,
   customFields,
+  canManageFields = false,
   title,
   back,
   actions,
@@ -174,6 +175,8 @@ export function ProgramForm({
   options: ProgramFormOptions;
   /** The active Program custom fields, in order. */
   customFields: readonly CustomFieldDefinition[];
+  /** Owners get a link to the Custom fields page; editors do not. */
+  canManageFields?: boolean;
   title: string;
   back?: ReactNode;
   /** Header actions before the Status select, for example "View on site". */
@@ -463,7 +466,7 @@ export function ProgramForm({
               className={inputClass}
             />
           </Field>
-          <CustomFieldInputs idPrefix="program" fields={customFields} values={p?.custom ?? {}} errors={errors} manageLink={id !== undefined} />
+          <CustomFieldInputs idPrefix="program" fields={customFields} values={p?.custom ?? {}} errors={errors} manageHref={canManageFields ? "/admin/settings/custom-fields#program-fields" : undefined} />
           {children}
         </div>
       </Card>

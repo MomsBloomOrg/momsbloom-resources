@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { isFacetKey, listFacetsForAdmin } from "@/admin/facets";
 import { Card, EmptyState, PageHeader } from "../../_components/ui";
 import { AddValueForm } from "../facet-forms";
+import { SettingsSubNav } from "../settings-sub-nav";
 import { SortableValues } from "../sortable-list";
 
 /** Block on the login check (cacheComponents): the page is never prerendered without it. */
@@ -34,6 +35,7 @@ export default async function FacetSettingsPage({ params }: PageProps<"/admin/se
 
   return (
     <>
+      <SettingsSubNav current="filters" />
       <PageHeader title="Filter options" />
       <div className="mb-6 flex max-w-2xl flex-col gap-3">
         <p>These are the options families filter by. The order here is the order on the website.</p>

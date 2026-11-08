@@ -8,7 +8,6 @@ import { listContactsForAdmin } from "@/admin/contacts";
 import { getProgramForAdmin, getProgramFormOptions } from "@/admin/programs";
 import { listActiveFields } from "@/custom-fields/form";
 import { buttonClass, hintClass, linkClass } from "../../_components/ui";
-import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { ProgramForm } from "../_components/program-form";
 import { ContactsSection } from "./_components/contacts-section";
 
@@ -37,6 +36,7 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
         program={program}
         options={options}
         customFields={customFields}
+        canManageFields={admin.role === "admin"}
         title="Edit Resource"
         back={
           <Link href="/admin" className={`${linkClass} inline-flex items-center gap-1`}>
@@ -55,7 +55,6 @@ export default async function ProgramPage({ params }: PageProps<"/admin/programs
         </p>
       </ProgramForm>
       <ContactsSection programId={id} contacts={contacts} />
-      {admin.role === "admin" && <CustomFieldsManager db={db} entity="program" />}
     </div>
   );
 }

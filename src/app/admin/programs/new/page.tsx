@@ -12,7 +12,7 @@ export const instant = false;
 
 /** `?org=ID` (from "Add program" on an Organization) preselects that Organization. */
 export default async function NewProgramPage({ searchParams }: PageProps<"/admin/programs/new">) {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const db = getDb();
   const [options, { org }, customFields] = await Promise.all([getProgramFormOptions(db), searchParams, listActiveFields(db, "program")]);
   const orgId = parseId(org);
@@ -23,6 +23,7 @@ export default async function NewProgramPage({ searchParams }: PageProps<"/admin
       organizationId={organization?.id}
       options={options}
       customFields={customFields}
+      canManageFields={admin.role === "admin"}
       title="New Program"
       back={
         <Link href={organization ? `/admin/organizations/${organization.id}` : "/admin"} className={linkClass}>

@@ -33,7 +33,10 @@ function submitWith(dispatch: (data: FormData) => void) {
   };
 }
 
-/** The checkboxes every field has. "Families can filter by it" shows only where the rules allow it. */
+/**
+ * "Who sees it" is a required choice with no default (Add), so staff never publish a field by
+ * accident. "Use as a filter" shows only where the rules allow it.
+ */
 function Visibility({ idPrefix, entity, type, field, errors }: {
   idPrefix: string;
   entity: AdminEntity;
@@ -42,16 +45,25 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
   errors: Record<string, string>;
 }) {
   const canFilter = entity === "program" && FILTERABLE_TYPES.includes(type);
+  const choices = [
+    { value: "public", label: "Families see it", checked: field?.showOnWebsite === true },
+    { value: "staff", label: "Staff only", checked: field?.showOnWebsite === false },
+  ];
   return (
     <div className="flex flex-col gap-1">
-      <label className={checkRowClass}>
-        <input type="checkbox" name="showOnWebsite" defaultChecked={field?.showOnWebsite ?? false} />
-        Show on the website (families see it)
-      </label>
+      <fieldset className="flex flex-col gap-1">
+        <legend className={labelClass}>Who sees it</legend>
+        {choices.map((c) => (
+          <label key={c.value} className={checkRowClass}>
+            <input type="radio" name="visibility" value={c.value} required defaultChecked={c.checked} />
+            {c.label}
+          </label>
+        ))}
+      </fieldset>
       {canFilter && (
         <label className={checkRowClass}>
           <input id={`${idPrefix}-filterable`} type="checkbox" name="filterable" defaultChecked={field?.filterable ?? false} />
-          Families can filter Programs by it
+          Use as a filter
         </label>
       )}
       {(errors.showOnWebsite || errors.filterable) && <p role="alert" className={errorClass}>{errors.showOnWebsite ?? errors.filterable}</p>}
@@ -134,7 +146,7 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
             {isList && `: ${field.options.filter((o) => !o.hidden).map((o) => o.label).join(", ")}`}
           </p>
         </div>
-        <Badge tone={field.showOnWebsite ? "good" : "neutral"}>{field.showOnWebsite ? "On website" : "Staff only"}</Badge>
+        <Badge tone={field.showOnWebsite ? "good" : "neutral"}>{field.showOnWebsite ? "Families see it" : "Staff only"}</Badge>
         {field.filterable && <Badge tone="good">Filter</Badge>}
         <form onSubmit={submit}>
           {intent("up")}

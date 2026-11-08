@@ -31,7 +31,7 @@ never deleted (they become Inactive). Build work: issue #38.
 
 - Each Staff admin has a **Role**: **Admin** or **Editor**. An Editor can change Resources only
   (Organizations, Programs, Contacts, Documents, and the custom-field answers on a record). An Admin
-  can also open Staff admins, Settings, Content, and the custom-fields manager. The **Owners** are
+  can also open Staff admins, Settings (Filter options and Custom fields), and Content. The **Owners** are
   the addresses in `ADMIN_EMAILS`, and they always have the Admin role. An Admin can add another
   Staff admin on `/admin/staff-admins` with a role (default Editor; no email is sent; the person logs
   in at `/login`), change an added one's role, and remove an added one. Nobody can remove an Owner or
