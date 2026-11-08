@@ -6,7 +6,8 @@ import type { OrganizationInput, StatusOption } from "@/admin/organizations";
 import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Card, Field, Notice, PageHeader, buttonClass, inputClass, sectionTitle, statusPillClass } from "../../_components/ui";
-import { lastGoodPin } from "../../_components/last-good-pin";
+import { useLastGoodPin } from "../../_components/last-good-pin";
+import { useMapPointLookup } from "../../_components/use-map-point-lookup";
 import { saveOrganizationAction, type OrganizationFormState } from "../actions";
 
 const IDLE: OrganizationFormState = { status: "idle" };
@@ -53,13 +54,13 @@ export function OrganizationForm({
     if (state.status === "saved") savedStatus.current = submittedStatus.current;
   }, [state]);
   const errors = state.status === "invalid" ? state.errors : {};
-  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
-  const notice = state.status === "saved" ? state.notice : organization?.streetAddress && organization.latitude == null && organization.longitude == null ? NOT_PLACED : undefined;
   const o = organization;
   // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
-  const [pin, setPin] = useState({ latitude: o?.latitude, longitude: o?.longitude });
-  const next = lastGoodPin(pin, state);
-  if (next !== pin) setPin(next);
+  const [pin, setPin] = useLastGoodPin({ latitude: o?.latitude, longitude: o?.longitude }, state);
+  const unplaced = Boolean(o?.streetAddress) && o?.latitude == null && o?.longitude == null;
+  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced, state);
+  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here), until the lookup answers.
+  const notice = state.status === "saved" ? state.notice : unplaced && !answered ? NOT_PLACED : undefined;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,7 +89,7 @@ export function OrganizationForm({
         key={fromPin ? `${pin.latitude}|${pin.longitude}` : undefined}
         defaultValue={((fromPin ? pin : o)?.[name as "latitude"] as string | number | null | undefined) ?? ""}
         aria-invalid={errors[name] ? true : undefined}
-        aria-describedby={[extra.hint && `org-${name}-hint`, errors[name] && `org-${name}-error`].filter(Boolean).join(" ") || undefined}
+        aria-describedby={[extra.hint && `org-${name}-hint`, errors[name] && `org-${name}-error`, name === "latitude" && "org-map-point-status"].filter(Boolean).join(" ") || undefined}
         className={inputClass}
       />
     </Field>
@@ -156,17 +157,23 @@ export function OrganizationForm({
 
       <Card title={sectionTitle("Location")}>
         <div className="flex flex-col gap-5">
-          {text("streetAddress", "Street address")}
-          {text("suite", "Suite")}
-          <div className="grid gap-4 sm:grid-cols-3">
-            {text("city", "City")}
-            {text("state", "State")}
-            {text("zip", "ZIP")}
+          <div ref={addressRef} onBlur={onAddressBlur} className="flex flex-col gap-5">
+            {text("streetAddress", "Street address")}
+            {text("suite", "Suite")}
+            <div className="grid gap-4 sm:grid-cols-3">
+              {text("city", "City")}
+              {text("state", "State")}
+              {text("zip", "ZIP")}
+            </div>
           </div>
           {text("county", "County")}
           <div className="grid gap-4 sm:grid-cols-2">
             {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
+          </div>
+          {/* Always in the page, so a screen reader announces the text when it appears. Hidden while the save shows its own notice. */}
+          <div id="org-map-point-status" role="status" className="empty:absolute">
+            {lookupNotice && !(state.status === "saved" && state.notice) && <Notice tone="warning">{lookupNotice}</Notice>}
           </div>
         </div>
       </Card>

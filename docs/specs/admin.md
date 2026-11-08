@@ -167,12 +167,18 @@ with their value counts: a side column on a wide screen, a row that scrolls side
   again (required fields, URL format, IDs that exist). Never trust what the browser sends.
 
 - **Map coordinates (decided).** Distance and the map need a latitude and longitude for each
-  address. When staff save a new or changed street address and did not edit the coordinates, the
-  server asks the US Census geocoder (`geocoding.geo.census.gov`, no key, 5 s timeout) and saves the
-  result. If it finds nothing, the save still works, the coordinates become blank, and the form shows
-  "We couldn't place this address on the map. Type the coordinates, or leave them blank." Staff can
-  always type coordinates. A Program with a blank street address keeps blank coordinates
-  (Inheritance). Only the Census sees the address.
+  address. The Organization and Program forms ask the US Census geocoder (`geocoding.geo.census.gov`,
+  no key, 5 s timeout) through a Staff-admin-only endpoint (`GET /api/admin/map-point`) before Save:
+  when the street, city, state, or ZIP changes and focus leaves the address fields (a Suite change
+  alone makes no call), and once on load when the record has its own street address and no
+  coordinates. The answer fills Latitude and Longitude only if staff did not edit them. If it finds
+  nothing, the coordinates become blank and the form shows "We couldn't place this address on the
+  map. Type the coordinates, or leave them blank." next to them. Nothing saves until Save. The save
+  keeps its own lookup as the fallback (no JavaScript, or a Save before the answer): for a new or
+  changed street address with coordinates staff did not edit, the server asks the Census and saves
+  the result, or blank coordinates and the same message. Staff can always type coordinates. A Program
+  with a blank street address keeps blank coordinates and never looks up (Inheritance). Only the
+  Census sees the address.
 
 ## Acceptance checklist
 
