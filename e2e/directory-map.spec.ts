@@ -48,6 +48,18 @@ test("pins match the distinct points of the shown Programs, and selecting a pin 
   await expect(page.locator(".leaflet-popup")).toContainText("Get directions");
 });
 
+test("numbered cards come first, numbered 1 to n in order", async ({ page }) => {
+  await page.goto("/embed?view=map");
+  await expect(map(page)).toBeVisible();
+  const badges = await programCards(page).evaluateAll((cards) =>
+    cards.map((card) => card.querySelector("span.rounded-full")?.textContent?.replace("Pin", "").trim() ?? null),
+  );
+  const numbered = badges.filter((b) => b !== null);
+  expect(numbered.length).toBeGreaterThan(0);
+  expect(badges.slice(0, numbered.length)).toEqual(numbered); // no unnumbered card before a numbered one
+  expect(numbered).toEqual(numbered.map((_, i) => String(i + 1)));
+});
+
 test("results with no pins show a line, not an empty map", async ({ page }) => {
   await page.goto("/embed?q=warm+line&view=map");
   await expect(programCards(page).first()).toBeVisible();

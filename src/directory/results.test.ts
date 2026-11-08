@@ -190,6 +190,31 @@ describe("sorting and pages", () => {
     });
   });
 
+  describe("map view", () => {
+    // P-001, P-002, P-003, P-005 have a pin; P-004 is virtual-only and P-006 has no point.
+    it("lists Programs with a pin first, then the rest, keeping the sort inside each part", () => {
+      expect(ids("view=map")).toEqual(["P-003", "P-001", "P-005", "P-002", "P-006", "P-004"]);
+      expect(ids("view=map&sort=verified")).toEqual(["P-003", "P-001", "P-002", "P-005", "P-006", "P-004"]);
+      expect(ids("view=map&zip=49508")).toEqual(["P-001", "P-002", "P-003", "P-005", "P-006", "P-004"]);
+    });
+
+    it("puts a featured Program with no pin after the pinned ones", () => {
+      const featured: DirectorySnapshot = {
+        ...TEST_SNAPSHOT,
+        programs: TEST_SNAPSHOT.programs.map((p) => ({ ...p, featuredRank: ({ "P-006": 1, "P-005": 2 } as Record<string, number>)[p.id] ?? null })),
+      };
+      expect(search("view=map", featured).programs.map((r) => r.program.id)).toEqual(["P-005", "P-003", "P-001", "P-002", "P-006", "P-004"]);
+      expect(search("", featured).programs.map((r) => r.program.id)[0]).toBe("P-006"); // list view unchanged
+    });
+
+    it("cuts the page after the partition", () => {
+      const unpinned = (i: number) => ({ ...TEST_SNAPSHOT.programs[3], id: `U-${String(i)}`, name: `A ${String(i).padStart(2, "0")}` });
+      const mixed: DirectorySnapshot = { ...TEST_SNAPSHOT, programs: [...Array.from({ length: 12 }, (_, i) => unpinned(i)), TEST_SNAPSHOT.programs[2]] };
+      expect(search("view=map", mixed).programs[0].program.id).toBe("P-003");
+      expect(search("", mixed).programs.map((r) => r.program.id)).not.toContain("P-003");
+    });
+  });
+
   it("shows 10 per page, and Show more adds 10", () => {
     const many: DirectorySnapshot = {
       ...TEST_SNAPSHOT,
