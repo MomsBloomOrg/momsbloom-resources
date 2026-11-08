@@ -201,7 +201,7 @@ and the style of the existing screens.
 
 | Situation | What the family sees |
 |---|---|
-| First load | Grey placeholder cards ("skeletons") in the results, filters disabled. |
+| First load | A spinning bloom and the text "Loading resources…" on the Host page, over the empty iframe (`embed.js`). It goes away when the iframe loads. |
 | Loading after a change | The old results stay on screen, slightly faded, until the new ones arrive. Filters stay usable. |
 | The data does not load | "We couldn't load the directory right now. Call 211 or contact MomsBloom and we'll help you look." and a "Try again" button. |
 | No results | `No matches for "yoga" with these filters.` Buttons: "Clear filters", "Widen to 25 mi". The 211 box stays. |

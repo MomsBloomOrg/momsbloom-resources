@@ -157,3 +157,29 @@ test("custom-fields-detail-in-frame: a Program's and its Organization's custom f
   // The iframe grows to fit the extra cards.
   await expect.poll(async () => Math.abs((await iframeHeight(page)) - (await contentHeight(page)))).toBeLessThan(2);
 });
+
+test("loader-until-iframe-loads: the host page shows a spinner and text until the iframe loads", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => (release = resolve));
+  await page.route(`${APP}/embed`, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(HOST, { waitUntil: "domcontentloaded" }); // the held iframe would block the load event
+  const loader = page.locator("[data-momsbloom-loader]");
+  await expect(loader.getByRole("status")).toHaveText("Loading resources…");
+  await expect(loader.locator("img")).toHaveAttribute("src", `${APP}/bloom-spinner.svg`);
+  release();
+  await expect(loader).toHaveCount(0);
+  await expect(page.frameLocator(IFRAME).getByRole("heading", { level: 1 })).toBeVisible();
+});
+
+test("loader-gives-up: the loader goes away after 20 s when /embed never answers", async ({ page }) => {
+  await page.clock.install();
+  await page.route(`${APP}/embed`, () => {}); // never answers
+  await page.goto(HOST, { waitUntil: "domcontentloaded" });
+  const loader = page.locator("[data-momsbloom-loader]");
+  await expect(loader).toBeVisible();
+  await page.clock.fastForward(21_000);
+  await expect(loader).toHaveCount(0);
+});

@@ -20,6 +20,8 @@
  * 5. It listens for "event" messages (ADR 0006). If the page has its own gtag() (Squarespace GA4),
  *    a valid event from the allow-list below goes to gtag("event", name, params). With no gtag, the
  *    event is dropped. This file never loads Google code and never sets a cookie.
+ * 6. While the iframe loads, it shows a spinner and the text "Loading resources..." over the empty
+ *    iframe. The first iframe "load" event removes them (it also fires for the error page), or 20 s later if it never comes.
  *
  * This file is plain JavaScript (no TypeScript, no build step) because the browser loads it directly
  * from Squarespace. The message names and checks are a copy of src/embed/protocol.ts.
@@ -161,7 +163,36 @@
     iframe.style.height = "600px"; // start height until the first resize message arrives
     iframe.style.border = "0";
     iframe.style.display = "block";
-    script.parentNode.insertBefore(iframe, script.nextSibling);
+
+    // The loader sits over the iframe until it loads. Inline styles only, so the page CSS cannot change it.
+    var wrap = document.createElement("div");
+    wrap.style.position = "relative";
+    var loader = document.createElement("div");
+    loader.setAttribute("data-momsbloom-loader", "");
+    loader.style.cssText =
+      "position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:64px;box-sizing:border-box;pointer-events:none";
+    var spinner = document.createElement("img");
+    spinner.src = origin + "/bloom-spinner.svg";
+    spinner.alt = "";
+    spinner.width = 96;
+    spinner.style.cssText = "display:block;width:96px;height:auto;max-width:none;margin:0";
+    var label = document.createElement("p");
+    label.setAttribute("role", "status");
+    label.style.cssText = "margin:16px 0 0;padding:0;letter-spacing:normal;text-transform:none;font-size:16px;line-height:1.4;color:#6b6b6b;text-align:center";
+    loader.appendChild(spinner);
+    loader.appendChild(label);
+    wrap.appendChild(iframe);
+    wrap.appendChild(loader);
+    script.parentNode.insertBefore(wrap, script.nextSibling);
+    // Screen readers announce a status region only when its text changes, so the text comes after insertion.
+    setTimeout(function () { label.textContent = "Loading resources\u2026"; }, 0);
+    // A hung request never fires "load": give up after 20 s so the loader cannot spin forever.
+    var giveUp = setTimeout(done, 20000);
+    function done() {
+      clearTimeout(giveUp);
+      loader.remove();
+    }
+    iframe.addEventListener("load", done, { once: true });
 
     var loads = 0;
     window.addEventListener("message", function (event) {
