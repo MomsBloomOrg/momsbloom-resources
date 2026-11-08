@@ -8,6 +8,12 @@ describe("highlightRanges", () => {
   it("ignores accents but keeps original positions", () => {
     expect(highlightRanges("Un café bon", ["cafe"])).toEqual([[3, 7]]);
   });
+  it("includes the accent of an NFD letter", () => {
+    expect(highlightRanges("café bon", ["cafe"])).toEqual([[0, 5]]);
+  });
+  it("marks two words in one string", () => {
+    expect(highlightRanges("yoga for mom", ["yoga", "mom"])).toEqual([[0, 4], [9, 12]]);
+  });
   it("merges overlapping ranges", () => {
     expect(highlightRanges("Lactation", ["lact", "actation"])).toEqual([[0, 9]]);
   });

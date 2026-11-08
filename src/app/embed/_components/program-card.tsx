@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Globe, MapPin, Phone, User } from "lucide-react";
 import type { ProgramResult } from "@/directory/results";
-import { Highlight } from "./highlight";
 import type { FacetKey, FacetValueKeys, PostalAddress } from "@/directory/types";
+import { Highlight } from "./highlight";
 
 /** The label of a Facet value, or the key itself when the snapshot has no such value. */
 export type LabelOf = (facet: FacetKey, key: string) => string;
@@ -9,7 +9,7 @@ export type LabelOf = (facet: FacetKey, key: string) => string;
 /** The small light-green pill. Text is `ink`: green text on green fails contrast. */
 export function Tag({ children, words = [] }: { children: string; words?: readonly string[] }) {
   return (
-    <li className="rounded-md bg-secondary-soft px-2 py-0.5 text-xs">
+    <li className="rounded-md bg-secondary-soft px-2 py-0.5 text-xs [&_mark]:shadow-[inset_0_0_0_1px_#8fb2e6]">
       <Highlight text={children} words={words} />
     </li>
   );

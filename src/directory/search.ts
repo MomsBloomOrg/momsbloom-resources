@@ -50,7 +50,9 @@ export function highlightRanges(text: string, words: readonly string[]): [number
   const found: [number, number][] = [];
   for (const word of needles) {
     for (let at = normalized.indexOf(word); at !== -1; at = normalized.indexOf(word, at + 1)) {
-      found.push([starts[at], ends[at + word.length - 1]]);
+      let end = ends[at + word.length - 1];
+      while (end < text.length && /\p{M}/u.test(text[end])) end++; // an NFD accent belongs to its letter
+      found.push([starts[at], end]);
     }
   }
   found.sort((a, b) => a[0] - b[0]);
