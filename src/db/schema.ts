@@ -61,6 +61,8 @@ export const programs = pgTable("programs", {
 	statusId: integer("status_id").notNull(),
 	internalNotes: text("internal_notes"),
 	custom: custom(),
+	// Featured: 1 shows first. Null: not featured.
+	featuredRank: integer("featured_rank"),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [

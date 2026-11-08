@@ -1,5 +1,5 @@
 /** Admin: one Program. Takes a `Db`, so PGlite tests can run it. Results never throw for bad input. */
-import { eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, isNotNull, max } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -53,6 +53,8 @@ export interface ProgramFields {
   internalNotes: string | null;
   /** Custom field answers (src/custom-fields/form.ts). Left out: the `custom` column does not change. */
   custom?: CustomValues;
+  /** Featured (the Admin home ranks these; families see them first). Left out: the rank does not change. */
+  featured?: boolean;
 }
 
 export type ProgramInput = ProgramFields & Record<ProgramListKey, number[]>;
@@ -88,6 +90,8 @@ export function parseProgramInput(data: FormData): AdminResult<ProgramInput> {
   out.description = str(raw, "description");
   if (!out.description) errors.description = "Enter a description.";
   else if ((out.description as string).length > 5000) errors.description = "Use 5000 characters or fewer.";
+
+  out.featured = data.has("featured");
 
   out.organizationId = parseId(raw.organizationId);
   if (out.organizationId === null) errors.organizationId = "Select an Organization.";
@@ -182,7 +186,8 @@ export async function saveProgram(db: Db, id: number | null, input: ProgramInput
   return db.transaction(async (tx) => {
     const checked = await checkReferences(tx, input);
     if (!checked.ok) return checked;
-    const { categoryIds, subcategoryIds, insurancePlanIds, languageIds, audienceIds, ...fields } = checked.value;
+    const { categoryIds, subcategoryIds, insurancePlanIds, languageIds, audienceIds, featured, ...rest } = checked.value;
+    const fields = featured === undefined ? rest : { ...rest, featuredRank: featured ? await keepOrNextRank(tx, id) : null };
 
     const [row] =
       id === null
@@ -207,6 +212,67 @@ export async function saveProgram(db: Db, id: number | null, input: ProgramInput
     if (languageIds.length) await tx.insert(t.programLanguages).values(languageIds.map((languageId) => ({ programId, languageId })));
     if (audienceIds.length) await tx.insert(t.programAudiences).values(audienceIds.map((audienceId) => ({ programId, audienceId })));
     return { ok: true, value: { id: programId } } as const;
+  });
+}
+
+/** The Program's current rank when it is featured already; otherwise the end of the list (max + 1). */
+async function keepOrNextRank(tx: Db, id: number | null): Promise<number> {
+  if (id !== null) {
+    const [row] = await tx.select({ rank: t.programs.featuredRank }).from(t.programs).where(eq(t.programs.id, id));
+    if (row?.rank != null) return row.rank;
+  }
+  // shortcut: two Programs featured at the same moment can get the same rank; ties sort by ID and the next reorder renumbers them.
+  const [last] = await tx.select({ rank: max(t.programs.featuredRank) }).from(t.programs);
+  return (last?.rank ?? 0) + 1;
+}
+
+export interface FeaturedProgram {
+  id: number;
+  name: string;
+  organizationName: string;
+  statusName: string;
+  showOnSite: boolean;
+}
+
+/** The featured Programs in rank order (ties by ID), with each Program's Organization and Status. */
+export async function listFeaturedPrograms(db: Db): Promise<FeaturedProgram[]> {
+  return db
+    .select({
+      id: t.programs.id,
+      name: t.programs.name,
+      organizationName: t.organizations.name,
+      statusName: t.statuses.name,
+      showOnSite: t.statuses.showOnSite,
+    })
+    .from(t.programs)
+    .innerJoin(t.organizations, eq(t.organizations.id, t.programs.organizationId))
+    .innerJoin(t.statuses, eq(t.statuses.id, t.programs.statusId))
+    .where(isNotNull(t.programs.featuredRank))
+    .orderBy(asc(t.programs.featuredRank), asc(t.programs.id));
+}
+
+const STALE_FEATURED = "The featured list changed since you opened it. Reload the page.";
+
+/**
+ * Saves a new order of the featured Programs (a drag and drop). `ids` must be exactly the featured
+ * Programs: a page opened before another save is refused. Ranks become 1, 2, 3, ...
+ */
+export async function reorderFeaturedPrograms(db: Db, input: unknown): Promise<AdminResult<{ count: number }>> {
+  const ids = Array.isArray(input) ? input.map((id) => parseId(String(id))) : [];
+  if (ids.length === 0 || ids.includes(null) || new Set(ids).size !== ids.length) return { ok: false, error: STALE_FEATURED };
+
+  return db.transaction(async (tx) => {
+    const list = await tx
+      .select({ id: t.programs.id, rank: t.programs.featuredRank })
+      .from(t.programs)
+      .where(isNotNull(t.programs.featuredRank))
+      .for("no key update");
+    if (list.length !== ids.length || list.some((row) => !ids.includes(row.id))) return { ok: false, error: STALE_FEATURED } as const;
+    const rankOf = new Map(list.map((row) => [row.id, row.rank]));
+    for (const [index, id] of (ids as number[]).entries()) {
+      if (rankOf.get(id) !== index + 1) await tx.update(t.programs).set({ featuredRank: index + 1 }).where(eq(t.programs.id, id));
+    }
+    return { ok: true, value: { count: ids.length } } as const;
   });
 }
 
@@ -241,6 +307,7 @@ export async function getProgramForAdmin(db: Db, id: number): Promise<ProgramDet
     program: {
       ...program,
       description: program.description ?? "",
+      featured: program.featuredRank !== null,
       categoryIds: ids(categories),
       subcategoryIds: ids(subcategories),
       insurancePlanIds: ids(insurancePlans),
