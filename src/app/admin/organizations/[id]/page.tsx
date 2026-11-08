@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
@@ -8,9 +9,10 @@ import {
   Badge,
   Card,
   EmptyState,
-  PageHeader,
   buttonClass,
+  hintClass,
   linkClass,
+  sectionTitle,
   stackRowClass,
   stackTableClass,
   stackTbodyClass,
@@ -19,7 +21,6 @@ import {
   stackTheadRowClass,
   thClass,
 } from "../../_components/ui";
-import { CustomFieldsManager } from "../../_custom-fields/manager";
 import { OrganizationForm } from "../_components/organization-form";
 
 /** Block on the login check (cacheComponents): the page is never prerendered without it. */
@@ -41,63 +42,73 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
   const { organization, programs } = detail;
 
   return (
-    <>
-      <PageHeader
+    <div className="flex flex-col gap-6">
+      <OrganizationForm
+        key={id}
+        id={id}
+        organization={organization}
+        statuses={statuses}
+        hiddenProgramCount={programs.filter((p) => p.showOnSite).length}
+        customFields={customFields}
+        canManageFields={admin.role === "admin"}
         title={organization.name}
         back={
-          <Link href="/admin?type=organization" className={linkClass}>
+          <Link href="/admin?type=organization" className={`${linkClass} inline-flex items-center gap-1`}>
+            <ArrowLeft size={14} aria-hidden />
             Back to Organizations
           </Link>
         }
-      />
-      <div className="flex flex-col gap-6">
-        <Card title="Organization">
-          <OrganizationForm key={id} id={id} organization={organization} statuses={statuses} hiddenProgramCount={programs.filter((p) => p.showOnSite).length} customFields={customFields} />
-        </Card>
+        actions={
+          <a href={`/embed/organizations/${id}`} target="_blank" rel="noopener" className={buttonClass("secondary")}>
+            View on site<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        }
+      >
+        <p className={hintClass}>
+          Last changed {new Date(organization.updatedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit", year: "numeric", month: "short", day: "numeric" })}
+        </p>
+      </OrganizationForm>
 
-        <Card
-          title="Programs"
-          actions={
-            <Link href={`/admin/programs/new?org=${id}`} className={buttonClass("secondary", "sm")}>
-              Add program
-            </Link>
-          }
-        >
-          {programs.length === 0 ? (
-            <EmptyState>This Organization has no Programs yet.</EmptyState>
-          ) : (
-            <table role="table" className={stackTableClass}>
-              <caption className="sr-only">Programs of {organization.name}</caption>
-              <thead role="rowgroup" className={stackTheadClass}>
-                <tr role="row" className={stackTheadRowClass}>
-                  <th role="columnheader" scope="col" className={thClass}>Name</th>
-                  <th role="columnheader" scope="col" className={thClass}>Status</th>
-                  <th role="columnheader" scope="col" className={thClass}>Last verified</th>
-                  <th role="columnheader" scope="col" className={thClass}><span className="sr-only">Edit</span></th>
+      <Card
+        title={sectionTitle("Programs")}
+        actions={
+          <Link href={`/admin/programs/new?org=${id}`} className={buttonClass("secondary", "sm")}>
+            Add program
+          </Link>
+        }
+      >
+        {programs.length === 0 ? (
+          <EmptyState>This Organization has no Programs yet.</EmptyState>
+        ) : (
+          <table role="table" className={stackTableClass}>
+            <caption className="sr-only">Programs of {organization.name}</caption>
+            <thead role="rowgroup" className={stackTheadClass}>
+              <tr role="row" className={stackTheadRowClass}>
+                <th role="columnheader" scope="col" className={thClass}>Name</th>
+                <th role="columnheader" scope="col" className={thClass}>Status</th>
+                <th role="columnheader" scope="col" className={thClass}>Last verified</th>
+                <th role="columnheader" scope="col" className={thClass}><span className="sr-only">Edit</span></th>
+              </tr>
+            </thead>
+            <tbody role="rowgroup" className={stackTbodyClass}>
+              {programs.map((p) => (
+                <tr key={p.id} role="row" className={stackRowClass}>
+                  <td role="cell" className={`${stackTdClass} font-semibold`}>{p.name}</td>
+                  <td role="cell" data-label="Status" className={stackTdClass}>
+                    <Badge tone={p.showOnSite ? "good" : "neutral"}>{p.statusName}</Badge>
+                  </td>
+                  <td role="cell" data-label="Last verified" className={stackTdClass}>{formatDate(p.lastVerified)}</td>
+                  <td role="cell" className={stackTdClass}>
+                    <Link href={`/admin/programs/${p.id}`} className={linkClass} aria-label={`Edit ${p.name}`}>
+                      Edit
+                    </Link>
+                  </td>
                 </tr>
-              </thead>
-              <tbody role="rowgroup" className={stackTbodyClass}>
-                {programs.map((p) => (
-                  <tr key={p.id} role="row" className={stackRowClass}>
-                    <td role="cell" className={`${stackTdClass} font-semibold`}>{p.name}</td>
-                    <td role="cell" data-label="Status" className={stackTdClass}>
-                      <Badge tone={p.showOnSite ? "good" : "neutral"}>{p.statusName}</Badge>
-                    </td>
-                    <td role="cell" data-label="Last verified" className={stackTdClass}>{formatDate(p.lastVerified)}</td>
-                    <td role="cell" className={stackTdClass}>
-                      <Link href={`/admin/programs/${p.id}`} className={linkClass} aria-label={`Edit ${p.name}`}>
-                        Edit
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Card>
-
-        {admin.role === "admin" && <CustomFieldsManager db={db} entity="organization" />}
-      </div>
-    </>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+    </div>
   );
 }

@@ -17,7 +17,7 @@ export function CustomFieldInputs({
   fields,
   values,
   errors,
-  manageLink = false,
+  manageHref,
 }: {
   /** Makes input ids unique on the page, for example "program". */
   idPrefix: string;
@@ -27,18 +27,18 @@ export function CustomFieldInputs({
   values: CustomValues;
   /** Form errors, keyed by input name. */
   errors: Record<string, string>;
-  /** The edit page has the "Custom fields for all …" section below the form: link to it. */
-  manageLink?: boolean;
+  /** Owners only: the link to the Custom fields page, at this record type's section. */
+  manageHref?: string;
 }) {
   return (
     <fieldset className="flex flex-col gap-4 border-t border-line pt-5">
       <legend className={`${labelClass} text-lg`}>More details</legend>
       <p className={hintClass}>
         Custom fields. Leave a field blank if you don&apos;t know: blank is never shown as &ldquo;No&rdquo;.
-        {manageLink && (
+        {manageHref && (
           <>
             {" "}
-            <a href="#custom-fields" className={linkClass}>
+            <a href={manageHref} className={linkClass}>
               Add or change fields
             </a>
           </>

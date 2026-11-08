@@ -20,13 +20,13 @@ describe("custom fields admin", () => {
   afterEach(() => close());
 
   const add = async (entries: Record<string, string>) => {
-    const result = await addField(db, form(entries));
+    const result = await addField(db, form({ visibility: "staff", ...entries }));
     if (!result.ok) throw new Error(JSON.stringify(result));
     return result.field;
   };
 
   it("adds a list field from the form: options one per line, checkboxes", async () => {
-    const field = await add({ entity: "program", type: "choice", label: " Parking ", options: "Covered\n\nStandard Lot\n", showOnWebsite: "on", filterable: "on" });
+    const field = await add({ entity: "program", type: "choice", label: " Parking ", options: "Covered\n\nStandard Lot\n", visibility: "public", filterable: "on" });
     expect(field).toMatchObject({
       entity: "program",
       label: "Parking",
@@ -42,13 +42,32 @@ describe("custom fields admin", () => {
   it("refuses bad input with messages for the form", async () => {
     expect(await addField(db, form({ entity: "contact", type: "text", label: "X" }))).toMatchObject({ ok: false, error: "Unknown record type. Reload the page." });
     expect(await addField(db, form({ entity: "program", type: "spreadsheet", label: "X" }))).toMatchObject({ fieldErrors: { type: "Pick a field type." } });
-    await add({ entity: "program", type: "text", label: "Parking" });
-    expect(await addField(db, form({ entity: "program", type: "text", label: "parking" }))).toMatchObject({
+    await add({ entity: "program", type: "text", label: "Parking", visibility: "staff" });
+    expect(await addField(db, form({ entity: "program", type: "text", label: "parking", visibility: "staff" }))).toMatchObject({
       fieldErrors: { label: "Another field already has this name." },
     });
-    expect(await addField(db, form({ entity: "organization", type: "yesNo", label: "Y", showOnWebsite: "on", filterable: "on" }))).toMatchObject({
+    expect(await addField(db, form({ entity: "organization", type: "yesNo", label: "Y", visibility: "public", filterable: "on" }))).toMatchObject({
       fieldErrors: { filterable: "Only Program fields can be filters." },
     });
+  });
+
+  it("add-without-visibility-refused", async () => {
+    for (const entries of [{} as Record<string, string>, { visibility: "" }, { visibility: "on" }]) {
+      expect(await addField(db, form({ entity: "program", type: "text", label: "Parking", ...entries }))).toMatchObject({
+        ok: false,
+        fieldErrors: { showOnWebsite: "Choose who sees this field." },
+      });
+    }
+    expect(await listFieldsForAdmin(db, "program")).toMatchObject({ active: [] });
+  });
+
+  it("edit-without-visibility-refused", async () => {
+    const field = await add({ entity: "program", type: "text", label: "Parking", visibility: "public" });
+    expect(await editField(db, field.id, form({ label: "Renamed" }))).toMatchObject({
+      ok: false,
+      fieldErrors: { showOnWebsite: "Choose who sees this field." },
+    });
+    expect((await listFieldsForAdmin(db, "program")).active[0]).toMatchObject({ label: "Parking", showOnWebsite: true });
   });
 
   it("edits: renames, hides an option, adds options; the type never changes", async () => {
@@ -56,7 +75,7 @@ describe("custom fields admin", () => {
     const result = await editField(
       db,
       field.id,
-      form({ label: "Parking at the site", optionKey: ["1", "2"], optionLabel: ["Covered garage", "Standard Lot"], optionHidden: ["2"], newOptions: "Street", type: "text" }),
+      form({ label: "Parking at the site", optionKey: ["1", "2"], optionLabel: ["Covered garage", "Standard Lot"], optionHidden: ["2"], newOptions: "Street", type: "text", visibility: "staff" }),
     );
     expect(result).toMatchObject({
       ok: true,
@@ -86,11 +105,11 @@ describe("custom fields admin", () => {
   });
 
   it("archives and restores; restore is refused when the name is taken", async () => {
-    const field = await add({ entity: "program", type: "text", label: "Parking" });
+    const field = await add({ entity: "program", type: "text", label: "Parking", visibility: "staff" });
     await archiveField(db, field.id);
     expect(await listFieldsForAdmin(db, "program")).toMatchObject({ active: [], archived: [{ label: "Parking" }] });
 
-    const other = await add({ entity: "program", type: "text", label: "Parking" });
+    const other = await add({ entity: "program", type: "text", label: "Parking", visibility: "staff" });
     expect(await restoreField(db, field.id)).toEqual({ ok: false, error: "Another field already has this name." });
 
     await archiveField(db, other.id);

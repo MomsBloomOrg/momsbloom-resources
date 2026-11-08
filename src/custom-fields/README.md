@@ -51,12 +51,15 @@ Once the Directory uses custom fields:
 
 ## Where staff use it
 
-Both live on each Program's and each Organization's Admin page:
+The answers live on each Program's and each Organization's Admin page. The questions live on one
+page, **Settings → Custom fields** (`/admin/settings/custom-fields`), for Admins only:
 
 | Part of the page | What it does |
 |---|---|
 | **More details** (in the form, before Status) | This record's answers. They save with the form's **Save** button, with the rest of the record. Leave a field blank if you don't know. |
-| **Custom fields for all Programs** (a section at the bottom, closed at first) | The questions. Add, edit, move, archive, and restore fields here. A change applies to **every** Program (or every Organization), not just the one on screen, and the section says how many. |
+| **Settings → Custom fields** (one open section for Programs and one for Organizations) | The questions. Add, edit, move, archive, and restore fields here. A change applies to **every** Program (or every Organization), and the section says how many. **Who sees it** ("Families see it" or "Staff only") is a required choice with no default; the server refuses a form without it. "More details" on a record links here (Admins only). |
+
+Each Add and Edit form has a **How families see it** panel beside it. It shows the detail page line and the filter group, with a sample answer, and it follows the form as staff type. It uses the public pages' own code, so it shows what they will show.
 
 Contacts and Documents have no Admin form yet, so they get custom fields later. The code already
 supports them (`CUSTOM_FIELD_ENTITIES`); `ADMIN_ENTITIES` in `form.ts` lists the ones the Admin shows.
@@ -104,16 +107,16 @@ These keep the feature simple and safe. The code enforces all of them.
 | `filter.ts` | Custom fields as Program filters: groups, matching, counts, cleaning filters from old links. Pure functions. |
 | `store.ts` | Reads and writes `custom_fields` and the `custom` columns. No rules: callers check first. |
 | `form.ts` | A record's Admin form: reads the `custom.<id>` inputs and builds the `custom` column to save. Only the fields the form showed (`customFieldIds`) change, so an older form can't blank a newer field. |
-| `manage.ts` | The "Custom fields for all …" section: add, edit, move, archive, restore, from form data. |
+| `manage.ts` | The Settings → Custom fields page: add, edit, move, archive, restore, from form data. |
 | `*.test.ts` | Tests next to each file. Run them with `pnpm test`. |
 | `store.test.ts` | Runs the real migrations on a fresh in-process Postgres (PGlite) with made-up sample rows, so it needs no database and runs on CI. |
 | `test-fixtures.ts` | Made-up fields for the tests. |
 
-In the Admin: the inputs are `src/app/admin/_components/custom-field-inputs.tsx`; the section and its
-server actions are in `src/app/admin/_custom-fields/`. The Program and Organization save actions run
+In the Admin: the inputs are `src/app/admin/_components/custom-field-inputs.tsx`; the sections and their
+server actions are in `src/app/admin/_custom-fields/`, and the page is `src/app/admin/settings/custom-fields/`. The Program and Organization save actions run
 `parseCustomForm` next to their own checks and write the answers in the same transaction. Every
 action checks the login first (`requireStaffAdmin`). The field manager actions need the `admin` role
-(`requireAdmin`), and the page shows the manager to admins only; editors still fill in the answers.
+(`requireAdmin`), and the page is for admins only; editors still fill in the answers.
 
 ### Still to do
 

@@ -30,6 +30,12 @@ const text = (data: FormData, name: string) => {
   return typeof v === "string" ? v : "";
 };
 const checked = (data: FormData, name: string) => data.get(name) === "on";
+/** `visibility` is the required "Who sees it" radio: `public` or `staff`. Anything else is null. */
+const visibility = (data: FormData) => {
+  const value = data.get("visibility");
+  return value === "public" ? true : value === "staff" ? false : null;
+};
+const CHOOSE_VISIBILITY = FIX({ showOnWebsite: "Choose who sees this field." });
 
 /** Option names typed one per line. Blank lines are skipped. */
 const lines = (value: string) =>
@@ -45,14 +51,16 @@ async function findField(db: Db, id: unknown): Promise<{ all: CustomFieldDefinit
 }
 
 /**
- * "Add a field": `entity`, `type`, `label`, `helpText`, `options` (one per line), and the
- * `showOnWebsite` and `filterable` checkboxes.
+ * "Add a field": `entity`, `type`, `label`, `helpText`, `options` (one per line), the `visibility`
+ * radio (`public` or `staff`, required), and the `filterable` checkbox.
  */
 export async function addField(db: Db, data: FormData): Promise<ManageResult> {
   const entity = data.get("entity");
   const type = data.get("type");
   if (!isAdminEntity(entity)) return { ok: false, error: "Unknown record type. Reload the page." };
   if (!CUSTOM_FIELD_TYPES.includes(type as CustomFieldType)) return FIX({ type: "Pick a field type." });
+  const showOnWebsite = visibility(data);
+  if (showOnWebsite === null) return CHOOSE_VISIBILITY;
 
   const result = createDefinition(
     {
@@ -61,7 +69,7 @@ export async function addField(db: Db, data: FormData): Promise<ManageResult> {
       label: text(data, "label"),
       helpText: text(data, "helpText"),
       options: lines(text(data, "options")),
-      showOnWebsite: checked(data, "showOnWebsite"),
+      showOnWebsite,
       filterable: checked(data, "filterable"),
     },
     await listDefinitions(db),
@@ -71,7 +79,7 @@ export async function addField(db: Db, data: FormData): Promise<ManageResult> {
 }
 
 /**
- * "Edit field": `label`, `helpText`, the checkboxes, and for a list: one `optionKey` + `optionLabel`
+ * "Edit field": `label`, `helpText`, `visibility`, `filterable`, and for a list: one `optionKey` + `optionLabel`
  * pair per saved option (in order), `optionHidden` (the keys checked as hidden), and `newOptions`
  * (one per line). Type and record type never change, so they are not read.
  */
@@ -79,6 +87,8 @@ export async function editField(db: Db, id: unknown, data: FormData): Promise<Ma
   const found = await findField(db, id);
   if (!found) return NOT_FOUND;
   const { all, field } = found;
+  const showOnWebsite = visibility(data);
+  if (showOnWebsite === null) return CHOOSE_VISIBILITY;
 
   let options: OptionInput[] | undefined;
   if (field.type === "choice" || field.type === "multiChoice") {
@@ -97,7 +107,7 @@ export async function editField(db: Db, id: unknown, data: FormData): Promise<Ma
       label: text(data, "label"),
       helpText: text(data, "helpText"),
       options,
-      showOnWebsite: checked(data, "showOnWebsite"),
+      showOnWebsite,
       filterable: checked(data, "filterable"),
     },
     all,
