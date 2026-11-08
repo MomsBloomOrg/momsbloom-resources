@@ -104,10 +104,12 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
   border and a "Featured" pill in the top-right corner; its distance moves to the right end of the
   address row.
 - **Document card:** title, description, tags, "PDF" and languages, and "Download".
-- The green box "Can't find what you need?" (call or text 211, or contact MomsBloom; text from the Admin (Content)) always comes
+- The green help box ("Not sure where to start?" and a "Connect with a Navigator" button by default; text from the Admin (Content)) always comes
   last.
-- Desktop: the heading is "Postpartum Resources" with the line "Find nearby support that fits your
-  family, your insurance, and your needs." (no small heading above it).
+- Desktop: the heading is "Pregnancy & Postpartum Resources" with the line "Local support, services, and
+  resources for families in Kent County, Michigan." (no small heading above it). Staff admins edit both in
+  the Admin (Content). A fixed link "Need more assistance?" follows the line and jumps to the help box
+  (`#help`); in the Embed it scrolls the host page. The error screen shows the default heading.
 - Mobile: the mobile list frame (`5:353`) has the same heading as desktop. The mobile map frame
   (`95:1903`) still shows a small green "POSTPARTUM RESOURCE DIRECTORY" label above the heading
   "Find support that fits your family". Follow the list frame until the designer confirms.
@@ -154,7 +156,7 @@ See `desktop-organization-detail.png` (desktop only in Figma). Route: `/embed/or
 - Mobile: the Program detail layout. One column below 900 px wide, with the actions at the top.
 - Empty states: no About text, no phone, no website, or no address hides that part. No address and
   no map point hides the Location card. An Organization with no visible Programs has no Programs
-  card; it shows the "Can't find what you need?" box. An unknown or Inactive Organization shows
+  card; it shows the help box. An unknown or Inactive Organization shows
   "That resource isn't available anymore." and "Back to results".
 - A shared link opens the results, not this page (the host page URL has no `mbr-organization=` key).
 - Analytics: `organization_view` (Organization ID). No click events on this page.

@@ -112,7 +112,7 @@ test.describe("works-without-javascript", () => {
 test("no-results-clear-filters: Clear filters keeps the keyword and brings results back", async ({ page }) => {
   await page.goto("/embed?q=yoga&cost=free&lang=spanish");
   await expect(page.getByText('No matches for "yoga"')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Can't find what you need?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Not sure where to start?" })).toBeVisible();
   await page.getByRole("link", { name: "Clear filters", exact: true }).click();
   await expect(page).toHaveURL(/\?q=yoga$/);
   await expect(resultLine(page)).toHaveText('2 results for "yoga"');

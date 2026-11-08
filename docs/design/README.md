@@ -45,9 +45,10 @@ Notes:
 - Each active filter shows as a dark chip above the results, with an "x" to remove it, and a
   "Clear all" link.
 - "List" and "Map" switch the view. "Sort" offers Nearest (and more; see the handoff doc).
-- The green box at the bottom ("Can't find what you need?") always shows at the end of the results.
-- The heading is "Postpartum Resources", with the line "Find nearby support that fits your family,
-  your insurance, and your needs." There is no small heading above it. The mobile list frame
+- The green box at the bottom ("Not sure where to start?", with a "Connect with a Navigator" button; Figma `235-7213`) always shows at the end of the results.
+- The heading is "Pregnancy & Postpartum Resources", with the line "Local support, services, and
+  resources for families in Kent County, Michigan. Need more assistance?" (the last part is a link to
+  the green box). Staff admins edit the heading and the line in the Admin. There is no small heading above it. The mobile list frame
   matches; the mobile map frame still has the older heading (see the spec).
 
 ### Mobile

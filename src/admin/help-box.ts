@@ -4,11 +4,10 @@
  *
  * One `site_content` row per field. A blank field has no row, so the default shows.
  */
-import { inArray, sql } from "drizzle-orm";
-import { siteContent } from "@/db/schema";
 import type { Db } from "@/db/types";
+import { getSiteContent, saveSiteContent, type SiteContentResult } from "./site-content";
 
-export type HelpBoxResult<T> = { ok: true; value: T } | { ok: false; error: string };
+export type HelpBoxResult<T> = SiteContentResult<T>;
 
 export interface HelpBoxContent {
   heading: string;
@@ -24,10 +23,10 @@ export type HelpBoxField = keyof HelpBoxContent;
 
 /** The text before Staff admins could edit it. */
 export const HELP_BOX_DEFAULTS: HelpBoxContent = {
-  heading: "Can't find what you need?",
-  body: "Call or text {phone} for free, confidential help finding local services, or contact the MomsBloom team and we'll help you look.",
+  heading: "Not sure where to start?",
+  body: "Let us help carry the mental load. Our MomsBloom Navigators are here to help you find the resources and support you need.",
   phone: "211",
-  buttonLabel: "Contact MomsBloom",
+  buttonLabel: "Connect with a Navigator",
   buttonUrl: "https://www.momsbloom.org/contact",
 };
 
@@ -52,17 +51,8 @@ export function phoneDigits(phone: string): string {
 }
 
 /** The saved rows over the defaults. */
-export async function getHelpBoxContent(db: Db): Promise<HelpBoxContent> {
-  const rows = await db
-    .select({ key: siteContent.key, value: siteContent.value })
-    .from(siteContent)
-    .where(inArray(siteContent.key, HELP_BOX_FIELDS.map((f) => KEY_PREFIX + f)));
-  const content = { ...HELP_BOX_DEFAULTS };
-  for (const row of rows) {
-    const field = HELP_BOX_FIELDS.find((f) => KEY_PREFIX + f === row.key);
-    if (field) content[field] = row.value;
-  }
-  return content;
+export function getHelpBoxContent(db: Db): Promise<HelpBoxContent> {
+  return getSiteContent(db, KEY_PREFIX, HELP_BOX_DEFAULTS);
 }
 
 /** The error for one field, or null. `value` is trimmed and not blank. */
@@ -88,28 +78,6 @@ function check(field: HelpBoxField, value: string): string | null {
  * Saves the five fields from the form (`FormData`-like: `get(name)`). A blank field deletes its row.
  * Nothing is saved when any field is refused.
  */
-export async function saveHelpBoxContent(db: Db, form: { get(name: string): unknown }): Promise<HelpBoxResult<HelpBoxContent>> {
-  const set: [string, string][] = [];
-  const clear: string[] = [];
-  for (const field of HELP_BOX_FIELDS) {
-    const raw = form.get(field);
-    const value = typeof raw === "string" ? raw.trim() : "";
-    if (!value) {
-      clear.push(KEY_PREFIX + field);
-      continue;
-    }
-    const error = check(field, value);
-    if (error) return { ok: false, error };
-    set.push([KEY_PREFIX + field, value]);
-  }
-  await db.transaction(async (tx) => {
-    if (clear.length) await tx.delete(siteContent).where(inArray(siteContent.key, clear));
-    if (set.length) {
-      await tx
-        .insert(siteContent)
-        .values(set.map(([key, value]) => ({ key, value })))
-        .onConflictDoUpdate({ target: siteContent.key, set: { value: sql`excluded.value`, updatedAt: sql`now()` } });
-    }
-  });
-  return { ok: true, value: await getHelpBoxContent(db) };
+export function saveHelpBoxContent(db: Db, form: { get(name: string): unknown }): Promise<HelpBoxResult<HelpBoxContent>> {
+  return saveSiteContent(db, KEY_PREFIX, HELP_BOX_DEFAULTS, form, check);
 }

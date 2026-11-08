@@ -11,7 +11,7 @@ export default function DirectoryError({ error, retry }: { error: Error & { dige
   return (
     <main id={EMBED_ROOT_ID} className="mx-auto w-full max-w-6xl px-4 py-8">
       <DirectoryHeader />
-      <div className="mx-auto mt-8 flex max-w-2xl flex-col items-start gap-4 rounded-2xl bg-secondary-soft p-6">
+      <div id="help" className="mx-auto mt-8 flex max-w-2xl flex-col items-start gap-4 rounded-2xl bg-secondary-soft p-6">
         <p role="alert">
           We couldn&apos;t load the directory right now. Call{" "}
           <a href="tel:211" className="font-bold underline">
