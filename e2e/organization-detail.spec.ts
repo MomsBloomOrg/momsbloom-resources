@@ -53,3 +53,13 @@ test("org-guides: a linked Document shows on the Organization page with a Downlo
   await page.goto("/embed/organizations/O-010");
   await expect(page.getByRole("heading", { name: "Guides and downloads" })).toHaveCount(0);
 });
+
+test("org-actions-one-row-desktop: Call, Directions, and Website share one row at 900 px", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.goto("/embed/organizations/O-001");
+  const ys = await Promise.all(
+    [/^Call/, /^Directions/, /^Website/].map(async (name) => (await page.getByRole("link", { name }).first().boundingBox())?.y),
+  );
+  expect(ys[0]).toBeDefined();
+  expect(new Set(ys).size).toBe(1);
+});
