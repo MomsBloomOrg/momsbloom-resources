@@ -1,14 +1,19 @@
 import { expect, type FrameLocator, type Page } from "@playwright/test";
 
 /**
- * Opens the Filters modal, sets one checkbox, and closes the modal (Escape), so the test can go on with
- * the page behind it. `scope` is the page itself, or the iframe on the fake host page.
+ * Sets one filter checkbox. Desktop list view: in the filters column (applies at once). Otherwise: opens the
+ * Filters modal, sets it, and applies it with "Show results". `scope` is the page, or the iframe on the fake host page.
  */
-export async function setFilter(page: Page, scope: Page | FrameLocator, name: RegExp, checked = true) {
-  await scope.getByRole("link", { name: /^Filters/ }).click();
+export async function setFilter(_page: Page, scope: Page | FrameLocator, name: RegExp, checked = true) {
+  const link = scope.getByRole("link", { name: /^Filters/ });
+  if (!(await link.isVisible())) {
+    await scope.getByRole("checkbox", { name }).setChecked(checked);
+    return;
+  }
+  await link.click();
   const dialog = scope.getByRole("dialog", { name: "Filters" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("checkbox", { name }).setChecked(checked);
-  await page.keyboard.press("Escape");
+  await dialog.getByRole("button", { name: "Show results" }).click();
   await expect(dialog).toBeHidden();
 }

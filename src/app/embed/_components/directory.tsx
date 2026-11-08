@@ -232,7 +232,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             )}
             <HelpBox />
             </div>
-            <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref} sidebar={!mapView}>
+            <FilterSheet clearAllHref={clearAllHref} sidebar={!mapView}>
               <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
             </FilterSheet>
             </div>
