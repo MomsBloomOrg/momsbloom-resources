@@ -23,6 +23,7 @@ Sam Buck
 Jeremy Bell
 Jaxon Bell
 Gryffen Bell
+Hope Wadle
 
 /* THANKS */
 Code for Good WM
