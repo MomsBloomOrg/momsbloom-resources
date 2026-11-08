@@ -33,7 +33,9 @@ export interface Placed {
   longitude: number | null;
 }
 
-const addressKey = (a: Placed) => [a.streetAddress, a.city, a.state, a.zip].map((v) => v ?? "").join("|");
+/** The address parts that place a pin. Suite is not one of them. */
+export type Address = Pick<Placed, "streetAddress" | "city" | "state" | "zip">;
+export const addressKey = (a: Address) => [a.streetAddress, a.city, a.state, a.zip].map((v) => v ?? "").join("|");
 
 /**
  * Keeps latitude and longitude in step with the street address when the address is new or changed and

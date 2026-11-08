@@ -8,6 +8,7 @@ import type { CustomFieldDefinition } from "@/custom-fields/types";
 import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Card, Field, Notice, PageHeader, buttonClass, hintClass, inputClass, labelClass, sectionTitle, statusPillClass } from "../../_components/ui";
 import { lastGoodPin } from "../../_components/last-good-pin";
+import { useMapPointLookup } from "../../_components/use-map-point-lookup";
 import { saveProgramAction, type ProgramFormState } from "../actions";
 
 const IDLE: ProgramFormState = { status: "idle" };
@@ -162,13 +163,16 @@ export function ProgramForm({
     });
   const [acceptanceId, setAcceptanceId] = useState(String(program?.insuranceAcceptanceId ?? ""));
   const errors = state.status === "invalid" ? state.errors : {};
-  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here).
-  const notice = state.status === "saved" ? state.notice : program?.streetAddress && program.latitude == null && program.longitude == null ? NOT_PLACED : undefined;
   const p = program;
   // The pin of the last good save, kept across a refused save. The inputs are keyed on it, so a later Save does not send the old pin.
   const [pin, setPin] = useState({ latitude: p?.latitude, longitude: p?.longitude });
   const next = lastGoodPin(pin, state);
   if (next !== pin) setPin(next);
+  // The Program's own street: with none, it inherits the Organization's point and never looks up.
+  const unplaced = Boolean(p?.streetAddress) && p?.latitude == null && p?.longitude == null;
+  const { ref: addressRef, onBlur: onAddressBlur, notice: lookupNotice, answered } = useMapPointLookup(setPin, unplaced);
+  // After a save: the save's notice. Before: an address with no pin (a create redirects, so it lands here), until the lookup answers.
+  const notice = state.status === "saved" ? state.notice : unplaced && !answered ? NOT_PLACED : undefined;
   const org: OrganizationOption | undefined = options.organizations.find((o) => String(o.id) === orgId);
   const acceptsYes = options.insuranceAcceptanceOptions.find((o) => String(o.id) === acceptanceId)?.name.trim().toLowerCase() === "yes";
 
@@ -322,17 +326,20 @@ export function ProgramForm({
       <Card title={sectionTitle("Location & Hours")}>
         <div className="flex flex-col gap-5">
           <p className={hintClass}>Leave an address field blank to use the Organization&apos;s value, shown in grey.</p>
-          {text("streetAddress", "Street address", { inherit: "streetAddress" })}
-          {text("suite", "Suite", { inherit: "suite" })}
-          <div className="grid gap-4 sm:grid-cols-3">
-            {text("city", "City", { inherit: "city" })}
-            {text("state", "State", { inherit: "state" })}
-            {text("zip", "ZIP", { inherit: "zip" })}
+          <div ref={addressRef} onBlur={onAddressBlur} className="flex flex-col gap-5">
+            {text("streetAddress", "Street address", { inherit: "streetAddress" })}
+            {text("suite", "Suite", { inherit: "suite" })}
+            <div className="grid gap-4 sm:grid-cols-3">
+              {text("city", "City", { inherit: "city" })}
+              {text("state", "State", { inherit: "state" })}
+              {text("zip", "ZIP", { inherit: "zip" })}
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634", inherit: "latitude" })}
             {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681", inherit: "longitude" })}
           </div>
+          {lookupNotice && <Notice tone="warning" role="status">{lookupNotice}</Notice>}
           {text("hours", "Hours", { hint: "Example: Mon to Fri 9am to 5pm" })}
           {select("serviceFormatId", "How you'll connect", options.serviceFormats, "Not set")}
         </div>
