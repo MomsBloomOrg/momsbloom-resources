@@ -109,6 +109,19 @@ test("featured-badge-detail: a featured Program shows the pill next to the title
   await expect(page.getByText("Featured", { exact: true })).toHaveCount(0);
 });
 
+test("share-tool-fallback: when the clipboard refuses, the link shows in a selected field", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: () => Promise.reject(new Error("denied")) }, configurable: true });
+  });
+  await page.goto("/embed/programs/P-001");
+  await page.getByRole("button", { name: "Copy Page Link" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Copy this link." })).toBeVisible();
+  const field = page.getByRole("textbox", { name: "Page link" });
+  await expect(field).toHaveValue("https://www.momsbloom.org/resources?mbr-program=P-001");
+  await expect(field).toBeFocused();
+  expect(await field.evaluate((el: HTMLInputElement) => el.selectionEnd! - el.selectionStart!)).toBeGreaterThan(0);
+});
+
 test("share-tool: Copy puts the Host page link on the clipboard; Email holds the encoded link", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.setViewportSize({ width: 1200, height: 900 });

@@ -18,8 +18,10 @@ export function ShareTool({ programId, programName, className }: { programId: st
   const data = { "data-program-id": programId, "data-program-name": programName };
 
   async function copy() {
+    setState("idle"); // clear first, so a second copy changes the live region and is announced again
     try {
       await navigator.clipboard.writeText(link);
+      await new Promise((resolve) => setTimeout(resolve, 100));
       setState("copied");
     } catch {
       setState("failed");
@@ -41,7 +43,7 @@ export function ShareTool({ programId, programName, className }: { programId: st
           Email
         </a>
       </div>
-      <p role="status" className="mt-2 text-sm empty:hidden">
+      <p role="status" className="mt-2 text-sm empty:absolute">
         {state === "copied" && "Link copied."}
         {state === "failed" && "Copy this link."}
       </p>

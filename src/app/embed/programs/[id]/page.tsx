@@ -226,7 +226,6 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
         </div>
         <div className="contents min-[900px]:flex min-[900px]:flex-col min-[900px]:gap-4">
           {actionBar(`${card} hidden min-[900px]:flex`)}
-          <ShareTool programId={program.id} programName={program.name} className={`${card} order-9 min-[900px]:order-none`} />
           <section aria-labelledby="location" className={`${card} order-2`}>
             <h2 id="location" className={heading}>
               Location and hours
@@ -288,6 +287,8 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
               </a>
             </section>
           )}
+          {/* Last in the DOM, like the last card on mobile (order-9). From 900 px, order-1 puts it right under the action bar (order 0), above Location (order-2). */}
+          <ShareTool programId={program.id} programName={program.name} className={`${card} order-9 min-[900px]:order-1`} />
         </div>
       </div>
       <p className="mt-4 text-sm text-muted">
