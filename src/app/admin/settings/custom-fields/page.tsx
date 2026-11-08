@@ -21,11 +21,11 @@ export default async function CustomFieldsPage() {
       <SettingsSubNav current="custom-fields" />
       <PageHeader title="Custom fields" />
       <div className="mb-6 flex max-w-2xl flex-col gap-3">
-        <p>Custom fields are extra questions you add to every Program or Organization.</p>
+        <p>Custom fields are extra questions you add to every Program, Organization, or Document.</p>
         <ol className="flex list-decimal flex-col gap-1 pl-5">
           <li><strong>Add the field</strong> here, for example &ldquo;Parking&rdquo;.</li>
           <li>
-            <strong>Fill in the answers</strong> on each Program or Organization, under &ldquo;More details&rdquo;. A blank answer
+            <strong>Fill in the answers</strong> on each Program, Organization, or Document, under &ldquo;More details&rdquo;. A blank answer
             means &ldquo;we don&apos;t know&rdquo;.
           </li>
           <li>

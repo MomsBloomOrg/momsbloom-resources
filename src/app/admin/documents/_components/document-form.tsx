@@ -4,6 +4,8 @@ import { upload } from "@vercel/blob/client";
 import { startTransition, useActionState, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { DocumentFormOptions, DocumentInput } from "@/admin/documents";
 import { validatePdfUpload } from "@/admin/document-upload";
+import type { CustomFieldDefinition } from "@/custom-fields/types";
+import { CustomFieldInputs } from "../../_components/custom-field-inputs";
 import { Field, Notice, buttonClass, hintClass, inputClass, labelClass } from "../../_components/ui";
 import { Checks } from "../../programs/_components/program-form";
 import { saveDocumentAction, type DocumentFormState } from "../actions";
@@ -20,11 +22,17 @@ export function DocumentForm({
   id,
   document,
   options,
+  customFields,
+  canManageFields = false,
   uploadPrefix,
 }: {
   id?: number;
   document?: DocumentInput;
   options: DocumentFormOptions;
+  /** The active Document custom fields, in order. */
+  customFields: readonly CustomFieldDefinition[];
+  /** Owners get a link to the Custom fields page; editors do not. */
+  canManageFields?: boolean;
   uploadPrefix: string;
 }) {
   const [state, dispatch, pending] = useActionState(saveDocumentAction, IDLE);
@@ -177,6 +185,8 @@ export function DocumentForm({
       </fieldset>
 
       <Checks name="languageIds" legend="Languages" options={options.languages} checked={d?.languageIds ?? []} error={errors.languageIds} />
+
+      <CustomFieldInputs idPrefix="document" fields={customFields} values={d?.custom ?? {}} errors={errors} manageHref={canManageFields ? "/admin/settings/custom-fields#document-fields" : undefined} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="document-statusId" label="Status" error={errors.statusId}>

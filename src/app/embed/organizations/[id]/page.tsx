@@ -154,7 +154,7 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
               </h2>
               <div className="mt-2 flex flex-col gap-3">
                 {documents.map((document) => (
-                  <DocumentCard key={document.id} document={document} labelOf={labelOf} />
+                  <DocumentCard key={document.id} document={document} labelOf={labelOf} customFields={snapshot.customFields} />
                 ))}
               </div>
             </section>

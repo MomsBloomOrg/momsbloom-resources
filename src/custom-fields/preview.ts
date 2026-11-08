@@ -8,8 +8,10 @@ import type { CustomFieldDefinition, CustomFieldOption, CustomFieldType, CustomV
 import { publicCustomValues, type ShownCustomValue } from "./values";
 
 export interface FieldPreview {
-  /** The detail page line; null when families would not see the field (or a list has no options yet). */
+  /** The line families see; null when they would not see the field (or a list has no options yet). */
   shown: ShownCustomValue | null;
+  /** Where the line shows: a Document has no detail page, so its answer shows on the card. */
+  where: "detail" | "card";
   /** The filter group; null when the field is not a public filter. */
   filter: CustomFilterGroup | null;
   /** Families would see the field, but a list has no options yet. */
@@ -77,7 +79,7 @@ export function previewFromForm(entity: AdminEntity, type: CustomFieldType, data
   const sample = sampleFor(type, options);
   const [shown = null] = publicCustomValues([draft], entity, sample === undefined ? {} : { [draft.id]: sample });
   const filter = customFilterGroups([draft]).find((group) => group.values.length > 0) ?? null;
-  return { shown, filter, needsOptions: draft.showOnWebsite && sample === undefined };
+  return { shown, where: entity === "document" ? "card" : "detail", filter, needsOptions: draft.showOnWebsite && sample === undefined };
 }
 
 /** The Edit form's starting data, so the preview shows the saved field before anything changes. */

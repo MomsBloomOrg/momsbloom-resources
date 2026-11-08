@@ -192,6 +192,7 @@ export const TEST_SNAPSHOT: DirectorySnapshot = {
       pdfUrl: "https://example.org/warning-signs.pdf",
       organization: null,
       lastVerified: "2026-10-01",
+      custom: {},
     },
     {
       id: "D-002",
@@ -202,6 +203,7 @@ export const TEST_SNAPSHOT: DirectorySnapshot = {
       pdfUrl: "https://example.org/gentle-yoga.pdf",
       organization: null,
       lastVerified: null,
+      custom: {},
     },
   ],
 };

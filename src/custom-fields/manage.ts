@@ -151,7 +151,7 @@ export async function moveField(db: Db, id: unknown, direction: "up" | "down"): 
 
 /** How many records of this type there are: every one of them gets each field. */
 export async function countRecords(db: Db, entity: AdminEntity): Promise<number> {
-  const table = entity === "program" ? t.programs : t.organizations;
+  const table = { program: t.programs, organization: t.organizations, document: t.documents }[entity];
   const [row] = await db.select({ n: count() }).from(table);
   return row?.n ?? 0;
 }

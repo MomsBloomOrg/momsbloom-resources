@@ -99,8 +99,8 @@ describe("toDirectorySnapshot", () => {
       rows({
         programs: [program({ id: 1 }), program({ id: 2, statusId: 2 }), program({ id: 3, statusId: INACTIVE }), program({ id: 4, organizationId: 11 })],
         documents: [
-          { id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null },
-          { id: 8, title: "Old guide", description: null, searchKeywords: null, url: "https://example.org/old.pdf", lastVerified: null, statusId: INACTIVE, organizationId: null },
+          { id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null, custom: {} },
+          { id: 8, title: "Old guide", description: null, searchKeywords: null, url: "https://example.org/old.pdf", lastVerified: null, statusId: INACTIVE, organizationId: null, custom: {} },
         ],
       }),
     );
@@ -110,7 +110,7 @@ describe("toDirectorySnapshot", () => {
   });
 
   it("links a Document to its Organization, and to null when that Organization's Status is hidden", () => {
-    const document = { description: null, searchKeywords: null, url: "https://example.org/g.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null };
+    const document = { description: null, searchKeywords: null, url: "https://example.org/g.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null, custom: {} };
     const snapshot = toDirectorySnapshot(
       rows({
         documents: [
@@ -146,7 +146,7 @@ describe("toDirectorySnapshot", () => {
           withNotes({ programId: 1, name: "Sam Example", title: "Doula", specialty: null, email: null, phone: null, showOnWebsite: true }),
           withNotes({ programId: 1, name: "Pat Private", title: null, specialty: null, email: "pat@example.org", phone: "616-555-0101", showOnWebsite: false }),
         ],
-        documents: [withNotes({ id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null })],
+        documents: [withNotes({ id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null, custom: {} })],
       }),
     );
     const json = JSON.stringify(snapshot);
@@ -253,7 +253,7 @@ describe("toDirectorySnapshot", () => {
   });
 
   it("leaves out a Document whose link is not a URL", () => {
-    const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE, organizationId: null };
+    const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE, organizationId: null, custom: {} };
     const snapshot = toDirectorySnapshot(
       rows({
         documents: [
@@ -305,5 +305,32 @@ describe("custom fields", () => {
     );
     expect(snapshot.organizations[0].custom).toEqual({ [entrance.id]: "Ramp" });
     expect(JSON.stringify(snapshot)).not.toContain("billing@example.org");
+  });
+
+  it("document-custom-public-only: a Document keeps its public answers; staff-only and archived answers are dropped", () => {
+    const worksheet = { ...BILLING_EMAIL, id: "98", entity: "document" as const, label: "Printable worksheet", type: "yesNo" as const, showOnWebsite: true };
+    const staffOnly = { ...worksheet, id: "97", label: "Review notes", type: "text" as const, showOnWebsite: false };
+    const archived = { ...worksheet, id: "96", label: "Old question", archived: true };
+    const snapshot = toDirectorySnapshot(
+      rows({
+        customFields: [...TEST_FIELDS, worksheet, staffOnly, archived],
+        documents: [
+          {
+            id: 1,
+            title: "Guide",
+            description: null,
+            searchKeywords: null,
+            url: "https://example.org/guide.pdf",
+            lastVerified: null,
+            statusId: ACTIVE,
+            organizationId: null,
+            custom: { [worksheet.id]: true, [staffOnly.id]: "secret review note", [archived.id]: true },
+          },
+        ],
+      }),
+    );
+    expect(snapshot.documents[0].custom).toEqual({ [worksheet.id]: true });
+    expect(snapshot.customFields.map((f) => f.id)).not.toContain(staffOnly.id);
+    expect(JSON.stringify(snapshot)).not.toContain("secret review note");
   });
 });

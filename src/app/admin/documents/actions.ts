@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
 import { getDocumentForAdmin, markDocumentVerified, parseDocumentInput, saveDocument } from "@/admin/documents";
-import { GONE, parseId, stampVerifiedBy, verifiedByAfterSave } from "@/admin/organizations";
+import { FIX_FIELDS, GONE, parseId, stampVerifiedBy, verifiedByAfterSave } from "@/admin/organizations";
+import { parseCustomForm } from "@/custom-fields/form";
 import { getDb } from "@/db";
 
 export type DocumentFormState =
@@ -29,11 +30,16 @@ export async function saveDocumentAction(_prev: DocumentFormState, formData: For
     return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, lastVerifiedBy: admin.email };
   }
 
-  const parsed = parseDocumentInput(formData);
-  if (!parsed.ok) return invalid(parsed.error, parsed.fieldErrors);
   const db = getDb();
+  // Both checks run, so one save shows every marked field.
+  const parsed = parseDocumentInput(formData);
+  const custom = await parseCustomForm(db, "document", formData, id);
+  if (!parsed.ok || !custom.ok) {
+    return invalid(parsed.ok ? FIX_FIELDS : parsed.error, { ...(parsed.ok ? {} : parsed.fieldErrors), ...(custom.ok ? {} : custom.fieldErrors) });
+  }
+  const withCustom = custom.values === null ? parsed.value : { ...parsed.value, custom: custom.values };
   const old = id === null ? null : ((await getDocumentForAdmin(db, id))?.document ?? null);
-  const input = stampVerifiedBy(parsed.value, old, admin.email);
+  const input = stampVerifiedBy(withCustom, old, admin.email);
   const saved = await saveDocument(db, id, input);
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();

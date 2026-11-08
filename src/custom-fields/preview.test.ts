@@ -14,7 +14,7 @@ describe("previewFromForm", () => {
     ["no choice yet", {}],
   ])("shows nothing for %s", (_name, visibility: Record<string, string>) => {
     const p = previewFromForm("program", "yesNo", form({ label: "Doula", filterable: "on", ...visibility }));
-    expect(p).toEqual({ shown: null, filter: null, needsOptions: false });
+    expect(p).toEqual({ shown: null, where: "detail", filter: null, needsOptions: false });
   });
 
   it("shows a Yes / No line and filter for a public Program filter", () => {
@@ -27,6 +27,13 @@ describe("previewFromForm", () => {
     const p = previewFromForm("organization", "choice", form({ label: "Type", visibility: "public", filterable: "on", options: "A\nB" }));
     expect(p.shown?.text).toBe("A");
     expect(p.filter).toBeNull();
+  });
+
+  it("says a Document answer shows on the card; the others on the detail page", () => {
+    const data = form({ label: "Printable worksheet", visibility: "public" });
+    expect(previewFromForm("document", "yesNo", data)).toMatchObject({ where: "card", shown: { label: "Printable worksheet", text: "Yes" } });
+    expect(previewFromForm("program", "yesNo", data).where).toBe("detail");
+    expect(previewFromForm("organization", "yesNo", data).where).toBe("detail");
   });
 
   it("drops hidden options and adds new ones on the Edit form", () => {

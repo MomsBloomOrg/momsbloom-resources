@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   write: vi.fn(),
   verify: vi.fn(),
   old: vi.fn(),
+  custom: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
@@ -17,6 +18,10 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/db", () => ({ getDb: () => ({}) }));
 vi.mock("@/auth/dal", () => ({ requireStaffAdmin: mocks.requireStaffAdmin }));
+vi.mock("@/custom-fields/form", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/custom-fields/form")>()),
+  parseCustomForm: mocks.custom,
+}));
 vi.mock("@/admin/documents", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/admin/documents")>()),
   saveDocument: mocks.write,
@@ -40,6 +45,7 @@ describe("saveDocumentAction", () => {
     mocks.requireStaffAdmin.mockResolvedValue({ id: "a", email: "staff@example.org" });
     mocks.write.mockResolvedValue({ ok: true, value: { id: 7 } });
     mocks.verify.mockResolvedValue({ ok: true, value: { lastVerified: "2026-11-07" } });
+    mocks.custom.mockResolvedValue({ ok: true, values: null });
     mocks.old.mockResolvedValue(null);
   });
 
@@ -74,6 +80,26 @@ describe("saveDocumentAction", () => {
     expect(mocks.write.mock.lastCall![2]).toMatchObject({ lastVerifiedBy: "staff@example.org" });
     expect(await saveDocumentAction(idle, form({ ...valid, id: "7", lastVerified: "2026-01-01" }))).toMatchObject({ lastVerifiedBy: "old@example.org" });
     expect(mocks.write.mock.lastCall![2]).not.toHaveProperty("lastVerifiedBy");
+  });
+
+  it("custom field answers are saved with the record", async () => {
+    mocks.custom.mockResolvedValue({ ok: true, values: { "21": "1" } });
+    expect(await saveDocumentAction(idle, form({ ...valid, id: "7" }))).toMatchObject({ status: "saved" });
+    expect(mocks.write.mock.calls[0][2]).toMatchObject({ custom: { "21": "1" } });
+  });
+
+  it("no custom fields on the form: the custom column is left alone", async () => {
+    await saveDocumentAction(idle, form({ ...valid, id: "7" }));
+    expect(mocks.write.mock.calls[0][2]).not.toHaveProperty("custom");
+  });
+
+  it("a bad custom answer and a bad field show together, and nothing is written", async () => {
+    mocks.custom.mockResolvedValue({ ok: false, fieldErrors: { "custom.21": "Pick from the list." } });
+    const state = await saveDocumentAction(idle, form({ ...valid, id: "7", title: "" }));
+    expect(state).toMatchObject({ status: "invalid", errors: { "custom.21": "Pick from the list." } });
+    expect(state.status === "invalid" && state.errors.title).toBeTruthy();
+    expect(mocks.write).not.toHaveBeenCalled();
+    expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 
   it("save clears the Directory cache", async () => {

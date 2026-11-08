@@ -10,7 +10,7 @@ import { FilterCheckbox, FilterGroup } from "../../embed/_components/filter-colu
  * The card classes are the ones of the public detail page "More details" section.
  */
 export function FieldPreviewPanel({ preview }: { preview: FieldPreview }) {
-  const { shown, filter, needsOptions } = preview;
+  const { shown, where, filter, needsOptions } = preview;
   const headingId = useId();
   const detailsId = useId();
   // One short line for screen readers; it changes only when the state changes, not on each keystroke.
@@ -25,15 +25,26 @@ export function FieldPreviewPanel({ preview }: { preview: FieldPreview }) {
       </p>
       {shown ? (
         <>
-          <p className="text-muted">On the detail page</p>
-          <section aria-labelledby={detailsId} className="rounded-2xl border border-line bg-surface p-5">
-            <h5 id={detailsId} className="text-base font-extrabold">
-              More details
-            </h5>
-            <div className="mt-2">
-              <CustomField field={shown} />
-            </div>
-          </section>
+          {where === "card" ? (
+            <>
+              <p className="text-muted">On the card</p>
+              <div className="rounded-2xl border border-line bg-surface p-5">
+                <CustomField field={shown} />
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-muted">On the detail page</p>
+              <section aria-labelledby={detailsId} className="rounded-2xl border border-line bg-surface p-5">
+                <h5 id={detailsId} className="text-base font-extrabold">
+                  More details
+                </h5>
+                <div className="mt-2">
+                  <CustomField field={shown} />
+                </div>
+              </section>
+            </>
+          )}
           {filter && (
             <>
               <p className="text-muted">In the filters</p>

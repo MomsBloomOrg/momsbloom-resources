@@ -111,6 +111,8 @@ export interface DirectoryDocument {
   /** The Organization whose page also shows this Document; null when it has none or its Status is hidden. */
   organization: { id: string; name: string } | null;
   lastVerified: string | null;
+  /** Custom field answers, public fields only (field id → value). */
+  custom: CustomValues;
 }
 
 /** An Organization with a shown Status, for its detail page. Never Internal notes, never email. */

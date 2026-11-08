@@ -1,5 +1,6 @@
 /** Admin: Documents (PDF guides). Takes a `Db`, so PGlite tests can run it. Results never throw for bad input. */
 import { eq, inArray } from "drizzle-orm";
+import type { CustomValues } from "@/custom-fields/types";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 import {
@@ -38,7 +39,11 @@ export interface DocumentFields {
   internalNotes: string | null;
 }
 
-export type DocumentInput = DocumentFields & Record<DocumentListKey, number[]>;
+export type DocumentInput = DocumentFields &
+  Record<DocumentListKey, number[]> & {
+    /** Custom field answers (src/custom-fields/form.ts). Left out: the `custom` column does not change. */
+    custom?: CustomValues;
+  };
 
 const TEXT_FIELDS = [
   ["description", "Description", 5000],
