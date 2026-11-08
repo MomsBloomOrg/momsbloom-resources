@@ -45,7 +45,7 @@ function sampleFor(type: CustomFieldType, options: readonly CustomFieldOption[])
     case "yesNo":
       return true;
     case "date":
-      return new Date().toISOString().slice(0, 10);
+      return "2026-01-15"; // fixed, so the preview never depends on the time zone
     case "choice":
       return options[0]?.key;
     case "multiChoice":
@@ -78,4 +78,18 @@ export function previewFromForm(entity: AdminEntity, type: CustomFieldType, data
   const [shown = null] = publicCustomValues([draft], entity, sample === undefined ? {} : { [draft.id]: sample });
   const filter = customFilterGroups([draft]).find((group) => group.values.length > 0) ?? null;
   return { shown, filter, needsOptions: draft.showOnWebsite && sample === undefined };
+}
+
+/** The Edit form's starting data, so the preview shows the saved field before anything changes. */
+export function savedFieldData(field: CustomFieldDefinition): FormData {
+  const data = new FormData();
+  data.set("label", field.label);
+  data.set("visibility", field.showOnWebsite ? "public" : "staff");
+  if (field.filterable) data.set("filterable", "on");
+  for (const o of field.options) {
+    data.append("optionKey", o.key);
+    data.append("optionLabel", o.label);
+    if (o.hidden) data.append("optionHidden", o.key);
+  }
+  return data;
 }

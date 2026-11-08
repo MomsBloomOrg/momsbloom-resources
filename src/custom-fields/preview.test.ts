@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { previewFromForm } from "./preview";
+import { previewFromForm, savedFieldData } from "./preview";
+import { PARKING } from "./test-fixtures";
 
 const form = (entries: Record<string, string | string[]>) => {
   const data = new FormData();
@@ -8,11 +9,12 @@ const form = (entries: Record<string, string | string[]>) => {
 };
 
 describe("previewFromForm", () => {
-  it("shows nothing for Staff only or no choice yet", () => {
-    for (const visibility of [{ visibility: "staff" } as Record<string, string>, {} as Record<string, string>]) {
-      const p = previewFromForm("program", "yesNo", form({ label: "Doula", filterable: "on", ...visibility }));
-      expect(p).toMatchObject({ shown: null, filter: null });
-    }
+  it.each([
+    ["Staff only", { visibility: "staff" }],
+    ["no choice yet", {}],
+  ])("shows nothing for %s", (_name, visibility: Record<string, string>) => {
+    const p = previewFromForm("program", "yesNo", form({ label: "Doula", filterable: "on", ...visibility }));
+    expect(p).toEqual({ shown: null, filter: null, needsOptions: false });
   });
 
   it("shows a Yes / No line and filter for a public Program filter", () => {
@@ -41,5 +43,12 @@ describe("previewFromForm", () => {
     expect(previewFromForm("program", "text", form({ visibility: "public" })).shown?.label).toBe("Field name");
     expect(previewFromForm("program", "choice", form({ visibility: "public" })).shown).toBeNull();
     expect(previewFromForm("program", "choice", form({ visibility: "public" })).needsOptions).toBe(true);
+  });
+
+  it("starts the Edit form from the saved field", () => {
+    // PARKING is a public, filterable list with one hidden option ("Paid garage").
+    const p = previewFromForm("program", PARKING.type, savedFieldData(PARKING));
+    expect(p.filter?.values.map((v) => v.label)).toEqual(["Free lot", "Street"]);
+    expect(p.shown).toMatchObject({ label: "Parking" });
   });
 });

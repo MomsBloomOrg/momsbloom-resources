@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { FILTERABLE_TYPES, CHOICE_TYPES, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_TYPE_LABELS, type CustomFieldDefinition, type CustomFieldType } from "@/custom-fields/types";
 import type { AdminEntity } from "@/custom-fields/form";
-import { previewFromForm, type FieldPreview } from "@/custom-fields/preview";
+import { previewFromForm, savedFieldData, type FieldPreview } from "@/custom-fields/preview";
 import { Badge, Field, buttonClass, hintClass, inputClass, labelClass } from "../_components/ui";
 import { FieldPreviewPanel } from "./field-preview";
 import { addFieldAction, fieldRowAction, type FieldFormState } from "./actions";
@@ -77,20 +77,6 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
 
 const withPreview = "grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]";
 
-/** The Edit form's starting data, so the preview shows the saved field before anything changes. */
-function savedFieldData(field: CustomFieldDefinition): FormData {
-  const data = new FormData();
-  data.set("label", field.label);
-  data.set("visibility", field.showOnWebsite ? "public" : "staff");
-  if (field.filterable) data.set("filterable", "on");
-  for (const o of field.options) {
-    data.append("optionKey", o.key);
-    data.append("optionLabel", o.label);
-    if (o.hidden) data.append("optionHidden", o.key);
-  }
-  return data;
-}
-
 /** "Add a field" for one record type. */
 export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; entityLabel: string }) {
   const [state, dispatch, pending] = useActionState(addFieldAction, idle);
@@ -111,49 +97,49 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
 
   return (
     <div className={withPreview}>
-    <form
-      key={formKey}
-      method="post"
-      onSubmit={submitWith(dispatch)}
-      onChange={(e) => {
-        const data = new FormData(e.currentTarget);
-        setPreview(previewFromForm(entity, data.get("type") as CustomFieldType, data));
-      }}
-      className="flex flex-col gap-4"
-    >
-      <input type="hidden" name="entity" value={entity} />
-      <h3 className="text-xl font-normal">Add {/^[AEIOU]/.test(entityLabel) ? "an" : "a"} {entityLabel} field</h3>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id={`${id}-type`} label="Field type" hint="It can't be changed later." error={errors.type}>
-          <select id={`${id}-type`} name="type" value={type} onChange={(e) => setType(e.target.value as CustomFieldType)} className={inputClass}>
-            {CUSTOM_FIELD_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {CUSTOM_FIELD_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </select>
+      <form
+        key={formKey}
+        method="post"
+        onSubmit={submitWith(dispatch)}
+        onChange={(e) => {
+          const data = new FormData(e.currentTarget);
+          setPreview(previewFromForm(entity, data.get("type") as CustomFieldType, data));
+        }}
+        className="flex flex-col gap-4"
+      >
+        <input type="hidden" name="entity" value={entity} />
+        <h3 className="text-xl font-normal">Add {/^[AEIOU]/.test(entityLabel) ? "an" : "a"} {entityLabel} field</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id={`${id}-type`} label="Field type" hint="It can't be changed later." error={errors.type}>
+            <select id={`${id}-type`} name="type" value={type} onChange={(e) => setType(e.target.value as CustomFieldType)} className={inputClass}>
+              {CUSTOM_FIELD_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {CUSTOM_FIELD_TYPE_LABELS[t]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field id={`${id}-label`} label="Name" hint="For example: Parking" error={errors.label}>
+            <input id={`${id}-label`} name="label" maxLength={80} className={inputClass} />
+          </Field>
+        </div>
+        <Field id={`${id}-helpText`} label="Hint (optional)" hint="Shown under the input on the form." error={errors.helpText}>
+          <input id={`${id}-helpText`} name="helpText" maxLength={300} className={inputClass} />
         </Field>
-        <Field id={`${id}-label`} label="Name" hint="For example: Parking" error={errors.label}>
-          <input id={`${id}-label`} name="label" maxLength={80} className={inputClass} />
-        </Field>
-      </div>
-      <Field id={`${id}-helpText`} label="Hint (optional)" hint="Shown under the input on the form." error={errors.helpText}>
-        <input id={`${id}-helpText`} name="helpText" maxLength={300} className={inputClass} />
-      </Field>
-      {CHOICE_TYPES.includes(type) && (
-        <Field id={`${id}-options`} label="Options" hint="One per line." error={errors.options}>
-          <textarea id={`${id}-options`} name="options" rows={4} className={inputClass} />
-        </Field>
-      )}
-      <Visibility idPrefix={id} entity={entity} type={type} errors={errors} />
-      <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className={buttonClass("primary")}>
-          {pending ? "Adding…" : "Add field"}
-        </button>
-        <Message state={state} />
-      </div>
-    </form>
-    <FieldPreviewPanel preview={preview} />
+        {CHOICE_TYPES.includes(type) && (
+          <Field id={`${id}-options`} label="Options" hint="One per line." error={errors.options}>
+            <textarea id={`${id}-options`} name="options" rows={4} className={inputClass} />
+          </Field>
+        )}
+        <Visibility idPrefix={id} entity={entity} type={type} errors={errors} />
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="submit" disabled={pending} className={buttonClass("primary")}>
+            {pending ? "Adding…" : "Add field"}
+          </button>
+          <Message state={state} />
+        </div>
+      </form>
+      <FieldPreviewPanel preview={preview} />
     </div>
   );
 }
@@ -208,59 +194,59 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
       <details open={state.result === "error" && Object.keys(errors).length > 0 ? true : undefined}>
         <summary className={summary}>Edit</summary>
         <div className={`mt-3 ${withPreview}`}>
-        <form
-          method="post"
-          onSubmit={submit}
-          onChange={(e) => setPreview(previewFromForm(field.entity as AdminEntity, field.type, new FormData(e.currentTarget)))}
-          className="flex flex-col gap-4 rounded-2xl border border-line bg-background p-4 sm:p-5"
-        >
-          {intent("edit")}
-          <p className={hintClass}>
-            Type: {CUSTOM_FIELD_TYPE_LABELS[field.type]}. It can&apos;t change: to change it, archive this field and add a new one.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id={`${id}-label`} label="Name" error={errors.label}>
-              <input id={`${id}-label`} name="label" defaultValue={field.label} maxLength={80} className={inputClass} />
-            </Field>
-            <Field id={`${id}-helpText`} label="Hint (optional)" error={errors.helpText}>
-              <input id={`${id}-helpText`} name="helpText" defaultValue={field.helpText ?? ""} maxLength={300} className={inputClass} />
-            </Field>
-          </div>
-          {isList && (
-            <fieldset className="flex flex-col gap-2">
-              <legend className={labelClass}>Options</legend>
-              <p className={hintClass}>
-                Rename an option and every record that has it shows the new name. Options can&apos;t be deleted, only
-                hidden: records that have a hidden option keep it.
-              </p>
-              {field.options.map((option, i) => (
-                <div key={option.key} className="flex flex-wrap items-center gap-3">
-                  <input type="hidden" name="optionKey" value={option.key} />
-                  <input
-                    name="optionLabel"
-                    defaultValue={option.label}
-                    aria-label={`Option ${i + 1}`}
-                    className={`${inputClass} max-w-xs`}
-                  />
-                  <label className={checkRowClass}>
-                    <input type="checkbox" name="optionHidden" value={option.key} defaultChecked={option.hidden} />
-                    Hidden
-                  </label>
-                </div>
-              ))}
-              <Field id={`${id}-newOptions`} label="Add options" hint="One per line." error={errors.options}>
-                <textarea id={`${id}-newOptions`} name="newOptions" rows={2} className={inputClass} />
+          <form
+            method="post"
+            onSubmit={submit}
+            onChange={(e) => setPreview(previewFromForm(field.entity as AdminEntity, field.type, new FormData(e.currentTarget)))}
+            className="flex flex-col gap-4 rounded-2xl border border-line bg-background p-4 sm:p-5"
+          >
+            {intent("edit")}
+            <p className={hintClass}>
+              Type: {CUSTOM_FIELD_TYPE_LABELS[field.type]}. It can&apos;t change: to change it, archive this field and add a new one.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id={`${id}-label`} label="Name" error={errors.label}>
+                <input id={`${id}-label`} name="label" defaultValue={field.label} maxLength={80} className={inputClass} />
               </Field>
-            </fieldset>
-          )}
-          <Visibility idPrefix={id} entity={field.entity as AdminEntity} type={field.type} field={field} errors={errors} />
-          <div>
-            <button type="submit" disabled={pending} className={buttonClass("primary", "sm")}>
-              {pending ? "Saving…" : "Save field"}
-            </button>
-          </div>
-        </form>
-        <FieldPreviewPanel preview={preview} />
+              <Field id={`${id}-helpText`} label="Hint (optional)" error={errors.helpText}>
+                <input id={`${id}-helpText`} name="helpText" defaultValue={field.helpText ?? ""} maxLength={300} className={inputClass} />
+              </Field>
+            </div>
+            {isList && (
+              <fieldset className="flex flex-col gap-2">
+                <legend className={labelClass}>Options</legend>
+                <p className={hintClass}>
+                  Rename an option and every record that has it shows the new name. Options can&apos;t be deleted, only
+                  hidden: records that have a hidden option keep it.
+                </p>
+                {field.options.map((option, i) => (
+                  <div key={option.key} className="flex flex-wrap items-center gap-3">
+                    <input type="hidden" name="optionKey" value={option.key} />
+                    <input
+                      name="optionLabel"
+                      defaultValue={option.label}
+                      aria-label={`Option ${i + 1}`}
+                      className={`${inputClass} max-w-xs`}
+                    />
+                    <label className={checkRowClass}>
+                      <input type="checkbox" name="optionHidden" value={option.key} defaultChecked={option.hidden} />
+                      Hidden
+                    </label>
+                  </div>
+                ))}
+                <Field id={`${id}-newOptions`} label="Add options" hint="One per line." error={errors.options}>
+                  <textarea id={`${id}-newOptions`} name="newOptions" rows={2} className={inputClass} />
+                </Field>
+              </fieldset>
+            )}
+            <Visibility idPrefix={id} entity={field.entity as AdminEntity} type={field.type} field={field} errors={errors} />
+            <div>
+              <button type="submit" disabled={pending} className={buttonClass("primary", "sm")}>
+                {pending ? "Saving…" : "Save field"}
+              </button>
+            </div>
+          </form>
+          <FieldPreviewPanel preview={preview} />
         </div>
       </details>
       <Message state={state} />

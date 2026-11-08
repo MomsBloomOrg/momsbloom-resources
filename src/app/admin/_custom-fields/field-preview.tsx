@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import type { FieldPreview } from "@/custom-fields/preview";
 import { CustomField } from "../../embed/_components/detail-fields";
 import { FilterCheckbox, FilterGroup } from "../../embed/_components/filter-column";
@@ -8,14 +11,23 @@ import { FilterCheckbox, FilterGroup } from "../../embed/_components/filter-colu
  */
 export function FieldPreviewPanel({ preview }: { preview: FieldPreview }) {
   const { shown, filter, needsOptions } = preview;
+  const headingId = useId();
+  const detailsId = useId();
+  // One short line for screen readers; it changes only when the state changes, not on each keystroke.
+  const status = shown ? (filter ? "Families see it, and it is a filter." : "Families see it.") : needsOptions ? "Add options to preview." : "Families don't see this.";
   return (
-    <aside aria-label="How families see it" aria-live="polite" className="flex flex-col gap-3 text-sm">
-      <h4 className="font-bold">How families see it</h4>
+    <section aria-labelledby={headingId} className="flex flex-col gap-3 text-sm">
+      <h4 id={headingId} className="font-bold">
+        How families see it
+      </h4>
+      <p role="status" className="sr-only">
+        {status}
+      </p>
       {shown ? (
         <>
           <p className="text-muted">On the detail page</p>
-          <section aria-labelledby="preview-details" className="rounded-2xl border border-line bg-surface p-5">
-            <h5 id="preview-details" className="text-base font-extrabold">
+          <section aria-labelledby={detailsId} className="rounded-2xl border border-line bg-surface p-5">
+            <h5 id={detailsId} className="text-base font-extrabold">
               More details
             </h5>
             <div className="mt-2">
@@ -25,7 +37,8 @@ export function FieldPreviewPanel({ preview }: { preview: FieldPreview }) {
           {filter && (
             <>
               <p className="text-muted">In the filters</p>
-              <div className="rounded-2xl border border-line bg-surface p-5">
+              {/* The public group has a top divider for the one below it; the preview has no group above. */}
+              <div className="rounded-2xl border border-line bg-surface p-5 [&_fieldset]:border-t-0 [&_fieldset]:pt-0">
                 <FilterGroup
                   label={filter.label}
                   options={filter.values.map((value) => ({
@@ -42,6 +55,6 @@ export function FieldPreviewPanel({ preview }: { preview: FieldPreview }) {
       ) : (
         <p>Families don&apos;t see this.</p>
       )}
-    </aside>
+    </section>
   );
 }
