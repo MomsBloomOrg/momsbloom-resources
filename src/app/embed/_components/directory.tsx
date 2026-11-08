@@ -1,6 +1,6 @@
 import { SlidersHorizontal } from "lucide-react";
 import { clearFilters, hasActiveFilters, isBadZip, parseDirectoryQuery, serializeDirectoryQuery, shareSearch } from "@/directory/query";
-import { searchDirectory, type ProgramResult } from "@/directory/results";
+import { hasPin, searchDirectory, type ProgramResult } from "@/directory/results";
 import { facetLabelLookup, keywordWords } from "@/directory/search";
 import { getDirectorySnapshot } from "@/directory/snapshot";
 import { FACET_KEYS } from "@/directory/types";
@@ -54,8 +54,8 @@ export async function Directory({ params, embed = false }: { params: Record<stri
   // Programs stay cards with no pin.
   const mapPrograms: MapProgram[] = [];
   if (mapView) {
-    for (const { program, distanceMiles, group } of results.programs) {
-      if (group === "virtual-and-phone" || !program.location) continue;
+    for (const { program, distanceMiles } of results.programs) {
+      if (!program.location || !hasPin(program)) continue;
       mapPrograms.push({
         id: program.id,
         number: mapPrograms.length + 1,

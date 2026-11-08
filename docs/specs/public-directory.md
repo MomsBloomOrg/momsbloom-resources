@@ -192,6 +192,9 @@ See `desktop-directory-map.png` and `mobile-directory-map.png`. Build it only af
 works.
 
 - Leaflet with OpenStreetMap tiles: free, no API key.
+- The cards list Programs with a pin first (a map point and not virtual-only), then the rest. The
+  sort (featured first, then the chosen order) holds inside each part, and "Show more" pages through
+  the combined order. List view keeps the plain order. Pin numbers follow the card order.
 - The map shows the same filtered Programs as the list. Selecting a card highlights its pin, and
   the reverse.
 - Guides and downloads show below the list and map, as in the list view.
