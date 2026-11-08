@@ -47,6 +47,8 @@ export interface ProgramFields {
   eligibilityNotes: string | null;
   /** ISO date or null. */
   lastVerified: string | null;
+  /** Staff admin email. Left out: the column does not change (see stampVerifiedBy). */
+  lastVerifiedBy?: string | null;
   statusId: number;
   internalNotes: string | null;
   /** Custom field answers (src/custom-fields/form.ts). Left out: the `custom` column does not change. */
@@ -208,12 +210,12 @@ export async function saveProgram(db: Db, id: number | null, input: ProgramInput
   });
 }
 
-/** Sets Last verified to today (Michigan) and changes nothing else. */
-export async function markProgramVerified(db: Db, id: number, now = new Date()): Promise<AdminResult<{ lastVerified: string }>> {
+/** Sets Last verified to today (Michigan) and Verified by to `by` (the Staff admin's email); changes nothing else. */
+export async function markProgramVerified(db: Db, id: number, by: string, now = new Date()): Promise<AdminResult<{ lastVerified: string }>> {
   const lastVerified = todayInDetroit(now);
   const rows = await db
     .update(t.programs)
-    .set({ lastVerified, updatedAt: now.toISOString() })
+    .set({ lastVerified, lastVerifiedBy: by, updatedAt: now.toISOString() })
     .where(eq(t.programs.id, id))
     .returning({ id: t.programs.id });
   return rows.length ? { ok: true, value: { lastVerified } } : { ok: false, error: GONE };

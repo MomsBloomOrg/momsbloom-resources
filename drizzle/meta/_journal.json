@@ -43,6 +43,13 @@
       "when": 1794090345925,
       "tag": "0005_fine_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794103660034,
+      "tag": "0006_chemical_luminals",
+      "breakpoints": true
     }
   ]
 }

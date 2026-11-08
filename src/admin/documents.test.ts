@@ -91,11 +91,12 @@ describe("Document edit", () => {
     if (!saved.ok) throw new Error(saved.error);
     const id = saved.value.id;
     const before = (await getDocumentForAdmin(db, id))!.document;
-    expect(await markDocumentVerified(db, id, new Date("2026-11-08T03:30:00Z"))).toEqual({ ok: true, value: { lastVerified: "2026-11-07" } });
+    expect(await markDocumentVerified(db, id, "staff@example.org", new Date("2026-11-08T03:30:00Z"))).toEqual({ ok: true, value: { lastVerified: "2026-11-07" } });
     const after = (await getDocumentForAdmin(db, id))!.document;
-    expect({ ...after, lastVerified: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, updatedAt: "" });
+    expect({ ...after, lastVerified: null, lastVerifiedBy: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, lastVerifiedBy: null, updatedAt: "" });
+    expect(after.lastVerifiedBy).toBe("staff@example.org");
     expect(after.lastVerified).toBe("2026-11-07");
-    expect(await markDocumentVerified(db, 999999)).toMatchObject({ ok: false });
+    expect(await markDocumentVerified(db, 999999, "staff@example.org")).toMatchObject({ ok: false });
   });
 });
 

@@ -37,6 +37,7 @@ export function DocumentForm({
   const errors = state.status === "invalid" ? state.errors : {};
   const d = document;
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (d?.lastVerified ?? "");
+  const verifiedBy = state.status === "saved" && state.lastVerifiedBy !== undefined ? state.lastVerifiedBy : d?.lastVerifiedBy;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -188,7 +189,7 @@ export function DocumentForm({
             ))}
           </select>
         </Field>
-        <Field id="document-lastVerified" label="Last verified" error={errors.lastVerified}>
+        <Field id="document-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
           <input key={lastVerified} id="document-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
         </Field>
       </div>

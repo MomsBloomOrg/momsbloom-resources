@@ -7,6 +7,7 @@ import {
   getOrganizationForAdmin,
   listOrganizationsForAdmin,
   markOrganizationVerified,
+  stampVerifiedBy,
   parseOrganizationInput,
   todayInDetroit,
   updateOrganization,
@@ -156,14 +157,23 @@ describe("Organization edit", () => {
     });
   });
 
+  it("stampVerifiedBy: same date keeps the old email, a new date stamps the email, a cleared date clears it", () => {
+    const old = { lastVerified: "2026-01-01" };
+    expect(stampVerifiedBy({ lastVerified: "2026-01-01" }, old, "a@x.org")).toEqual({ lastVerified: "2026-01-01" });
+    expect(stampVerifiedBy({ lastVerified: "2026-02-02" }, old, "a@x.org")).toEqual({ lastVerified: "2026-02-02", lastVerifiedBy: "a@x.org" });
+    expect(stampVerifiedBy({ lastVerified: null }, old, "a@x.org")).toEqual({ lastVerified: null, lastVerifiedBy: null });
+    expect(stampVerifiedBy({ lastVerified: null }, null, "a@x.org")).toEqual({ lastVerified: null });
+  });
+
   it("Mark verified changes only Last verified", async () => {
     const before = (await getOrganizationForAdmin(db, ids.organizations.cedar))!.organization;
-    const r = await markOrganizationVerified(db, ids.organizations.cedar, new Date("2026-11-07T15:00:00Z"));
+    const r = await markOrganizationVerified(db, ids.organizations.cedar, "staff@example.org", new Date("2026-11-07T15:00:00Z"));
     expect(r).toEqual({ ok: true, value: { lastVerified: "2026-11-07" } });
     const after = (await getOrganizationForAdmin(db, ids.organizations.cedar))!.organization;
-    expect({ ...after, lastVerified: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, updatedAt: "" });
+    expect({ ...after, lastVerified: null, lastVerifiedBy: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, lastVerifiedBy: null, updatedAt: "" });
     expect(after.lastVerified).toBe("2026-11-07");
-    expect(await markOrganizationVerified(db, 999999)).toMatchObject({ ok: false });
+    expect(after.lastVerifiedBy).toBe("staff@example.org");
+    expect(await markOrganizationVerified(db, 999999, "staff@example.org")).toMatchObject({ ok: false });
   });
 
   it("today uses Michigan time", () => {

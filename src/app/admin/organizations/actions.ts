@@ -12,6 +12,7 @@ import {
   markOrganizationVerified,
   parseId,
   parseOrganizationInput,
+  stampVerifiedBy,
   updateOrganization,
 } from "@/admin/organizations";
 import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
@@ -19,7 +20,7 @@ import { getDb } from "@/db";
 
 export type OrganizationFormState =
   | { status: "idle" }
-  | { status: "saved"; message: string; lastVerified?: string; notice?: string; latitude?: number | null; longitude?: number | null }
+  | { status: "saved"; message: string; lastVerified?: string; lastVerifiedBy?: string | null; notice?: string; latitude?: number | null; longitude?: number | null }
   | { status: "invalid"; message: string; errors: Record<string, string> };
 
 const invalid = (message: string, errors: Record<string, string> = {}): OrganizationFormState => ({
@@ -33,7 +34,7 @@ const invalid = (message: string, errors: Record<string, string> = {}): Organiza
  * Last verified to today. A create redirects to the new page; an update shows "Saved".
  */
 export async function saveOrganizationAction(_prev: OrganizationFormState, formData: FormData): Promise<OrganizationFormState> {
-  await requireStaffAdmin();
+  const admin = await requireStaffAdmin();
   const db = getDb();
   const idText = formData.get("id");
   const id = idText ? parseId(idText) : null;
@@ -41,10 +42,10 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
 
   if (formData.get("intent") === "verify") {
     if (id === null) return invalid(GONE);
-    const result = await markOrganizationVerified(db, id);
+    const result = await markOrganizationVerified(db, id, admin.email);
     if (!result.ok) return invalid(result.error);
     directoryChanged();
-    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified };
+    return { status: "saved", message: "Marked verified today.", lastVerified: result.value.lastVerified, lastVerifiedBy: admin.email };
   }
 
   // Both checks run, so one save shows every marked field.
@@ -57,7 +58,7 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
 
   // geocodeOnSave passes every other field through, so the custom answers stay on the input.
   const old = id === null ? null : ((await getOrganizationForAdmin(db, id))?.organization ?? null);
-  const { input, failed } = await geocodeOnSave(withCustom, old);
+  const { input, failed } = await geocodeOnSave(stampVerifiedBy(withCustom, old, admin.email), old);
 
   if (id === null) {
     const created = await createOrganization(db, input);
@@ -65,8 +66,9 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
     directoryChanged();
     redirect(`/admin/organizations/${created.value.id}`);
   }
+  const lastVerifiedBy = input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy;
   const updated = await updateOrganization(db, id, input);
   if (!updated.ok) return invalid(updated.error);
   directoryChanged();
-  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined, latitude: input.latitude, longitude: input.longitude };
+  return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined, lastVerifiedBy, latitude: input.latitude, longitude: input.longitude };
 }

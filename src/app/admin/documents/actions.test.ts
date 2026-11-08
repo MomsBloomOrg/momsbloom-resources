@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   requireStaffAdmin: vi.fn(),
   write: vi.fn(),
   verify: vi.fn(),
+  old: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
@@ -20,6 +21,7 @@ vi.mock("@/admin/documents", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/admin/documents")>()),
   saveDocument: mocks.write,
   markDocumentVerified: mocks.verify,
+  getDocumentForAdmin: mocks.old,
 }));
 
 import { saveDocumentAction } from "./actions";
@@ -38,6 +40,7 @@ describe("saveDocumentAction", () => {
     mocks.requireStaffAdmin.mockResolvedValue({ id: "a", email: "staff@example.org" });
     mocks.write.mockResolvedValue({ ok: true, value: { id: 7 } });
     mocks.verify.mockResolvedValue({ ok: true, value: { lastVerified: "2026-11-07" } });
+    mocks.old.mockResolvedValue(null);
   });
 
   it("Mark verified clears the cache", async () => {
@@ -45,7 +48,9 @@ describe("saveDocumentAction", () => {
       status: "saved",
       message: "Marked verified today.",
       lastVerified: "2026-11-07",
+      lastVerifiedBy: "staff@example.org",
     });
+    expect(mocks.verify).toHaveBeenCalledWith({}, 7, "staff@example.org");
     expect(mocks.write).not.toHaveBeenCalled();
     expect(mocks.updateTag).toHaveBeenCalledWith("directory");
   });
@@ -61,6 +66,14 @@ describe("saveDocumentAction", () => {
     await expect(saveDocumentAction(idle, form(valid))).rejects.toThrow("redirect:/login");
     expect(mocks.write).not.toHaveBeenCalled();
     expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+
+  it("a Save that changes the date records the email; the same date keeps the old one", async () => {
+    mocks.old.mockResolvedValue({ document: { lastVerified: "2026-01-01", lastVerifiedBy: "old@example.org" } });
+    expect(await saveDocumentAction(idle, form({ ...valid, id: "7", lastVerified: "2026-02-02" }))).toMatchObject({ lastVerifiedBy: "staff@example.org" });
+    expect(mocks.write.mock.lastCall![2]).toMatchObject({ lastVerifiedBy: "staff@example.org" });
+    expect(await saveDocumentAction(idle, form({ ...valid, id: "7", lastVerified: "2026-01-01" }))).toMatchObject({ lastVerifiedBy: "old@example.org" });
+    expect(mocks.write.mock.lastCall![2]).not.toHaveProperty("lastVerifiedBy");
   });
 
   it("save clears the Directory cache", async () => {
