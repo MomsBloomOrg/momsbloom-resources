@@ -4,7 +4,6 @@
  */
 import { expect, type Page, test } from "@playwright/test";
 import { HOST } from "./fixture";
-import { setFilter } from "./filters";
 
 // The mobile filter sheet has its own live count; this is the page's result line.
 const resultLine = (page: Page) => page.locator("[aria-live=polite]:not(dialog *)");
@@ -28,7 +27,7 @@ test("a half-typed ZIP does not block the keyword search", async ({ page }) => {
 
 test("checkbox-adds-chip: checking a filter adds a chip", async ({ page }) => {
   await page.goto("/embed");
-  await setFilter(page, page, /^Spanish/);
+  await page.getByRole("checkbox", { name: /^Spanish/ }).check(); // desktop: the filter column
   await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
   await expect(page).toHaveURL(/lang=spanish/);
   await expect(resultLine(page)).toHaveText("6 results");
@@ -80,9 +79,8 @@ test("zip-location: Nearest is current, Distance group shows, cards show miles",
   await expect(resultLine(page)).toContainText("near 49508");
   await expect(page.getByRole("combobox", { name: "Sort" }).locator("option:checked")).toHaveText("Nearest");
   await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/).first()).toBeVisible();
-  // The Distance group is in the Filters modal.
-  await page.getByRole("link", { name: /^Filters/ }).click();
-  await expect(page.getByRole("dialog", { name: "Filters" }).getByRole("group", { name: /Distance/ })).toBeVisible();
+  // Desktop: the Distance group is in the filter column.
+  await expect(page.getByRole("group", { name: /Distance/ })).toBeVisible();
 });
 
 test("show-more-adds-ten: Show more adds the next page of Programs", async ({ page }) => {
@@ -227,8 +225,8 @@ test.describe("mobile-filter-sheet", () => {
 
 test("filters-modal-desktop: on desktop, Filters opens a centered modal; the results update behind it", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/embed");
-  // No filter column next to the results: the checkboxes are in the closed modal.
+  await page.goto("/embed?view=map");
+  // Map view has no filter column (list view does since the filters sidebar): the checkboxes are in the closed modal.
   await expect(page.getByRole("checkbox", { name: /^Spanish/ })).toHaveCount(0);
   await page.getByRole("link", { name: /^Filters/ }).click();
   const dialog = page.getByRole("dialog", { name: "Filters" });
@@ -241,6 +239,18 @@ test("filters-modal-desktop: on desktop, Filters opens a centered modal; the res
   await dialog.getByRole("button", { name: "Show 6 results" }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
+});
+
+test("desktop-map-focus-return: Escape closes the desktop modal and focus returns to the Filters link", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/embed?view=map");
+  const filters = page.getByRole("link", { name: /^Filters/ });
+  await filters.click();
+  const dialog = page.getByRole("dialog", { name: "Filters" });
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(filters).toBeFocused();
 });
 
 test("results-tabs: Programs & Providers and Guides & Downloads are two tabs with counts; view and sort only on Programs", async ({ page }) => {

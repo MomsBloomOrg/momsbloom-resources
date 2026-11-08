@@ -94,3 +94,23 @@ test("map-list-height-capped: on desktop the cards scroll in a box as tall as th
   await page.locator(".leaflet-marker-icon").last().click();
   await expect.poll(() => pane.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 });
+
+test("split-row-full-width: at 1440 the map reaches the right edge and the page does not scroll sideways", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/embed?q=yoga&zip=49508&view=map");
+  const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
+  const paneBox = (await page.locator("[data-results-pane]").boundingBox())!;
+  expect(mapBox.x + mapBox.width).toBeGreaterThanOrEqual(1440 - 1);
+  expect(mapBox.x).toBeGreaterThan(paneBox.x + paneBox.width);
+  // This runs on /embed (no scroll bar); the home page clips its own overflow.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("title-and-tabs-stay-put: the tabs do not move between list and map view", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const tabs = page.getByRole("navigation", { name: "Results" });
+  await page.goto("/embed?q=yoga&zip=49508");
+  const list = await tabs.boundingBox();
+  await page.goto("/embed?q=yoga&zip=49508&view=map");
+  expect(await tabs.boundingBox()).toEqual(list);
+});
