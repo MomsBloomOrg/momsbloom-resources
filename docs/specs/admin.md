@@ -29,10 +29,17 @@ never deleted (they become Inactive). Build work: issue #38.
 
 ## Who and how they log in
 
-- Staff admins all have the same rights. There are no roles. The **Owners** are the addresses in
-  `ADMIN_EMAILS`. Any Staff admin can add another Staff admin on `/admin/staff-admins` (no email
-  is sent; the person logs in at `/login`), and remove an added one. Nobody can remove an Owner or
-  themselves. A removed Staff admin is logged out at their next request.
+- Each Staff admin has a **Role**: **Admin** or **Editor**. An Editor can change Resources only
+  (Organizations, Programs, Contacts, Documents, and the custom-field answers on a record). An Admin
+  can also open Staff admins, Settings, Content, and the custom-fields manager. The **Owners** are
+  the addresses in `ADMIN_EMAILS`, and they always have the Admin role. An Admin can add another
+  Staff admin on `/admin/staff-admins` with a role (default Editor; no email is sent; the person logs
+  in at `/login`), change an added one's role, and remove an added one. Nobody can remove an Owner or
+  themselves, or change an Owner's role or their own; the server action refuses it, not only the
+  page. A removed Staff admin is logged out at their next request.
+- The role is read from the database on every request, so a role change applies on the next page or
+  action. The nav of someone who is already on a page can show stale links until they reload, but
+  every page and action checks the role again.
 - They log in with a **Login link** sent by email through Resend ([ADR 0003](../adr/0003-admin-login-by-email-link-first.md)).
   Only email addresses on the allow-list can get a link. A person not on the list sees the same
   "Check your email" message, so the page never tells a stranger which addresses are allowed.

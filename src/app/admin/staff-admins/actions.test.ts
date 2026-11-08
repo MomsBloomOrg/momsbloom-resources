@@ -9,14 +9,15 @@ const mocks = vi.hoisted(() => ({
   requireAdmin: vi.fn(async () => ({ id: "a1", email: "staff@example.org", role: "admin" })),
   add: vi.fn(async () => ({ ok: true, value: { email: "new@example.org" } }) as Record<string, unknown>),
   remove: vi.fn(async () => ({ ok: true, value: { email: "added@example.org" } }) as Record<string, unknown>),
+  setRole: vi.fn(async () => ({ ok: true, value: { email: "added@example.org", role: "admin" } }) as Record<string, unknown>),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/db", () => ({ getDb: () => ({}) }));
 vi.mock("@/auth/dal", () => ({ requireAdmin: mocks.requireAdmin }));
-vi.mock("@/admin/staff-admins", () => ({ addStaffAdmin: mocks.add, removeStaffAdmin: mocks.remove }));
+vi.mock("@/admin/staff-admins", () => ({ addStaffAdmin: mocks.add, removeStaffAdmin: mocks.remove, setStaffAdminRole: mocks.setRole }));
 
-import { addStaffAdminAction, removeStaffAdminAction } from "./actions";
+import { addStaffAdminAction, removeStaffAdminAction, setStaffAdminRoleAction } from "./actions";
 
 const idle = { result: "idle" } as const;
 function form(fields: Record<string, string>): FormData {
@@ -33,17 +34,38 @@ describe("Staff admin actions", () => {
     await expect(addStaffAdminAction(idle, form({ email: "new@example.org" }))).rejects.toThrow("NEXT_REDIRECT");
     mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
     await expect(removeStaffAdminAction(idle, form({ id: "b2" }))).rejects.toThrow("NEXT_REDIRECT");
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+    await expect(setStaffAdminRoleAction(idle, form({ id: "b2", role: "admin" }))).rejects.toThrow("NEXT_REDIRECT");
     expect(mocks.add).not.toHaveBeenCalled();
     expect(mocks.remove).not.toHaveBeenCalled();
+    expect(mocks.setRole).not.toHaveBeenCalled();
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
-  it("add says how to log in and reloads the page", async () => {
-    expect(await addStaffAdminAction(idle, form({ email: "new@example.org" }))).toEqual({
+  it("add passes the chosen role, says how to log in, and reloads the page", async () => {
+    expect(await addStaffAdminAction(idle, form({ email: "new@example.org", role: "admin" }))).toEqual({
       result: "ok",
       message: "Added new@example.org. They can now log in at /login.",
     });
+    expect(mocks.add).toHaveBeenCalledWith({}, "new@example.org", "admin");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/staff-admins");
+  });
+
+  it("change role passes the logged-in Staff admin as the actor and names the new role", async () => {
+    expect(await setStaffAdminRoleAction(idle, form({ id: "b2", role: "admin" }))).toEqual({
+      result: "ok",
+      message: "added@example.org is now an Admin. The new role applies on their next page.",
+    });
+    expect(mocks.setRole).toHaveBeenCalledWith({}, "a1", "b2", "admin");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/staff-admins");
+  });
+
+  it("change role shows the refusal for yourself or an Owner and does not reload", async () => {
+    for (const error of ["You cannot change your own role. Ask another Staff admin.", "You cannot change an Owner's role. Owners are always Admin."]) {
+      mocks.setRole.mockResolvedValueOnce({ ok: false, error });
+      expect(await setStaffAdminRoleAction(idle, form({ id: "a1", role: "editor" }))).toEqual({ result: "error", message: error });
+    }
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
   it("remove passes the logged-in Staff admin as the actor and says the person is logged out", async () => {

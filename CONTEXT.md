@@ -30,8 +30,9 @@ to translate, and bugs from "I thought you meant..." go away.
 | **Distance** | Straight-line miles from the family's ZIP code (or location) to the Program. Programs that are virtual only, or have no coordinates, have no Distance and are never hidden by the distance filter. |
 | **Directory** | The public part of the app: search, filters, results, and the Program detail page. |
 | **Program detail** | The page for one Program. Shows the Organization ("Part of ..."), the actions (Call, Directions, Website), Contacts, insurance and cost, languages, and the Organization's other Programs. |
-| **Staff admin** | A MomsBloom staff member who can log in and change the data: an Owner, or a person that a Staff admin added in the Admin (Staff admins page). All have the same rights. Families never log in. |
-| **Owner** | A Staff admin whose address is in the `ADMIN_EMAILS` setting. Only the developer changes this list. An Owner can always log in and cannot be removed in the Admin. |
+| **Staff admin** | A MomsBloom staff member who can log in and change the data: an Owner, or a person that an Admin-role Staff admin added in the Admin (Staff admins page). Each has a **Role**. Families never log in. |
+| **Owner** | A Staff admin whose address is in the `ADMIN_EMAILS` setting. Only the developer changes this list. An Owner can always log in, always has the Admin role, and cannot be removed or changed in the Admin. |
+| **Role** | What a Staff admin may do: **Admin** (everything, including Staff admins, Settings, Content, and the custom fields) or **Editor** (Resources only: Organizations, Programs, Contacts, Documents). Set on the Staff admins page. The Admin role is not "the Admin", the part of the app. Nobody can change their own role or an Owner's. |
 | **Admin** | The part of the app where Staff admins work. Not visible to families, and no website may show it in an iframe. |
 | **Login link** | The email that a Staff admin gets to log in. Only Owners and the Staff admins added in the Admin can get one. See [ADR 0003](docs/adr/0003-admin-login-by-email-link-first.md). |
 | **Embed** | The Directory as shown inside the momsbloom.org/resources page: an iframe that `public/embed.js` adds. The Embed never shows the MomsBloom site header, because Squarespace shows it. |

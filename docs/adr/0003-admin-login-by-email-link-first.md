@@ -2,9 +2,10 @@
 
 Status: accepted, 2026-11-06. Updated 2026-11-07: the email link is the final decision; Microsoft 365
 SSO was dropped. Updated 2026-11-07 (admin-users): Owners in `ADMIN_EMAILS`, plus Staff admins
-that are added in the Admin.
+that are added in the Admin. Amended 2026-11-07 (issue #73): Staff admins have a role, Admin or
+Editor; "there are no roles" no longer applies.
 
-Three MomsBloom staff members edit the directory. All three have the same rights. Families never
+Three MomsBloom staff members edit the directory. All three had the same rights (before the 2026-11-07 amendment; roles are in Consequences). Families never
 log in.
 
 The login is an email link (also called a "magic link"): a staff member types their email address,
@@ -34,12 +35,14 @@ sessions that last 7 days.
   variable (this repo is public, so no address is in a file). An Owner change needs a redeploy on
   Vercel; a removed Owner is locked out on their next request (their sessions are deleted).
 - Other Staff admins are added in the Admin (`/admin/staff-admins`): a `staff_admins` row with
-  `added_at` set. Any Staff admin can add or remove an added Staff admin; there are no roles. A
-  removal deletes the row, its sessions, and its open Login links at once, with no redeploy.
+  `added_at` set. A Staff admin with the Admin role can add or remove an added Staff admin and set
+  their role (Admin or Editor, in the `role` column); an Editor can change Resources only. Owners
+  always have the Admin role in code, whatever their row says. Nobody can change their own role or an
+  Owner's. A removal deletes the row, its sessions, and its open Login links at once, with no redeploy.
   Nobody can remove an Owner or themselves in the Admin, so the Admin always keeps a Staff admin,
   and the developer can always get back in through `ADMIN_EMAILS`.
 - Keep at least one Owner in `ADMIN_EMAILS`; it is the way back in. (Two added Staff admins can
-  remove each other at the same time.)
+  remove or demote each other at the same time.)
 - A row that an Owner's first login made has `added_at` null. When that address leaves
   `ADMIN_EMAILS`, the row no longer allows a login.
 - Email links can be abused. The app limits link requests for an allowed address: **20 per hour per
