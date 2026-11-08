@@ -30,6 +30,9 @@ This is the same approach that bikegr-calendar uses (`public/embed.js` there).
 - **`mbr-program` opens the detail view.** On load, a valid Program ID makes `embed.js` open
   `/embed/programs/<id>` in the iframe. A valid ID has only letters, digits, and "-", and at most
   40 characters.
+- **The share tool builds its link from `HOST_PAGE_URL`.** The iframe cannot read the host URL, so the
+  Program detail "Share this resource" card uses the constant in `src/embed/protocol.ts` with only
+  `mbr-program=<id>` (no filters).
 - **`history.replaceState`, not `pushState`.** The host URL changes, but the history does not
   grow. Going from the results to a Program and back is a real iframe navigation, so the Back
   button of the browser already works. With `pushState`, Back would step through every checkbox.

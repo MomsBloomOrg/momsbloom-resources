@@ -102,7 +102,7 @@ test("near-never-shared: Use my location does not reach the host URL", async ({ 
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: 42.96, longitude: -85.67 });
   await page.goto(HOST);
-  await expect(page.locator(IFRAME)).toHaveAttribute("allow", "geolocation");
+  await expect(page.locator(IFRAME)).toHaveAttribute("allow", "geolocation; clipboard-write");
   const frame = page.frameLocator(IFRAME);
   await frame.getByRole("button", { name: /use my location/i }).click();
   // The iframe URL holds `near` now (the page is the iframe's own, so we read its URL).

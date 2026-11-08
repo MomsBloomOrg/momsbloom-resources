@@ -108,3 +108,23 @@ test("featured-badge-detail: a featured Program shows the pill next to the title
   await page.goto("/embed/programs/P-001");
   await expect(page.getByText("Featured", { exact: true })).toHaveCount(0);
 });
+
+test("share-tool: Copy puts the Host page link on the clipboard; Email holds the encoded link", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.goto("/embed/programs/P-001");
+  const share = page.getByRole("region", { name: "Share this resource" });
+  const link = "https://www.momsbloom.org/resources?mbr-program=P-001";
+  const email = share.getByRole("link", { name: "Email" });
+  const href = (await email.getAttribute("href")) ?? "";
+  expect(href).toMatch(/^mailto:\?subject=.*MomsBloom%20Resource%20Directory&body=/);
+  expect(href).toContain(encodeURIComponent(link));
+  const copy = share.getByRole("button", { name: "Copy Page Link" });
+  await copy.focus(); // keyboard: Copy, then Email
+  await page.keyboard.press("Tab");
+  await expect(email).toBeFocused();
+  await copy.focus();
+  await page.keyboard.press("Enter");
+  await expect(share.getByRole("status")).toHaveText("Link copied.");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(link);
+});

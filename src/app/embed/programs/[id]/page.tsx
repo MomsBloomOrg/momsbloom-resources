@@ -11,6 +11,7 @@ import { CustomField, Field, RequestUpdate } from "../../_components/detail-fiel
 import { ProgramMap } from "../../_components/program-map";
 import { ProgramRows } from "../../_components/program-rows";
 import { ResizeReporter } from "../../_components/resize-reporter";
+import { ShareTool } from "../../_components/share-tool";
 
 export const metadata: Metadata = {
   title: "MomsBloom Resource Directory",
@@ -225,6 +226,7 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
         </div>
         <div className="contents min-[900px]:flex min-[900px]:flex-col min-[900px]:gap-4">
           {actionBar(`${card} hidden min-[900px]:flex`)}
+          <ShareTool programId={program.id} programName={program.name} className={`${card} order-9 min-[900px]:order-none`} />
           <section aria-labelledby="location" className={`${card} order-2`}>
             <h2 id="location" className={heading}>
               Location and hours

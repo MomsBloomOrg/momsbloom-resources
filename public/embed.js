@@ -35,7 +35,7 @@
   var LOCATION = "momsbloom-resources:location";
   var EVENT = "momsbloom-resources:event";
   // The event names and the parameter keys that may pass (a copy of ANALYTICS_EVENTS in protocol.ts).
-  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id","program_name"],"organization_view":["organization_id","organization_name"],"program_call":["program_id","program_name"],"program_directions":["program_id","program_name"],"program_website":["program_id","program_name"],"document_download":["document_id","document_title"]};
+  var EVENTS = {"directory_search":["search_term","result_count"],"directory_zero_results":["search_term","filters"],"directory_filter":["filter_group","filter_value"],"program_view":["program_id","program_name"],"organization_view":["organization_id","organization_name"],"program_call":["program_id","program_name"],"program_directions":["program_id","program_name"],"program_website":["program_id","program_name"],"program_share_copy":["program_id","program_name"],"program_share_email":["program_id","program_name"],"document_download":["document_id","document_title"]};
   // A copy of REDACT_STRIP in protocol.ts: ignored before digits are counted in a keyword.
   var REDACT_STRIP = /[\s().\/_-]/g;
   var MAX_HEIGHT = 50000;
@@ -152,7 +152,7 @@
     iframe.title = "MomsBloom Resource Directory";
     iframe.setAttribute("data-momsbloom-embed", "");
     // "Use my location" needs this: a cross-origin iframe may not ask for the location without it.
-    iframe.allow = "geolocation";
+    iframe.allow = "geolocation; clipboard-write";
     // sandbox: the iframe may run scripts and open links in new tabs, and nothing more.
     iframe.setAttribute(
       "sandbox",

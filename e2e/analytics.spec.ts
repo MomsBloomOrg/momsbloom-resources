@@ -72,6 +72,17 @@ test("detail-events: view, website, and call send events with the Program ID", a
   }
 });
 
+test("share-events: Copy and Email send program_share_copy and program_share_email", async ({ page }) => {
+  await page.goto(`${HOST}/?mbr-program=P-001`);
+  const frame = frameOf(page);
+  await expect(frame.getByRole("heading", { level: 1, name: "Mom and baby yoga" })).toBeVisible();
+  await stay(page, 'a[data-event="program_share_email"]');
+  await frame.getByRole("button", { name: "Copy Page Link" }).click();
+  expect(await waitFor(page, "program_share_copy")).toEqual({ program_id: "P-001", program_name: expect.any(String) });
+  await frame.getByRole("link", { name: "Email" }).click();
+  expect(await waitFor(page, "program_share_email")).toEqual({ program_id: "P-001", program_name: expect.any(String) });
+});
+
 test("org-view-event: the Organization page sends organization_view with the Organization ID", async ({ page }) => {
   await page.goto(`${HOST}/?mbr-q=yoga`);
   const frame = frameOf(page);
