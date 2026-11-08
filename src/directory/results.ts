@@ -9,7 +9,7 @@
  * 3. Work out the Distance, and drop places outside the radius. Virtual-only Programs, and
  *    Programs with no map point, go to the "Virtual and phone" group and are never dropped.
  * 4. Count the filter options (from the Programs left after step 3).
- * 5. Apply the filters, sort, and cut out the pages that are shown.
+ * 5. Apply the filters, sort (featured Programs first, in rank order), and cut out the pages that are shown.
  * 6. Documents: the Organization filter (its linked Documents only), keyword, and their three Facets, and Document field filters. Never paged, never limited by distance.
  */
 import { cleanCustomFilters, countCustomFilterValues, matchesCustomFilters } from "@/custom-fields/filter";
@@ -68,6 +68,10 @@ const byName = (a: string, b: string) => a.localeCompare(b, "en", { sensitivity:
 
 function compareResults(sort: Sort) {
   return (a: ProgramResult, b: ProgramResult): number => {
+    // Featured Programs first, in rank order, for every sort; not featured (null) after them.
+    const rankA = a.program.featuredRank ?? Infinity;
+    const rankB = b.program.featuredRank ?? Infinity;
+    if (rankA !== rankB) return rankA - rankB;
     if (sort === "nearest" && a.distanceMiles !== null && b.distanceMiles !== null && a.distanceMiles !== b.distanceMiles) {
       return a.distanceMiles - b.distanceMiles;
     }

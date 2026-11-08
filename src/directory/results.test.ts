@@ -160,6 +160,36 @@ describe("sorting and pages", () => {
     expect(search("sort=nearest").sort).toBe("az");
   });
 
+  describe("featured Programs", () => {
+    // P-005 rank 1, P-002 rank 2; the rest are not featured.
+    const featured: DirectorySnapshot = {
+      ...TEST_SNAPSHOT,
+      programs: TEST_SNAPSHOT.programs.map((p) => ({ ...p, featuredRank: ({ "P-005": 1, "P-002": 2 } as Record<string, number>)[p.id] ?? null })),
+    };
+    const featuredIds = (url: string) => search(url, featured).programs.map((r) => r.program.id);
+
+    it("come first in rank order for A to Z and Recently verified; the rest keep the sort", () => {
+      expect(featuredIds("")).toEqual(["P-005", "P-002", "P-003", "P-006", "P-004", "P-001"]);
+      expect(featuredIds("sort=verified")).toEqual(["P-005", "P-002", "P-003", "P-001", "P-006", "P-004"]);
+    });
+
+    it("come first for Nearest, inside the nearby group", () => {
+      expect(search("zip=49508", featured).programs.map((r) => [r.program.id, r.group])).toEqual([
+        ["P-005", "nearby"],
+        ["P-002", "nearby"],
+        ["P-001", "nearby"],
+        ["P-003", "nearby"],
+        ["P-006", "virtual-and-phone"],
+        ["P-004", "virtual-and-phone"],
+      ]);
+    });
+
+    it("a featured Program outside the radius or the filters is not shown", () => {
+      expect(featuredIds("zip=49508&r=10")).toEqual(["P-002", "P-001", "P-003", "P-006", "P-004"]);
+      expect(featuredIds("ins=medicaid")).toEqual(["P-002", "P-001"]);
+    });
+  });
+
   it("shows 10 per page, and Show more adds 10", () => {
     const many: DirectorySnapshot = {
       ...TEST_SNAPSHOT,

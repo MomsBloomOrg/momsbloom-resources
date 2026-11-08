@@ -92,6 +92,8 @@ export interface DirectoryProgram {
   eligibilityNotes: string | null;
   /** ISO date, for example "2026-10-15". */
   lastVerified: string | null;
+  /** Featured rank that staff set (1 = first). Null = not featured. Featured Programs come first in results. */
+  featuredRank: number | null;
   contacts: readonly DirectoryContact[];
   /** Custom field answers, public fields only (field id → value). */
   custom: CustomValues;

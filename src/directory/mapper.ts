@@ -45,6 +45,7 @@ export interface DirectoryRows {
     | "insuranceAcceptanceId"
     | "eligibilityNotes"
     | "lastVerified"
+    | "featuredRank"
     | "statusId"
     | "custom"
     | PlaceFields
@@ -209,6 +210,7 @@ export function toDirectorySnapshot(rows: DirectoryRows): DirectorySnapshot {
       acceptsInsurance: program.insuranceAcceptanceId == null ? null : (acceptance.get(program.insuranceAcceptanceId) ?? null),
       eligibilityNotes: text(program.eligibilityNotes),
       lastVerified: program.lastVerified,
+      featuredRank: program.featuredRank,
       contacts: contacts.get(program.id) ?? [],
       custom: publicValues("program", program.custom),
       organizationCustom: publicValues("organization", org.custom),

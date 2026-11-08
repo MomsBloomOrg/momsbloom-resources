@@ -85,6 +85,9 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - Sort is one dropdown ("Sort: Nearest"): Nearest (the default when a location is set), A to Z,
   Recently verified. The default option sends no `sort` in the URL. Without a location there is no
   Nearest option, so A to Z is the default. Without JavaScript, a "Sort" button applies the choice.
+- **Featured** Programs that match the search, filters, and radius come first, in the rank staff set,
+  for every sort. The other Programs follow in the chosen sort. With a location, this applies inside
+  each group: featured nearby Programs lead the nearby group, and featured virtual ones lead "Virtual and phone".
 - On a phone, one toolbar row holds "Filters (n)", the other view ("Map" or "List View"), and the sort
   dropdown. The result count sits under the filter chips.
 
@@ -259,6 +262,7 @@ desktop Chrome, inside the Squarespace test page.
 - [ ] A Contact's name finds their Program.
 - [ ] Two insurance options give more results; adding a language gives fewer.
 - [ ] Entering 49508 sorts by distance. Virtual Programs and Documents still show at 5 mi.
+- [ ] Featured Programs come first, in rank order, for Nearest, A to Z, and Recently verified, with filters applied.
 - [ ] Every chip removes its filter. "Clear all" keeps the keyword and ZIP code.
 - [ ] A shared link restores the same results. (How depends on the open question above.)
 - [ ] A Program's detail view opens. Back returns to the same results and scroll position.

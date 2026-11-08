@@ -101,6 +101,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
         insuranceAcceptanceId: t.programs.insuranceAcceptanceId,
         eligibilityNotes: t.programs.eligibilityNotes,
         lastVerified: t.programs.lastVerified,
+        featuredRank: t.programs.featuredRank,
         statusId: t.programs.statusId,
         custom: t.programs.custom,
       })
