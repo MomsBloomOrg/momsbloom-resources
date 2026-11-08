@@ -83,6 +83,7 @@ export function OrganizationForm({
   };
 
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (o?.lastVerified ?? "");
+  const verifiedBy = state.status === "saved" && state.lastVerifiedBy !== undefined ? state.lastVerifiedBy : o?.lastVerifiedBy;
 
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -122,12 +123,12 @@ export function OrganizationForm({
             ))}
           </select>
         </Field>
-        <Field id="org-lastVerified" label="Last verified" error={errors.lastVerified}>
+        <Field id="org-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
           {/* key: a new value from "Mark verified" replaces what the input shows. */}
           <input
             key={lastVerified}
             id="org-lastVerified"
-            name="lastVerified"
+            name="lastVerified" aria-describedby={verifiedBy ? "org-lastVerified-hint" : undefined}
             type="date"
             defaultValue={lastVerified}
             className={inputClass}

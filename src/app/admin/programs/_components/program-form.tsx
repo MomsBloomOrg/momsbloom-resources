@@ -265,6 +265,7 @@ export function ProgramForm({
   );
 
   const lastVerified = state.status === "saved" && state.lastVerified ? state.lastVerified : (p?.lastVerified ?? "");
+  const verifiedBy = state.status === "saved" && state.lastVerifiedBy !== undefined ? state.lastVerifiedBy : p?.lastVerifiedBy;
   // A Subcategory is listed (and sent) only while its Category is checked.
   const categoryOptions = options.categories.flatMap((c): ChipOption[] => [
     { name: "categoryIds", id: c.id, label: c.name },
@@ -439,9 +440,9 @@ export function ProgramForm({
       <Card title={sectionTitle("Admin")}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-end gap-3">
-            <Field id="program-lastVerified" label="Last verified" error={errors.lastVerified}>
+            <Field id="program-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
               {/* key: a new value from "Mark verified" replaces what the input shows. */}
-              <input key={lastVerified} id="program-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
+              <input key={lastVerified} id="program-lastVerified" name="lastVerified" aria-describedby={verifiedBy ? "program-lastVerified-hint" : undefined} type="date" defaultValue={lastVerified} className={inputClass} />
             </Field>
             {id !== undefined && (
               <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>

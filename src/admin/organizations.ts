@@ -132,6 +132,8 @@ export interface OrganizationInput {
   longitude: number | null;
   /** ISO date or null. */
   lastVerified: string | null;
+  /** Staff admin email. Left out: the column does not change (see stampVerifiedBy). */
+  lastVerifiedBy?: string | null;
   statusId: number;
   internalNotes: string | null;
 }
@@ -201,6 +203,24 @@ export function parseSharedFields(raw: Raw, errors: Errors, out: Out): void {
   const statusId = parseId(raw.statusId);
   if (statusId === null) errors.statusId = "Select a Status.";
   out.statusId = statusId;
+}
+
+/**
+ * Who verified, for a normal Save: the date is unchanged -> leave Verified by out (the column keeps its
+ * value); changed -> the Staff admin's email; cleared -> null.
+ */
+export function stampVerifiedBy<T extends { lastVerified: string | null }>(
+  input: T,
+  old: { lastVerified: string | null } | null,
+  email: string,
+): T & { lastVerifiedBy?: string | null } {
+  if (input.lastVerified === (old?.lastVerified ?? null)) return input;
+  return { ...input, lastVerifiedBy: input.lastVerified ? email : null };
+}
+
+/** The Verified by value after a Save: the stamped one, else the one the record had. */
+export function verifiedByAfterSave(input: { lastVerifiedBy?: string | null }, old: { lastVerifiedBy?: string | null } | null): string | null | undefined {
+  return input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy;
 }
 
 /** A required name of at most 200 characters. */
@@ -310,12 +330,12 @@ export async function updateOrganization(db: Db, id: number, input: Organization
   return rows.length ? { ok: true, value: rows[0] } : { ok: false, error: GONE };
 }
 
-/** Sets Last verified to today (Michigan) and changes nothing else. */
-export async function markOrganizationVerified(db: Db, id: number, now = new Date()): Promise<AdminResult<{ lastVerified: string }>> {
+/** Sets Last verified to today (Michigan) and Verified by to `by` (the Staff admin's email); changes nothing else. */
+export async function markOrganizationVerified(db: Db, id: number, by: string, now = new Date()): Promise<AdminResult<{ lastVerified: string }>> {
   const lastVerified = todayInDetroit(now);
   const rows = await db
     .update(organizations)
-    .set({ lastVerified, updatedAt: now.toISOString() })
+    .set({ lastVerified, lastVerifiedBy: by, updatedAt: now.toISOString() })
     .where(eq(organizations.id, id))
     .returning({ id: organizations.id });
   return rows.length ? { ok: true, value: { lastVerified } } : { ok: false, error: GONE };

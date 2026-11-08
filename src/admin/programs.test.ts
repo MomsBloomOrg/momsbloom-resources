@@ -114,11 +114,12 @@ describe("Program edit", () => {
 
   it("Mark verified changes only Last verified", async () => {
     const before = (await getProgramForAdmin(db, ids.yogaProgram))!.program;
-    const r = await markProgramVerified(db, ids.yogaProgram, new Date("2026-11-08T03:30:00Z"));
+    const r = await markProgramVerified(db, ids.yogaProgram, "staff@example.org", new Date("2026-11-08T03:30:00Z"));
     expect(r).toEqual({ ok: true, value: { lastVerified: "2026-11-07" } });
     const after = (await getProgramForAdmin(db, ids.yogaProgram))!.program;
-    expect({ ...after, lastVerified: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, updatedAt: "" });
-    expect(await markProgramVerified(db, 999999)).toMatchObject({ ok: false });
+    expect({ ...after, lastVerified: null, lastVerifiedBy: null, updatedAt: "" }).toEqual({ ...before, lastVerified: null, lastVerifiedBy: null, updatedAt: "" });
+    expect(after.lastVerifiedBy).toBe("staff@example.org");
+    expect(await markProgramVerified(db, 999999, "staff@example.org")).toMatchObject({ ok: false });
   });
 
   it("form options carry the Organization values for Inheritance", () => {

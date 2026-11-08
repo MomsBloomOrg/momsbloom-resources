@@ -57,6 +57,19 @@ describe("saveOrganizationAction", () => {
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 
+  it("Mark verified passes the logged-in email", async () => {
+    expect(await saveOrganizationAction(idle, form({ id: "7", intent: "verify" }))).toMatchObject({ status: "saved", lastVerifiedBy: "staff@example.org" });
+    expect(mocks.write).toHaveBeenCalledWith({}, 7, "staff@example.org");
+  });
+
+  it("a Save that changes the date records the email; the same date keeps the old one", async () => {
+    mocks.old.mockResolvedValue({ organization: { lastVerified: "2026-01-01", lastVerifiedBy: "old@example.org" } });
+    expect(await saveOrganizationAction(idle, form({ ...valid, id: "7", lastVerified: "2026-02-02" }))).toMatchObject({ lastVerifiedBy: "staff@example.org" });
+    expect(mocks.write.mock.lastCall![2]).toMatchObject({ lastVerifiedBy: "staff@example.org" });
+    expect(await saveOrganizationAction(idle, form({ ...valid, id: "7", lastVerified: "2026-01-01" }))).toMatchObject({ lastVerifiedBy: "old@example.org" });
+    expect(mocks.write.mock.lastCall![2]).not.toHaveProperty("lastVerifiedBy");
+  });
+
   it("save clears the Directory cache", async () => {
     expect(await saveOrganizationAction(idle, form({ ...valid, id: "7" }))).toMatchObject({ status: "saved" });
     expect(mocks.updateTag).toHaveBeenCalledWith("directory");
