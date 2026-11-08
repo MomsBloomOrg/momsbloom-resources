@@ -359,7 +359,7 @@ test.describe("sort-dropdown", () => {
   test("featured-badge: only the featured cards show the Featured pill, in list and map view", async ({ page }) => {
     for (const url of ["/embed?tab=programs&zip=49508", "/embed?tab=programs&zip=49508&view=map"]) {
       await page.goto(url);
-      const cards = programCards(page);
+      const cards = page.locator("article[id^=program-]"); // the card in both views
       await expect(cards.nth(0)).toContainText("Featured");
       await expect(cards.nth(1)).toContainText("Featured");
       await expect(cards.nth(2)).not.toContainText("Featured");

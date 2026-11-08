@@ -115,9 +115,9 @@ export function ProgramCard({
     <article
       id={`program-${program.id}`}
       // data-active is set by ProgramMap when the family selects the card's pin.
-      className={`rounded-2xl bg-surface p-5 data-[active]:border-primary-text data-[active]:ring-2 data-[active]:ring-primary-text ${featured ? "border-2 border-secondary" : "border border-line"}`}
+      className={`relative rounded-2xl bg-surface p-5 data-[active]:border-primary-text data-[active]:ring-2 data-[active]:ring-primary-text ${featured ? "border-2 border-secondary" : "border border-line"}`}
     >
-      <div className="flex items-start justify-between gap-3 text-sm text-muted">
+      <div className={`flex items-start justify-between gap-3 text-sm text-muted ${featured ? "pr-20" : ""}`}>
         <p>
           {number !== undefined && (
             <span className="mr-2 inline-flex size-6 items-center justify-center rounded-full border-2 border-primary-text font-bold text-primary-text">
@@ -129,11 +129,17 @@ export function ProgramCard({
             <Highlight text={program.organization.name} words={words} />
           </a>
         </p>
-        {featured ? <FeaturedBadge /> : distance}
+        {!featured && distance}
       </div>
       <h3 className="mt-1 text-xl font-extrabold">
         <Highlight text={program.name} words={words} />
       </h3>
+      {/* After the name in the DOM, so a screen reader hears the Program name first; CSS puts it top-right. */}
+      {featured && (
+        <div className="absolute right-5 top-5">
+          <FeaturedBadge />
+        </div>
+      )}
       {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (

@@ -121,10 +121,14 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           {organization.name}
         </a>
       </p>
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h1 className="text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
-        {program.featuredRank !== null && <FeaturedBadge />}
-      </div>
+      {program.featuredRank !== null ? (
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 className="text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
+          <FeaturedBadge />
+        </div>
+      ) : (
+        <h1 className="mt-1 text-3xl font-extrabold min-[900px]:text-5xl">{program.name}</h1>
+      )}
       {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-3 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
