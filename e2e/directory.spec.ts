@@ -4,7 +4,6 @@
  */
 import { expect, type Page, test } from "@playwright/test";
 import { HOST } from "./fixture";
-import { setFilter } from "./filters";
 
 // The mobile filter sheet has its own live count; this is the page's result line.
 const resultLine = (page: Page) => page.locator("[aria-live=polite]:not(dialog *)");
@@ -27,8 +26,8 @@ test("a half-typed ZIP does not block the keyword search", async ({ page }) => {
 });
 
 test("checkbox-adds-chip: checking a filter adds a chip", async ({ page }) => {
-  await page.goto("/embed?view=map"); // list view at lg has a filter column, not the Filters link
-  await setFilter(page, page, /^Spanish/);
+  await page.goto("/embed");
+  await page.getByRole("checkbox", { name: /^Spanish/ }).check(); // desktop: the filter column
   await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
   await expect(page).toHaveURL(/lang=spanish/);
   await expect(resultLine(page)).toHaveText("6 results");
@@ -76,13 +75,12 @@ test("no-location: no Nearest sort, no Distance group, no miles", async ({ page 
 });
 
 test("zip-location: Nearest is current, Distance group shows, cards show miles", async ({ page }) => {
-  await page.goto("/embed?q=yoga&zip=49508&view=map"); // the Filters link shows in map view at lg
+  await page.goto("/embed?q=yoga&zip=49508");
   await expect(resultLine(page)).toContainText("near 49508");
   await expect(page.getByRole("combobox", { name: "Sort" }).locator("option:checked")).toHaveText("Nearest");
   await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/).first()).toBeVisible();
-  // The Distance group is in the Filters modal.
-  await page.getByRole("link", { name: /^Filters/ }).click();
-  await expect(page.getByRole("dialog", { name: "Filters" }).getByRole("group", { name: /Distance/ })).toBeVisible();
+  // Desktop: the Distance group is in the filter column.
+  await expect(page.getByRole("group", { name: /Distance/ })).toBeVisible();
 });
 
 test("show-more-adds-ten: Show more adds the next page of Programs", async ({ page }) => {

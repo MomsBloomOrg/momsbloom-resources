@@ -102,6 +102,7 @@ test("split-row-full-width: at 1440 the map reaches the right edge and the page 
   const paneBox = (await page.locator("[data-results-pane]").boundingBox())!;
   expect(mapBox.x + mapBox.width).toBeGreaterThanOrEqual(1440 - 1);
   expect(mapBox.x).toBeGreaterThan(paneBox.x + paneBox.width);
+  // This runs on /embed (no scroll bar); the home page clips its own overflow.
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 

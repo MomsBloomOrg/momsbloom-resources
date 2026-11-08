@@ -46,11 +46,12 @@ function SiteHeader() {
  */
 export default async function Home({ searchParams }: PageProps<"/">) {
   return (
-    <>
+    // overflow-x-clip: the full-width map row uses 100vw, which includes a classic scroll bar.
+    <div className="overflow-x-clip">
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-4 pt-16 pb-12">
         <Directory params={await searchParams} />
       </main>
-    </>
+    </div>
   );
 }
