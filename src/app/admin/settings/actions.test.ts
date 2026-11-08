@@ -1,18 +1,18 @@
 /**
- * Each Facet value action checks the login first, and a successful write reloads the Directory
+ * Each Facet value action checks for the `admin` role first (`requireAdmin`), and a successful write reloads the Directory
  * snapshot (`updateTag("directory")`). The domain module is mocked; facets.test.ts covers the writes.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   updateTag: vi.fn(),
-  requireStaffAdmin: vi.fn(async () => ({ id: "a1", email: "staff@example.org" })),
+  requireAdmin: vi.fn(async () => ({ id: "a1", email: "staff@example.org", role: "admin" })),
   write: vi.fn(async () => ({ ok: true, value: { id: 1, name: "Sample" } }) as Record<string, unknown>),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: mocks.updateTag }));
 vi.mock("@/db", () => ({ getDb: () => ({}) }));
-vi.mock("@/auth/dal", () => ({ requireStaffAdmin: mocks.requireStaffAdmin }));
+vi.mock("@/auth/dal", () => ({ requireAdmin: mocks.requireAdmin }));
 vi.mock("@/admin/facets", () => ({
   isFacetKey: (value: unknown) => value === "language",
   addFacetValue: mocks.write,
@@ -35,12 +35,12 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => vi.clearAllMocks());
 
 describe("Facet value actions", () => {
-  it("refuse without a login and write nothing", async () => {
-    mocks.requireStaffAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+  it("refuse an editor or a missing login (requireAdmin redirects) and write nothing", async () => {
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
     await expect(addFacetValueAction(idle, form({ facet: "language", name: "Arabic" }))).rejects.toThrow("NEXT_REDIRECT");
-    mocks.requireStaffAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
     await expect(facetValueRowAction(idle, form({ facet: "language", id: "1", intent: "delete" }))).rejects.toThrow("NEXT_REDIRECT");
-    mocks.requireStaffAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
     await expect(reorderFacetValuesAction("language", undefined, [2, 1])).rejects.toThrow("NEXT_REDIRECT");
     expect(mocks.write).not.toHaveBeenCalled();
     expect(mocks.updateTag).not.toHaveBeenCalled();

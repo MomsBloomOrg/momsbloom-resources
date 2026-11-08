@@ -1,7 +1,7 @@
 "use server";
 
 import { directoryChanged } from "@/admin/directory-changed";
-import { requireStaffAdmin } from "@/auth/dal";
+import { requireAdmin } from "@/auth/dal";
 import { addField, archiveField, editField, moveField, restoreField, type ManageResult } from "@/custom-fields/manage";
 import { getDb } from "@/db";
 
@@ -20,7 +20,7 @@ function toState(result: ManageResult, message: (label: string) => string): Fiel
 }
 
 export async function addFieldAction(_prev: FieldFormState, formData: FormData): Promise<FieldFormState> {
-  await requireStaffAdmin();
+  await requireAdmin();
   return toState(await addField(getDb(), formData), (label) => `Added "${label}".`);
 }
 
@@ -29,7 +29,7 @@ export async function addFieldAction(_prev: FieldFormState, formData: FormData):
  * `intent` is `edit`, `up`, `down`, `archive`, or `restore`.
  */
 export async function fieldRowAction(_prev: FieldFormState, formData: FormData): Promise<FieldFormState> {
-  await requireStaffAdmin();
+  await requireAdmin();
   const db = getDb();
   const id = formData.get("id");
   switch (formData.get("intent")) {

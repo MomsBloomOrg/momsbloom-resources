@@ -112,7 +112,8 @@ These keep the feature simple and safe. The code enforces all of them.
 In the Admin: the inputs are `src/app/admin/_components/custom-field-inputs.tsx`; the section and its
 server actions are in `src/app/admin/_custom-fields/`. The Program and Organization save actions run
 `parseCustomForm` next to their own checks and write the answers in the same transaction. Every
-action checks the login first (`requireStaffAdmin`).
+action checks the login first (`requireStaffAdmin`). The field manager actions need the `admin` role
+(`requireAdmin`), and the page shows the manager to admins only; editors still fill in the answers.
 
 ### Still to do
 

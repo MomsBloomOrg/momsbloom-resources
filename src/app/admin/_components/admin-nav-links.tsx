@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-// "Resources" is the Admin home: one list of Organizations, Programs, and Guides & Downloads.
+// "Resources" is the Admin home: one list of Organizations, Programs, and Guides & Downloads. The
+// other links are for the `admin` role only; their pages check it too (`requireAdmin`).
 const LINKS = [
   { href: "/admin", label: "Resources", match: ["/admin", "/admin/organizations", "/admin/programs", "/admin/documents"] },
-  { href: "/admin/settings/category", label: "Settings", match: ["/admin/settings"] },
-  { href: "/admin/content", label: "Content", match: ["/admin/content"] },
-  { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"] },
+  { href: "/admin/settings/category", label: "Settings", match: ["/admin/settings"], adminOnly: true },
+  { href: "/admin/content", label: "Content", match: ["/admin/content"], adminOnly: true },
+  { href: "/admin/staff-admins", label: "Staff admins", match: ["/admin/staff-admins"], adminOnly: true },
 ];
 
 /**
@@ -30,7 +31,7 @@ function focusHeading(main: HTMLElement): boolean {
  * h1 shows), so a screen reader reads the page title and the next Tab goes into the page. A query
  * change (search, filters) keeps the path and does not move focus.
  */
-export function AdminNavLinks() {
+export function AdminNavLinks({ admin }: { admin: boolean }) {
   const pathname = usePathname();
   const lastPath = useRef(pathname);
 
@@ -56,7 +57,7 @@ export function AdminNavLinks() {
 
   return (
     <nav aria-label="Admin" className="flex flex-wrap gap-x-8 gap-y-1 text-lg">
-      {LINKS.map((link) => {
+      {LINKS.filter((link) => admin || !link.adminOnly).map((link) => {
         // "/admin" itself matches only exactly, or every Admin page would count as Resources.
         const current = link.match.some((m) => pathname === m || (m !== "/admin" && pathname.startsWith(`${m}/`)));
         return (

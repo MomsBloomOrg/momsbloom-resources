@@ -419,8 +419,12 @@ export const staffAdmins = pgTable("staff_admins", {
 	// Set when a Staff admin adds the address in the Admin. Null for a row that an Owner's first login
 	// made: that row is allowed only while its address is on ADMIN_EMAILS.
 	addedAt: timestamp("added_at", { withTimezone: true, mode: 'date' }),
+	// Role: `admin` (all of the Admin) or `editor` (Resources only). An Owner is always `admin` in code
+	// (`findStaffAdmin`), whatever this column says.
+	role: text().default('admin').notNull(),
 }, (table) => [
 	check("staff_admins_email_lowercase", sql`${table.email} = lower(${table.email})`),
+	check("staff_admins_role_check", sql`${table.role} in ('admin', 'editor')`),
 ]);
 
 export const authSessions = pgTable("auth_sessions", {

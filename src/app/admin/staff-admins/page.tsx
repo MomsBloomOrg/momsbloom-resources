@@ -1,5 +1,5 @@
 import { listStaffAdmins } from "@/admin/staff-admins";
-import { requireStaffAdmin } from "@/auth/dal";
+import { requireAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { Card, PageHeader } from "../_components/ui";
 import { AddStaffAdminForm, StaffAdminTable, type StaffAdminRow } from "./staff-admin-forms";
@@ -11,7 +11,7 @@ const addedDate = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit"
 
 /** Who can log in to the Admin: the Owners (from the site settings) and the Staff admins added here. */
 export default async function StaffAdminsPage() {
-  const me = await requireStaffAdmin();
+  const me = await requireAdmin();
   const rows: StaffAdminRow[] = (await listStaffAdmins(getDb())).map((s) => {
     const you = s.email === me.email;
     return {

@@ -130,7 +130,7 @@ describe("Auth.js wiring", () => {
     await requestLink(STAFF);
     const login = await handle(new Request(sent[0].url));
     const [admin] = await db.select().from(staffAdmins);
-    expect(await findStaffAdmin(db, admin.id, ENV)).toEqual({ id: admin.id, email: STAFF });
+    expect(await findStaffAdmin(db, admin.id, ENV)).toEqual({ id: admin.id, email: STAFF, role: "admin" });
     expect(await count(authSessions)).toBe(1);
 
     expect(await findStaffAdmin(db, admin.id, { ADMIN_EMAILS: "second@example.org" })).toBeNull();
@@ -175,7 +175,7 @@ describe("Auth.js wiring", () => {
       const rows = await db.select().from(staffAdmins);
       expect(rows.map((r) => r.id)).toEqual([before.id]);
       expect(rows[0].emailVerified).toBeInstanceOf(Date);
-      expect(await findStaffAdmin(db, before.id, ENV)).toEqual({ id: before.id, email: ADDED });
+      expect(await findStaffAdmin(db, before.id, ENV)).toEqual({ id: before.id, email: ADDED, role: "admin" });
     });
 
     it("once removed, fails the DAL check, has no sessions, and an open Login link is refused", async () => {
@@ -199,6 +199,25 @@ describe("Auth.js wiring", () => {
       expect(late.headers.get("location")).toContain("error=");
       expect(await db.select().from(staffAdmins).where(eq(staffAdmins.email, ADDED))).toEqual([]);
     });
+
+    it("gets the role from its row; the migration default is admin", async () => {
+      const [added] = await db.select().from(staffAdmins);
+      expect(added.role).toBe("admin");
+      await db.update(staffAdmins).set({ role: "editor" }).where(eq(staffAdmins.id, added.id));
+      expect(await findStaffAdmin(db, added.id, ENV)).toEqual({ id: added.id, email: ADDED, role: "editor" });
+    });
+  });
+
+  it("an Owner is always admin, even when the row says editor", async () => {
+    await requestLink(STAFF);
+    await handle(new Request(sent[0].url));
+    const [owner] = await db.select().from(staffAdmins);
+    await db.update(staffAdmins).set({ role: "editor" }).where(eq(staffAdmins.id, owner.id));
+    expect(await findStaffAdmin(db, owner.id, ENV)).toEqual({ id: owner.id, email: STAFF, role: "admin" });
+  });
+
+  it("the database refuses a role that is not admin or editor", async () => {
+    await expect(db.insert(staffAdmins).values({ email: "x@example.org", role: "owner" })).rejects.toThrow();
   });
 
   it("sessions last 7 days", async () => {

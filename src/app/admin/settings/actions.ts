@@ -11,7 +11,7 @@ import {
   setFacetValueHidden,
   type FacetResult,
 } from "@/admin/facets";
-import { requireStaffAdmin } from "@/auth/dal";
+import { requireAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 
 export type FacetFormState = { result: "idle" } | { result: "ok"; message: string } | { result: "error"; message: string };
@@ -26,7 +26,7 @@ function toState<T>(result: FacetResult<T>, message: (value: T) => string): Face
 }
 
 export async function addFacetValueAction(_prev: FacetFormState, formData: FormData): Promise<FacetFormState> {
-  await requireStaffAdmin();
+  await requireAdmin();
   const key = formData.get("facet");
   if (!isFacetKey(key)) return UNKNOWN;
   const result = await addFacetValue(getDb(), { key, name: formData.get("name"), categoryId: formData.get("categoryId") });
@@ -38,7 +38,7 @@ export async function addFacetValueAction(_prev: FacetFormState, formData: FormD
  * `intent` is `rename`, `up`, `down`, `hide`, `show`, or `delete`.
  */
 export async function facetValueRowAction(_prev: FacetFormState, formData: FormData): Promise<FacetFormState> {
-  await requireStaffAdmin();
+  await requireAdmin();
   const key = formData.get("facet");
   if (!isFacetKey(key)) return UNKNOWN;
   const db = getDb();
@@ -65,7 +65,7 @@ export async function facetValueRowAction(_prev: FacetFormState, formData: FormD
 
 /** A drag and drop: the new order of one list. `categoryId` is for Subcategories only. */
 export async function reorderFacetValuesAction(facet: unknown, categoryId: unknown, ids: unknown): Promise<FacetFormState> {
-  await requireStaffAdmin();
+  await requireAdmin();
   if (!isFacetKey(facet)) return UNKNOWN;
   return toState(await reorderFacetValues(getDb(), { key: facet, categoryId, ids }), () => "Saved the new order.");
 }

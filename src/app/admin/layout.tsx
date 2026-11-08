@@ -23,6 +23,12 @@ function AdminHomeLink() {
   );
 }
 
+/** The nav for the logged-in role. Reads the session, so it is inside Suspense. */
+async function AdminNav() {
+  const admin = await getCurrentStaffAdmin();
+  return <AdminNavLinks admin={admin?.role === "admin"} />;
+}
+
 /** The logged-in email and Sign out. Reads the session, so it is inside Suspense. */
 async function AdminUser() {
   const admin = await getCurrentStaffAdmin();
@@ -40,8 +46,9 @@ async function AdminUser() {
 }
 
 /**
- * The Admin shell. Each page checks the login itself with `requireStaffAdmin()`; this layout does
- * not. The nav links are static text, so they show before the login check.
+ * The Admin shell. Each page checks the login itself with `requireStaffAdmin()` or `requireAdmin()`;
+ * this layout does not. The nav shows Resources only until the session is read, so the admin-only
+ * links never flash for an editor.
  *
  * The Admin design ("Resource Admin List"): a white header with the orange logo and the nav, a thin
  * sage rule under it, then the warm `background` page in light Nunito.
@@ -53,8 +60,8 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-10 gap-y-2 py-4 sm:py-6">
           <AdminHomeLink />
           <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
-            <Suspense fallback={<div className="h-11" />}>
-              <AdminNavLinks />
+            <Suspense fallback={<AdminNavLinks admin={false} />}>
+              <AdminNav />
             </Suspense>
             <Suspense fallback={<div className="h-6" />}>
               <AdminUser />
