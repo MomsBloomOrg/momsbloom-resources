@@ -95,6 +95,9 @@ The app does not read the database yet, so you can skip this until the tables ex
 The tables are defined in `src/db/schema.ts`. After you change that file, run `pnpm db:generate`
 (writes a migration file into `drizzle/`) and then `pnpm db:migrate` (applies it to the database).
 
+A local database made with `drizzle-kit push` (before migrations made every table) fails at the first migration.
+Reset it: `pnpm db:down -v`, `pnpm db:up`, `pnpm db:migrate`.
+
 ### Admin login settings
 
 | Variable | What it is |
@@ -109,7 +112,7 @@ Production and Preview on Vercel need `AUTH_SECRET`, `RESEND_API_KEY`, `EMAIL_FR
 
 ### Log in to the Admin locally
 
-1. Start a local database (`pnpm db:up`) and run `pnpm db:migrate`, so the login tables exist.
+1. Start a local database (`pnpm db:up`) and run `pnpm db:migrate`, so all tables exist.
 2. In `.env.local`, set `AUTH_SECRET`, `AUTH_URL=http://localhost:3000`, `ADMIN_EMAILS=you@example.org`,
    and leave `RESEND_API_KEY` empty.
 3. Run `pnpm dev`, open http://localhost:3000/login, and enter that address.

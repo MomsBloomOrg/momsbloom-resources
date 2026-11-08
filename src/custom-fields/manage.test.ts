@@ -1,6 +1,6 @@
 /** The Admin "Custom fields" page logic, on a fresh PGlite database. */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import { addField, archiveField, editField, listFieldsForAdmin, moveField, restoreField } from "./manage";
 
@@ -15,7 +15,7 @@ describe("custom fields admin", () => {
   let close: () => Promise<void>;
 
   beforeEach(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
   });
   afterEach(() => close());
 
