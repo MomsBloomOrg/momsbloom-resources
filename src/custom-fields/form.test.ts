@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getProgramForAdmin, saveProgram } from "@/admin/programs";
 import { insertSampleData, type SampleIds } from "@/admin/sample-data";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import { createDefinition } from "./definitions";
 import { CUSTOM_FIELD_IDS, customInputName, listActiveFields, parseCustomForm, readCustomInput } from "./form";
@@ -49,7 +49,7 @@ describe("parseCustomForm", () => {
   let doula: CustomFieldDefinition;
 
   beforeEach(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
     parking = await insertDefinition(db, definition({ entity: "program", type: "choice", label: "Parking", options: ["Covered", "Standard Lot"] }));
     doula = await insertDefinition(db, { ...definition({ entity: "program", type: "yesNo", label: "Doula on staff" }), sortOrder: 2 });

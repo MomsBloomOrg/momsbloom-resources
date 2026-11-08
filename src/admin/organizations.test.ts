@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { geocodeOnSave } from "./geocode";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import {
   createOrganization,
@@ -20,7 +20,7 @@ describe("listOrganizationsForAdmin", () => {
   let ids: SampleIds;
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
   });
   afterAll(() => close());
@@ -63,7 +63,7 @@ describe("Organization edit", () => {
   let ids: SampleIds;
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
   });
   afterAll(() => close());

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as t from "@/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import { getProgramForAdmin, getProgramFormOptions, markProgramVerified, parseProgramInput, saveProgram, type ProgramFormOptions } from "./programs";
 import { insertSampleData, type SampleIds } from "./sample-data";
@@ -14,7 +14,7 @@ describe("Program edit", () => {
   const byName = (list: { id: number; name: string }[], name: string) => String(list.find((o) => o.name === name)!.id);
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
     options = await getProgramFormOptions(db);
   });
@@ -134,7 +134,7 @@ describe("Program form hides hidden Facet values", () => {
   let spanish: number;
   let free: number;
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     await insertSampleData(db);
     const lang = await db.select().from(t.languages).limit(1);
     const cost = await db.select().from(t.costOptions).limit(1);

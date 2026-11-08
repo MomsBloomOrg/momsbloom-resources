@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import * as t from "@/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import { getDocumentForAdmin, getDocumentFormOptions, listDocumentsForAdmin, markDocumentVerified, parseDocumentInput, saveDocument, type DocumentFormOptions } from "./documents";
 import { insertSampleData, type SampleIds } from "./sample-data";
@@ -14,7 +14,7 @@ describe("Document edit", () => {
   const byName = (list: { id: number; name: string }[], name: string) => String(list.find((o) => o.name === name)!.id);
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
     options = await getDocumentFormOptions(db);
   });
@@ -122,7 +122,7 @@ describe("Document form hides hidden Facet values", () => {
   let close: () => Promise<void>;
   let category: number;
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     await insertSampleData(db);
     category = (await db.select().from(t.categories).limit(1))[0].id;
     await db.update(t.categories).set({ hidden: true }).where(eq(t.categories.id, category));

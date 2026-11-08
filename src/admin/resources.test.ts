@@ -1,6 +1,6 @@
 /** The Admin home "Resources" list, on a fresh PGlite database with sample rows. */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 import { listResourcesForAdmin } from "./resources";
@@ -12,7 +12,7 @@ describe("listResourcesForAdmin", () => {
   let ids: SampleIds;
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
     await db.insert(t.programs).values({ organizationId: ids.organizations.riverbend, name: "Sample Breastfeeding Circle", searchKeywords: "nursing, latch", statusId: ids.statuses.active });
     await db.insert(t.documents).values([
