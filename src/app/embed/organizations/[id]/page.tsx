@@ -7,6 +7,7 @@ import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { addressText, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
+import { DocumentCard } from "../../_components/document-card";
 import { CustomField } from "../../_components/detail-fields";
 import { HelpBox } from "../../_components/help-box";
 import { ProgramMap } from "../../_components/program-map";
@@ -63,6 +64,7 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
     (snapshot.facets.find((definition) => definition.key === facet)?.values ?? [])
       .map((value) => value.key)
       .filter((key) => programs.some((program) => program.facetValues[facet].includes(key)));
+  const documents = snapshot.documents.filter((document) => document.organization?.id === organization.id);
   const tags = supportTags({ category: union("category"), subcategory: union("subcategory") }, labelOf);
   // Public fields only: the mapper already dropped staff-only answers, and this checks the field list again.
   const details = publicCustomValues(snapshot.customFields, "organization", organization.custom);
@@ -113,7 +115,7 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
       {actionBar("mt-4 min-[900px]:hidden")}
 
       {/* Two stacks from 900 px, as on Program detail. Below 900 px the stacks are `contents`, and `order-*`
-          puts the cards in the mobile order: About, More details, Programs, Location. */}
+          puts the cards in the mobile order: About, More details, Programs, Guides and downloads, Location. */}
       <div className="mt-6 flex flex-col gap-4 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,1fr)_22rem] min-[900px]:items-start">
         <div className="contents min-[900px]:flex min-[900px]:flex-col min-[900px]:gap-4">
           {organization.about && (
@@ -145,11 +147,23 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
               <ProgramRows programs={programs} labelOf={labelOf} search={search} />
             </section>
           )}
+          {documents.length > 0 && (
+            <section aria-labelledby="guides" className={`${card} order-4`}>
+              <h2 id="guides" className={heading}>
+                Guides and downloads
+              </h2>
+              <div className="mt-2 flex flex-col gap-3">
+                {documents.map((document) => (
+                  <DocumentCard key={document.id} document={document} labelOf={labelOf} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
         <div className="contents min-[900px]:flex min-[900px]:flex-col min-[900px]:gap-4">
           {actionBar(`${card} hidden min-[900px]:flex`)}
           {(place || organization.location) && (
-            <section aria-labelledby="location" className={`${card} order-4`}>
+            <section aria-labelledby="location" className={`${card} order-5`}>
               <h2 id="location" className={heading}>
                 Location
               </h2>

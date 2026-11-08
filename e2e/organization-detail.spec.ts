@@ -43,3 +43,13 @@ test("org-unknown-id-note: an unknown Organization shows a note and a link back"
   await expect(page.getByRole("status").filter({ hasText: "That resource isn't available anymore." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to results" })).toHaveAttribute("href", "/embed?q=yoga");
 });
+
+test("org-guides: a linked Document shows on the Organization page with a Download link", async ({ page }) => {
+  await page.goto("/embed/organizations/O-005");
+  const guides = page.locator("section", { has: page.getByRole("heading", { name: "Guides and downloads" }) });
+  await expect(guides).toContainText("Gentle Yoga for Postpartum Recovery");
+  await expect(guides.getByRole("link", { name: /Download/ })).toHaveAttribute("href", "https://example.org/gentle-yoga.pdf");
+  // An Organization with no linked Document has no section.
+  await page.goto("/embed/organizations/O-010");
+  await expect(page.getByRole("heading", { name: "Guides and downloads" })).toHaveCount(0);
+});
