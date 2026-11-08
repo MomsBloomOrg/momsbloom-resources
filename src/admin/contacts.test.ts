@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import { addContact, listContactsForAdmin, parseContactInput, removeContact, updateContact } from "./contacts";
 import { insertSampleData, type SampleIds } from "./sample-data";
@@ -10,7 +10,7 @@ describe("Contacts of a Program", () => {
   let ids: SampleIds;
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
   });
   afterAll(() => close());

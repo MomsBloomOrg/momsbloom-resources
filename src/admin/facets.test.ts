@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as t from "@/db/schema";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
 import {
   addFacetValue,
@@ -20,7 +20,7 @@ describe("Facet values", () => {
   let close: () => Promise<void>;
 
   beforeAll(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     await insertSampleData(db);
   });
   afterAll(() => close());

@@ -1,5 +1,5 @@
 /**
- * Local dev only: builds the tables with `drizzle-kit push`, then inserts made-up sample rows
+ * Local dev only: builds the tables with `drizzle-kit migrate`, then inserts made-up sample rows
  * (src/admin/sample-data.ts). Run it with `pnpm db:seed-sample`.
  *
  * It refuses any host except localhost (assertLocalUrl), so it can never write to Neon. It does nothing when the
@@ -16,8 +16,7 @@ loadLocalEnv();
 const url = requireDatabaseUrl();
 assertLocalUrl(url);
 
-// --force skips the data-loss prompt; the local database is throwaway.
-execFileSync("pnpm", ["drizzle-kit", "push", "--force"], { stdio: "inherit" });
+execFileSync("pnpm", ["drizzle-kit", "migrate"], { stdio: "inherit" });
 
 async function main() {
   const { db, close } = openDb(url, { max: 1 });

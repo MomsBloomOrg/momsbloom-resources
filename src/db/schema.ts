@@ -1,7 +1,7 @@
 /**
  * The database tables, pulled from the database with `drizzle-kit pull` (2026-11-07). The database is
- * the source: the team made the tables outside this repo. drizzle/0000_*.sql (all commented out) and
- * drizzle/meta/ are the migration baseline, so `pnpm db:generate` writes only the changes.
+ * the source: the team made the tables outside this repo. drizzle/0000_*.sql makes the baseline tables (production and
+ * the Neon dev branch skip it) and drizzle/meta/ is the migration baseline, so `pnpm db:generate` writes only the changes.
  *
  * To change a table: edit this file, then `pnpm db:generate` and `pnpm db:migrate`. If someone changes
  * the database directly, pull again (into a temp `out`) and copy the new schema.ts over this file.

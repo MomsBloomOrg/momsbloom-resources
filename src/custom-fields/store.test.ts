@@ -4,7 +4,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { insertSampleData, type SampleIds } from "@/admin/sample-data";
-import { createDirectoryTestDb } from "@/db/test-db";
+import { createTestDb } from "@/db/test-db";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 import { archiveDefinition, createDefinition, updateDefinition } from "./definitions";
@@ -18,7 +18,7 @@ describe("custom fields in the database", () => {
 
   // A fresh database per test, so no test sees another's fields.
   beforeEach(async () => {
-    ({ db, close } = await createDirectoryTestDb());
+    ({ db, close } = await createTestDb());
     ids = await insertSampleData(db);
   });
   afterEach(() => close());
