@@ -64,6 +64,13 @@
       "when": 1794107894190,
       "tag": "0008_mature_jack_power",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794155725146,
+      "tag": "0009_featured_rank",
+      "breakpoints": true
     }
   ]
 }

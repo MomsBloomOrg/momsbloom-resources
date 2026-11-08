@@ -408,6 +408,15 @@ export function ProgramForm({
 
       <Card title={sectionTitle("Admin")}>
         <div className="flex flex-col gap-5">
+          <div>
+            <label className={`${checkRowClass} font-semibold`}>
+              <input type="checkbox" name="featured" defaultChecked={p?.featured ?? false} aria-describedby="program-featured-hint" />
+              Featured
+            </label>
+            <p id="program-featured-hint" className="text-sm text-muted">
+              Families see featured Programs first. Rank them on the Admin home.
+            </p>
+          </div>
           <div className="flex flex-wrap items-end gap-3">
             <Field id="program-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
               {/* key: a new value from "Mark verified" replaces what the input shows. */}

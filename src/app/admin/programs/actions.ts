@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
 import { FIX_FIELDS, GONE, parseId, stampVerifiedBy, verifiedByAfterSave } from "@/admin/organizations";
-import { getProgramForAdmin, markProgramVerified, parseProgramInput, saveProgram } from "@/admin/programs";
+import { getProgramForAdmin, markProgramVerified, parseProgramInput, reorderFeaturedPrograms, saveProgram } from "@/admin/programs";
 import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
 import { parseCustomForm } from "@/custom-fields/form";
 import { getDb } from "@/db";
@@ -51,4 +51,15 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
   directoryChanged();
   if (id === null) redirect(`/admin/programs/${saved.value.id}`);
   return { status: "saved", message: "Saved.", notice: failed ? NOT_PLACED : undefined, lastVerifiedBy, latitude: input.latitude, longitude: input.longitude };
+}
+
+export type ReorderFeaturedState = { result: "idle" } | { result: "ok" | "error"; message: string };
+
+/** A drag and drop on the Admin home: the new order of the featured Programs. Editors may too (it is a Program field). */
+export async function reorderFeaturedProgramsAction(ids: unknown): Promise<ReorderFeaturedState> {
+  await requireStaffAdmin();
+  const result = await reorderFeaturedPrograms(getDb(), ids);
+  if (!result.ok) return { result: "error", message: result.error };
+  directoryChanged();
+  return { result: "ok", message: "Saved the new order." };
 }

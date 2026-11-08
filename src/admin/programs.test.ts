@@ -3,7 +3,16 @@ import * as t from "@/db/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestDb } from "@/db/test-db";
 import type { Db } from "@/db/types";
-import { getProgramForAdmin, getProgramFormOptions, markProgramVerified, parseProgramInput, saveProgram, type ProgramFormOptions } from "./programs";
+import {
+  getProgramForAdmin,
+  getProgramFormOptions,
+  listFeaturedPrograms,
+  markProgramVerified,
+  parseProgramInput,
+  reorderFeaturedPrograms,
+  saveProgram,
+  type ProgramFormOptions,
+} from "./programs";
 import { insertSampleData, type SampleIds } from "./sample-data";
 
 describe("Program edit", () => {
@@ -125,6 +134,85 @@ describe("Program edit", () => {
   it("form options carry the Organization values for Inheritance", () => {
     const riverbend = options.organizations.find((o) => o.id === ids.organizations.riverbend);
     expect(riverbend).toMatchObject({ phone: "616-555-0100", website: "https://example.org", city: "Grand Rapids" });
+  });
+
+  describe("Featured", () => {
+    const create = async (featured: boolean) => {
+      const r = await saveProgram(db, null, parse(featured ? { featured: "on" } : {}));
+      if (!r.ok) throw new Error(r.error);
+      return r.value.id;
+    };
+    const rankOf = async (id: number) => (await db.select({ rank: t.programs.featuredRank }).from(t.programs).where(eq(t.programs.id, id)))[0].rank;
+    const featuredIds = async () => (await listFeaturedPrograms(db)).map((p) => p.id);
+    let a: number, b: number, c: number;
+
+    it("parse reads the checkbox: on is true, left out is false", () => {
+      expect(parse({ featured: "on" }).featured).toBe(true);
+      expect(parse().featured).toBe(false);
+    });
+
+    it("a newly featured Program goes to the end; a save keeps its rank; unchecking clears it", async () => {
+      a = await create(true);
+      b = await create(true);
+      c = await create(false);
+      expect([await rankOf(a), await rankOf(b), await rankOf(c)]).toEqual([1, 2, null]);
+      expect((await getProgramForAdmin(db, a))!.program.featured).toBe(true);
+
+      await saveProgram(db, a, parse({ featured: "on", name: "Still featured" }));
+      expect(await rankOf(a)).toBe(1);
+
+      await saveProgram(db, c, parse({ featured: "on" }));
+      expect(await featuredIds()).toEqual([a, b, c]);
+
+      await saveProgram(db, b, parse());
+      expect(await rankOf(b)).toBeNull();
+      expect(await featuredIds()).toEqual([a, c]);
+    });
+
+    it("re-featuring goes to the end, past a gap in the ranks", async () => {
+      // Now a = 1, c = 3: b was unchecked, so rank 2 is a gap.
+      expect([await rankOf(a), await rankOf(c)]).toEqual([1, 3]);
+      await saveProgram(db, b, parse({ featured: "on" }));
+      expect(await rankOf(b)).toBe(4);
+      await saveProgram(db, b, parse());
+    });
+
+    it("a new Program saved without the field is not featured", async () => {
+      const { featured, ...input } = parse();
+      void featured;
+      const r = await saveProgram(db, null, input);
+      if (!r.ok) throw new Error(r.error);
+      expect(await rankOf(r.value.id)).toBeNull();
+    });
+
+    it("a save without the field leaves the rank alone", async () => {
+      const { featured, ...input } = parse();
+      void featured;
+      await saveProgram(db, a, input);
+      expect(await rankOf(a)).toBe(1);
+    });
+
+    it("lists featured Programs in rank order with Organization and Status", async () => {
+      const [first] = await listFeaturedPrograms(db);
+      expect(first).toMatchObject({ id: a, organizationName: expect.any(String), statusName: expect.any(String), showOnSite: true });
+    });
+
+    it("reorder writes ranks 1..n in the given order", async () => {
+      expect(await reorderFeaturedPrograms(db, [c, a])).toEqual({ ok: true, value: { count: 2 } });
+      expect([await rankOf(c), await rankOf(a)]).toEqual([1, 2]);
+      expect(await featuredIds()).toEqual([c, a]);
+    });
+
+    it("reorder refuses a stale or bad list and writes nothing", async () => {
+      const stale = { ok: false, error: expect.stringContaining("changed since you opened it") };
+      expect(await reorderFeaturedPrograms(db, [a])).toMatchObject(stale); // missing one
+      expect(await reorderFeaturedPrograms(db, [a, c, b])).toMatchObject(stale); // b is not featured
+      expect(await reorderFeaturedPrograms(db, [a, b])).toMatchObject(stale); // same count, wrong set
+      expect(await reorderFeaturedPrograms(db, [a, a])).toMatchObject({ ok: false });
+      expect(await reorderFeaturedPrograms(db, ["x", a])).toMatchObject({ ok: false });
+      expect(await reorderFeaturedPrograms(db, "nope")).toMatchObject({ ok: false });
+      expect(await featuredIds()).toEqual([c, a]);
+    });
   });
 });
 

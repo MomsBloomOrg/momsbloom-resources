@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireStaffAdmin } from "@/auth/dal";
 import { getDb } from "@/db";
 import { NEEDS_REVIEW_STATUS } from "@/admin/organizations";
+import { listFeaturedPrograms } from "@/admin/programs";
 import {
   RESOURCE_TYPE_LABELS,
   RESOURCE_TYPES,
@@ -14,10 +15,12 @@ import {
   type ResourceType,
   type SortDirection,
 } from "@/admin/resources";
+import { FeaturedPrograms } from "./_components/featured-programs";
 import { SubmitOnChangeSelect } from "./_components/submit-on-change";
 import {
   Badge,
   EmptyState,
+  type BadgeTone,
   PageHeader,
   buttonClass,
   inputClass,
@@ -135,9 +138,11 @@ function SortHeader({ column, label, current, align = "left", className = "" }: 
   );
 }
 
+const statusTone = (row: { statusName: string; showOnSite: boolean }): BadgeTone =>
+  row.statusName === NEEDS_REVIEW_STATUS ? "warning" : row.showOnSite ? "good" : "neutral";
+
 function StatusBadge({ row }: { row: ResourceRow }) {
-  const tone = row.statusName === NEEDS_REVIEW_STATUS ? "warning" : row.showOnSite ? "good" : "neutral";
-  return <Badge tone={tone}>{row.statusName}</Badge>;
+  return <Badge tone={statusTone(row)}>{row.statusName}</Badge>;
 }
 
 function NewResource({ type }: { type?: ResourceType }) {
@@ -181,7 +186,12 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
   const sort = isResourceSort(sortParam) ? sortParam : undefined;
   const dir: SortDirection = first(params.dir) === "desc" ? "desc" : "asc";
 
-  const { rows, statuses } = await listResourcesForAdmin(getDb(), { q, type, statusId, sort, dir });
+  // Featured programs show on the All and Programs tabs only, always in full: the search and filters change only the table.
+  const showFeatured = type === undefined || type === "program";
+  const [{ rows, statuses }, featured] = await Promise.all([
+    listResourcesForAdmin(getDb(), { q, type, statusId, sort, dir }),
+    showFeatured ? listFeaturedPrograms(getDb()) : [],
+  ]);
   const current: ListParams = { q, type, status: statusId, sort, dir };
 
   return (
@@ -205,6 +215,8 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
           );
         })}
       </nav>
+
+      {featured.length > 0 && <FeaturedPrograms programs={featured.map((p) => ({ ...p, tone: statusTone(p) }))} />}
 
       {/* key: a tab or sort link is a client navigation; a new key resets the inputs to the new URL. */}
       <form

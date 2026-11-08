@@ -17,11 +17,18 @@ const textButton = `min-h-9 rounded-full px-3 text-sm font-semibold text-ink und
 const menuItem = `w-full rounded-xl px-3 py-2 text-left text-sm font-semibold hover:bg-field disabled:cursor-not-allowed disabled:text-muted ${focusRing}`;
 
 export function Message({ state }: { state: FacetFormState }) {
-  if (state.result === "idle") return null;
   return (
-    <p role={state.result === "error" ? "alert" : "status"} className={`text-sm font-semibold ${state.result === "error" ? "text-red-700" : "text-ink"}`}>
-      {state.message}
-    </p>
+    <>
+      {/* Always in the page: a status region that mounts with its text is not read by some screen readers. Empty: absolute, so it adds no flex gap. */}
+      <p role="status" className="text-sm font-semibold text-ink empty:absolute">
+        {state.result === "ok" ? state.message : ""}
+      </p>
+      {state.result === "error" && (
+        <p role="alert" className="text-sm font-semibold text-red-700">
+          {state.message}
+        </p>
+      )}
+    </>
   );
 }
 
