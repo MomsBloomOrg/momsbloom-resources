@@ -92,20 +92,27 @@ export function OrganizationForm({
       <Field id="org-about" label="About" error={errors.about}>
         <textarea id="org-about" name="about" rows={4} defaultValue={o?.about ?? ""} className={inputClass} />
       </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {text("website", "Website", { hint: "Starts with https://", type: "url" })}
-        {text("email", "Email", { type: "email" })}
-        {text("phone", "Phone", { type: "tel" })}
-        {text("county", "County")}
+      <section className="flex flex-col gap-4">
+        <h3 className="text-xl font-semibold text-muted">Location</h3>
         {text("streetAddress", "Street address")}
         {text("suite", "Suite")}
-        {text("city", "City")}
-        {text("state", "State")}
-        {text("zip", "ZIP")}
-        <span />
-        {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
-        {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
-      </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {text("city", "City")}
+          {text("state", "State")}
+          {text("zip", "ZIP")}
+        </div>
+        {text("county", "County")}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {text("latitude", "Latitude", { inputMode: "decimal", hint: "For the map. Example: 42.9634" })}
+          {text("longitude", "Longitude", { inputMode: "decimal", hint: "Example: -85.6681" })}
+        </div>
+      </section>
+      <section className="flex flex-col gap-4">
+        <h3 className="text-xl font-semibold text-muted">Phone, Email &amp; Website</h3>
+        {text("phone", "Phone", { type: "tel" })}
+        {text("email", "Email", { type: "email" })}
+        {text("website", "Website", { hint: "Starts with https://", type: "url" })}
+      </section>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="org-statusId" label="Status" error={errors.statusId}>
           <select
