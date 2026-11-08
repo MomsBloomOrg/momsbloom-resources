@@ -46,7 +46,18 @@ export function ResizeReporter({ share, program }: { share?: string; program?: s
     } catch {}
     const top = root.hasAttribute("data-scroll-top") ? 0 : target ? Math.max(0, target.getBoundingClientRect().top - root.getBoundingClientRect().top) : null;
     if (top !== null) window.parent.postMessage({ type: SCROLL_MESSAGE, top }, "*");
-    return () => observer.disconnect();
+    // The "Need more assistance?" link (#help): the iframe has no scroll bar, so the host page must scroll.
+    // Only #help; "#filters" must never scroll the host.
+    const onHashChange = () => {
+      if (location.hash !== "#help") return;
+      const help = document.getElementById("help");
+      if (help) window.parent.postMessage({ type: SCROLL_MESSAGE, top: Math.max(0, help.getBoundingClientRect().top - root.getBoundingClientRect().top) }, "*");
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("hashchange", onHashChange);
+    };
   }, []);
   // Its own effect with its own deps: a filter change posts a location, and never re-runs the scroll above.
   useEffect(() => {

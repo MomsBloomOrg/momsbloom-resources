@@ -15,7 +15,12 @@ vi.mock("@/admin/help-box", () => ({
   HELP_BOX_FIELDS: ["heading", "body", "phone", "buttonLabel", "buttonUrl"],
 }));
 
-import { saveHelpBoxAction } from "./actions";
+vi.mock("@/admin/directory-heading", () => ({
+  saveDirectoryHeadingContent: mocks.save,
+  DIRECTORY_HEADING_FIELDS: ["heading", "subheading"],
+}));
+
+import { saveDirectoryHeadingAction, saveHelpBoxAction } from "./actions";
 
 const idle = { result: "idle" } as const;
 beforeEach(() => vi.clearAllMocks());
@@ -42,6 +47,28 @@ describe("saveHelpBoxAction", () => {
       message: "Nope.",
       values: { heading: "Typed", body: "", phone: "", buttonLabel: "", buttonUrl: "" },
     });
+    expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+});
+
+describe("saveDirectoryHeadingAction", () => {
+  it("refuses an editor or a missing login and saves nothing", async () => {
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("NEXT_REDIRECT"));
+    await expect(saveDirectoryHeadingAction(idle, new FormData())).rejects.toThrow("NEXT_REDIRECT");
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.updateTag).not.toHaveBeenCalled();
+  });
+
+  it("reloads the Directory on success", async () => {
+    expect((await saveDirectoryHeadingAction(idle, new FormData())).result).toBe("ok");
+    expect(mocks.updateTag).toHaveBeenCalledWith("directory");
+  });
+
+  it("keeps the typed values and does not reload on a refusal", async () => {
+    mocks.save.mockResolvedValueOnce({ ok: false, error: "Nope." });
+    const data = new FormData();
+    data.set("subheading", "Typed");
+    expect(await saveDirectoryHeadingAction(idle, data)).toEqual({ result: "error", message: "Nope.", values: { heading: "", subheading: "Typed" } });
     expect(mocks.updateTag).not.toHaveBeenCalled();
   });
 });

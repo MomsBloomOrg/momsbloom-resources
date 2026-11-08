@@ -35,7 +35,7 @@ test("org-empty-state: an Organization with no visible Programs shows the help b
   await page.goto("/embed/organizations/O-010");
   await expect(page.getByRole("heading", { level: 1, name: "Eastside Doula Collective" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /^Programs at/ })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Can't find what you need?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Not sure where to start?" })).toBeVisible();
 });
 
 test("org-unknown-id-note: an unknown Organization shows a note and a link back", async ({ page }) => {

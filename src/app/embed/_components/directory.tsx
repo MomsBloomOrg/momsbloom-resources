@@ -7,6 +7,7 @@ import { FACET_KEYS } from "@/directory/types";
 import { ActiveChips } from "./active-chips";
 import { AnalyticsReporter } from "./analytics-reporter";
 import { DirectoryHeader } from "./directory-header";
+import { loadDirectoryHeadingContent } from "./directory-heading-content";
 import { DirectoryLive } from "./directory-live";
 import { DocumentCard } from "./document-card";
 import { activeFilterCount, FilterColumn } from "./filter-column";
@@ -31,7 +32,7 @@ import { ShowMore } from "./show-more";
 export async function Directory({ params, embed = false }: { params: Record<string, string | string[] | undefined>; embed?: boolean }) {
   // Test-only switch for the error screen (e2e). Vercel never sets the env var.
   if (process.env.DIRECTORY_TEST_ERRORS === "1" && params.fail === "1") throw new Error("Test error");
-  const snapshot = await getDirectorySnapshot();
+  const [snapshot, headingContent] = await Promise.all([getDirectorySnapshot(), loadDirectoryHeadingContent()]);
   const results = searchDirectory(snapshot, parseDirectoryQuery(params));
   const { query } = results;
 
@@ -116,7 +117,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
 
   return (
     <>
-      <DirectoryHeader />
+      <DirectoryHeader {...headingContent} />
 
       <DirectoryLive>
         <div className="mt-10">
