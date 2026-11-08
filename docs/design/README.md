@@ -238,8 +238,8 @@ Notes:
 - Tabs: All, Organizations, Guides & Downloads, with "Sign Out" on the right of the tab row.
 - A search box ("Search for name, organization, or keyword"), a "Type" menu, a "Status" menu, and a
   "Show Deleted" checkbox. Then the result count.
-- A table with Name (a link), Type, and Status. The Type column shows an Organization name for a
-  Program row and "Organization" for an Organization row.
+- A table with Name (a link), Type, and Status. The Type column shows the record type for every row
+  (client request, #71); a Program row also shows its Organization name under the name.
 - Status badges: Active (green), Inactive (gray), and Deleted (red). "Deleted" is not a Status in
   CONTEXT.md.
 - The capture shows the Organizations tab selected. "Needs review" is not shown.
