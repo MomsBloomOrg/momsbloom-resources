@@ -235,7 +235,7 @@ Notes:
 - The Admin frame shows the MomsBloom site header too. The Admin is not in the Embed, so this
   header is not ours to build either; keep the Admin header we have.
 - Title "Resources Admin" and a "New Resource" button.
-- Tabs: All, Organizations, Guides & Downloads, with "Sign Out" on the right of the tab row.
+- Tabs: All, Organizations, Programs (added by us, issue #75), Guides & Downloads, with "Sign Out" on the right of the tab row.
 - A search box ("Search for name, organization, or keyword"), a "Type" menu, a "Status" menu, and a
   "Show Deleted" checkbox. Then the result count.
 - A table with Name (a link), Type, and Status. The Type column shows the record type for every row
