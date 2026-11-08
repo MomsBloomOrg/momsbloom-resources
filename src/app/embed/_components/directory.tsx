@@ -164,10 +164,9 @@ export async function Directory({ params, embed = false }: { params: Record<stri
             <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
             {query.tab === "programs" ? (
               <>
-                {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). From lg this row
-                    breaks out of the page width to the full width (vw is the iframe width, so ResizeReporter cannot loop);
-                    the title, tabs, and toolbar keep the page width. */}
-                <div className={mapView ? "grid gap-4 lg:mx-[calc(50%-50vw)] lg:grid-cols-[22rem_1fr] lg:pl-6" : "contents"}>
+                {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). The row keeps the
+                    page width, like the title, tabs, and toolbar. */}
+                <div className={mapView ? "grid gap-4 lg:grid-cols-[22rem_1fr]" : "contents"}>
                   {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[800px]),
                       so a long list never runs past the map. Focusable, so keyboard users can scroll it. `relative`: absolute
                       children (sr-only text) must be clipped by the box, or they stretch the page to the list's full height. */}

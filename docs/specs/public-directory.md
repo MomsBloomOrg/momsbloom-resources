@@ -189,8 +189,8 @@ works.
 - The map shows the same filtered Programs as the list. Selecting a card highlights its pin, and
   the reverse.
 - Guides and downloads show below the list and map, as in the list view.
-- Desktop: the cards scroll in their own box, as tall as the map. From `lg`, the cards + map row is full
-  width; the header, tabs, and toolbar keep the page width.
+- Desktop: the cards scroll in their own box, as tall as the map. The cards + map row keeps the
+  page width, like the header, tabs, and toolbar.
 - Mobile: the map sits above the cards, and a selected pin shows a small card (Program, Organization,
   distance, "Get directions"). The "Map" button becomes "List View".
 - The map fits the Program pins. It never centers on the family's ZIP code or location, and it has no
