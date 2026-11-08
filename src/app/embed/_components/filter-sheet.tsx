@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { DIRECTORY_FORM_ID } from "./search-bar";
 
 const TRIGGER = "[data-action=open-filters]";
 
@@ -9,8 +10,10 @@ const TRIGGER = "[data-action=open-filters]";
  * The filters modal. It holds the one and only FilterColumn. With JavaScript off, the <dialog> is never
  * opened and shows as a normal block at the bottom of the page. With JavaScript, the "Filters" button
  * opens it with showModal(): top layer, the page behind is inert, Escape closes, focus stays inside.
- * Phones get a sheet from the bottom; from `md` a centered panel. Checkboxes apply at once (the results
- * behind update); "Show N results" closes. One copy of the checkboxes, so only one set submits with the form.
+ * Phones get a sheet from the bottom; from `md` a centered panel. In the modal the checkboxes do not apply
+ * at once (DirectoryLive skips them), so the list stays still while the family picks: "Show results"
+ * submits the form and closes; closing any other way (X, Escape) puts the checkboxes back as they were.
+ * One copy of the checkboxes, so only one set submits with the form.
  *
  * Inside the iframe, the iframe is as tall as its content, so `bottom: 0` would be the bottom of the
  * iframe, not the phone screen. On open, an IntersectionObserver gives the part of the page that is
@@ -19,12 +22,10 @@ const TRIGGER = "[data-action=open-filters]";
  * upgrade to an `overlay` embed message (embed.js makes the iframe full-screen) if families hit this.
  */
 export function FilterSheet({
-  total,
   clearAllHref,
   sidebar = false,
   children,
 }: {
-  total: number;
   clearAllHref: string | null;
   /** List view: from lg the filters are a column on the left, always shown (no modal). */
   sidebar?: boolean;
@@ -55,6 +56,15 @@ export function FilterSheet({
   }, []);
 
   const close = () => ref.current?.close();
+  const apply = () => {
+    document.querySelector<HTMLFormElement>(`#${DIRECTORY_FORM_ID}`)?.requestSubmit();
+    close();
+  };
+  // Closed without "Show results": undo the unapplied picks (the URL still has the old filters).
+  const discard = () =>
+    ref.current?.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
+      if (input.type === "checkbox" || input.type === "radio") input.checked = input.defaultChecked;
+    });
 
   return (
     <dialog
@@ -62,7 +72,10 @@ export function FilterSheet({
       aria-labelledby="filters-sheet-heading"
       // Safari does not focus a tapped link, so the native focus return is not enough.
       // There is a Filters button above the tabs (below lg) and one in the map toolbar (lg): focus the one on screen.
-      onClose={() => [...document.querySelectorAll<HTMLElement>(TRIGGER)].find((el) => el.getClientRects().length > 0)?.focus()}
+      onClose={() => {
+        discard();
+        [...document.querySelectorAll<HTMLElement>(TRIGGER)].find((el) => el.getClientRects().length > 0)?.focus();
+      }}
       className={`group/sheet static m-0 block h-auto max-h-none w-auto max-w-none border-0 bg-transparent p-0 text-inherit data-js:not-open:hidden open:fixed open:inset-x-0 open:top-[calc(var(--sheet-top)+1rem)] open:bottom-auto open:flex open:h-[calc(var(--sheet-height)-1rem)] open:w-full open:flex-col open:overflow-hidden open:rounded-t-2xl open:bg-surface open:motion-safe:animate-[sheet-up_200ms_ease-out] backdrop:bg-ink/60 md:open:mx-auto md:open:max-w-2xl md:open:top-[calc(var(--sheet-top)+2rem)] md:open:h-[min(calc(var(--sheet-height)-4rem),52rem)] md:open:rounded-2xl md:open:shadow-xl md:open:motion-safe:animate-none ${sidebar ? "lg:order-first lg:not-open:block!" : ""}`}
     >
       {/* The header bar sits above the scrolling list, so the X never covers the scroll bar. */}
@@ -81,10 +94,6 @@ export function FilterSheet({
       </div>
       <div className="group-open/sheet:flex-1 group-open/sheet:overflow-y-auto group-open/sheet:overscroll-contain">{children}</div>
       <div className="hidden items-center gap-4 border-t border-line p-4 group-open/sheet:flex">
-        {/* The page's result line is inert behind the modal, so the sheet announces the count itself. */}
-        <span aria-live="polite" className="sr-only">
-          {total} {total === 1 ? "result" : "results"}
-        </span>
         {clearAllHref && (
           <a href={clearAllHref} className="flex min-h-11 items-center px-2 font-bold text-primary-text underline">
             Clear all
@@ -92,10 +101,10 @@ export function FilterSheet({
         )}
         <button
           type="button"
-          onClick={close}
+          onClick={apply}
           className="min-h-12 flex-1 rounded-full bg-primary-text px-6 font-bold text-white hover:bg-primary-hover"
         >
-          Show {total} {total === 1 ? "result" : "results"}
+          Show results
         </button>
       </div>
     </dialog>

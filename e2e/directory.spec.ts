@@ -79,7 +79,7 @@ test("zip-location: Nearest is current, Distance group shows, cards show miles",
   await expect(resultLine(page)).toContainText("near 49508");
   await expect(page.getByRole("combobox", { name: "Sort" }).locator("option:checked")).toHaveText("Nearest");
   await expect(page.getByRole("article").getByText(/^\d+(\.\d)? mi$/).first()).toBeVisible();
-  // Desktop: the Distance group is in the filter column.
+  // Desktop list view: the Distance group is in the filters column.
   await expect(page.getByRole("group", { name: /Distance/ })).toBeVisible();
 });
 
@@ -180,17 +180,31 @@ test.describe("mobile-filter-sheet", () => {
     expect((await box()).height).toBeGreaterThan(400);
   });
 
-  test("sheet-open-filter-close: the sheet filters, shows the count, and closes", async ({ page }) => {
+  test("sheet-open-filter-close: picks wait for Show results; closing without it drops them", async ({ page }) => {
     await page.goto("/embed");
     await filtersLink(page).click();
     const dialog = page.getByRole("dialog", { name: "Filters" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Close filters" })).toBeFocused();
+    const before = await resultLine(page).textContent();
+    const options = await dialog.getByRole("checkbox").count();
     await dialog.getByRole("checkbox", { name: /^Spanish/ }).check();
-    await expect(resultLine(page)).toHaveText("6 results");
-    await dialog.getByRole("button", { name: "Show 6 results" }).click();
+    // Nothing applies yet: no new URL, the same results, and the same options in the sheet.
+    await page.waitForTimeout(500);
+    await expect(page).not.toHaveURL(/lang=/);
+    await expect(resultLine(page)).toHaveText(before!);
+    await expect(dialog.getByRole("checkbox")).toHaveCount(options);
+    await dialog.getByRole("button", { name: "Show results" }).click();
     await expect(dialog).toBeHidden();
+    await expect(resultLine(page)).toHaveText("6 results");
     await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
+    // A pick closed with Escape is dropped.
+    await filtersLink(page).click();
+    await dialog.getByRole("checkbox", { name: /^English/ }).check();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(page).not.toHaveURL(/lang=english/);
+    await expect(page.getByRole("checkbox", { name: /^English/, includeHidden: true })).not.toBeChecked();
   });
 
   test("sheet-focus-return: focus stays in the sheet; Escape returns it to Filters", async ({ page }) => {
@@ -223,10 +237,19 @@ test.describe("mobile-filter-sheet", () => {
   });
 });
 
-test("filters-modal-desktop: on desktop, Filters opens a centered modal; the results update behind it", async ({ page }) => {
+test("filters-column-desktop: on desktop list view the filters are a column that applies at once", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/embed");
+  await expect(page.getByRole("link", { name: /^Filters/ })).toHaveCount(0);
+  await page.getByRole("checkbox", { name: /^Spanish/ }).check();
+  await expect(page).toHaveURL(/lang=spanish/);
+  await expect(resultLine(page)).toHaveText("6 results");
+});
+
+test("filters-modal-desktop: in desktop map view, Filters opens a centered modal; Show results applies", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/embed?view=map");
-  // Map view has no filter column (list view does since the filters sidebar): the checkboxes are in the closed modal.
+  // No filter column next to the results: the checkboxes are in the closed modal.
   await expect(page.getByRole("checkbox", { name: /^Spanish/ })).toHaveCount(0);
   await page.getByRole("link", { name: /^Filters/ }).click();
   const dialog = page.getByRole("dialog", { name: "Filters" });
@@ -235,9 +258,9 @@ test("filters-modal-desktop: on desktop, Filters opens a centered modal; the res
   expect(box.width).toBeLessThan(800);
   expect(Math.abs(box.x + box.width / 2 - 640)).toBeLessThan(20);
   await dialog.getByRole("checkbox", { name: /^Spanish/ }).check();
-  await expect(resultLine(page)).toHaveText("6 results");
-  await dialog.getByRole("button", { name: "Show 6 results" }).click();
+  await dialog.getByRole("button", { name: "Show results" }).click();
   await expect(dialog).toBeHidden();
+  await expect(resultLine(page)).toHaveText("6 results");
   await expect(page.getByRole("link", { name: "Remove Spanish" })).toBeVisible();
 });
 
