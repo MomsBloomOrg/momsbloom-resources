@@ -8,7 +8,7 @@ import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { addressText, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
 import { DocumentCard } from "../../_components/document-card";
-import { CustomField } from "../../_components/detail-fields";
+import { CustomField, RequestUpdate } from "../../_components/detail-fields";
 import { HelpBox } from "../../_components/help-box";
 import { ProgramMap } from "../../_components/program-map";
 import { ProgramRows } from "../../_components/program-rows";
@@ -205,9 +205,10 @@ export default async function OrganizationDetailPage({ params, searchParams }: P
           <HelpBox />
         </div>
       )}
-      {organization.lastVerified && (
-        <p className="mt-4 text-sm text-muted">Last verified {verified.format(new Date(organization.lastVerified))}</p>
-      )}
+      <p className="mt-4 text-sm text-muted">
+        {organization.lastVerified && <>Last verified {verified.format(new Date(organization.lastVerified))}. </>}
+        <RequestUpdate record={`${organization.name} (Organization ${organization.id})`} />
+      </p>
       <ResizeReporter share={shareSearch(query)} />
       <AnalyticsReporter organizationId={organization.id} organizationName={organization.name} />
     </main>

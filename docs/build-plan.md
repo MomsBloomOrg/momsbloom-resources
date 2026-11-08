@@ -53,7 +53,7 @@ Each has a recommendation in its spec. Decide, then record it in an ADR.
 |---|---|---|
 | Spreadsheet values not on the Lists tab (9 today) | The dry run lists them; `--write` refuses until they are fixed in the spreadsheet. | Data import spec |
 | Lists rows 31 and 32 ("Home Visiting (Hope, add please?)", "Financial Assistance" with no Category) | A person at MomsBloom decides. | Data import spec |
-| "Report a change" form link | MomsBloom provides it. | Public directory spec |
+| "Report a change" form link | Answered: the MomsBloom Microsoft Form (issue #44). | Public directory spec |
 
 ## Follow-ups found during the work
 

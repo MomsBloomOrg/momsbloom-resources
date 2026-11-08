@@ -7,7 +7,7 @@ import { getDirectorySnapshot } from "@/directory/snapshot";
 import { EMBED_ROOT_ID } from "@/embed/protocol";
 import { addressText, formatText, organizationHref, supportTags, Tag, telHref, webUrl, type LabelOf } from "../../_components/program-card";
 import { AnalyticsReporter } from "../../_components/analytics-reporter";
-import { CustomField, Field } from "../../_components/detail-fields";
+import { CustomField, Field, RequestUpdate } from "../../_components/detail-fields";
 import { ProgramMap } from "../../_components/program-map";
 import { ProgramRows } from "../../_components/program-rows";
 import { ResizeReporter } from "../../_components/resize-reporter";
@@ -281,9 +281,10 @@ export default async function ProgramDetailPage({ params, searchParams }: PagePr
           )}
         </div>
       </div>
-      {program.lastVerified && (
-        <p className="mt-4 text-sm text-muted">Last verified {verified.format(new Date(program.lastVerified))}</p>
-      )}
+      <p className="mt-4 text-sm text-muted">
+        {program.lastVerified && <>Last verified {verified.format(new Date(program.lastVerified))}. </>}
+        <RequestUpdate record={`${program.name} (Program ${program.id})`} />
+      </p>
       <ResizeReporter share={shareSearch(query)} program={program.id} />
       <AnalyticsReporter programId={program.id} programName={program.name} />
     </main>

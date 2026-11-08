@@ -124,8 +124,10 @@ See the four `*-detail-*.png` captures.
   Organization (still narrowed by keyword and Facets); a Document with no Organization is hidden by it.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
-- "Request an update" follows "Last verified" and links to a form. **Open question:** MomsBloom
-  must give us the link.
+- "Request an update" follows "Last verified" and opens the MomsBloom update form
+  (https://forms.cloud.microsoft/r/0DgyX0L0JS) in a new tab. The link pre-fills the form question
+  "Which program or services does this apply to?" with "<name> (Program <id>)" (or Organization). It
+  shows also when there is no Last verified date. The form must have pre-filled answers turned on.
 
 ## Organization detail
 
