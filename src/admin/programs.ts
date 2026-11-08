@@ -1,5 +1,5 @@
 /** Admin: one Program. Takes a `Db`, so PGlite tests can run it. Results never throw for bad input. */
-import { asc, eq, inArray, isNotNull, max } from "drizzle-orm";
+import { asc, eq, inArray, isNotNull, max, sql } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
@@ -215,13 +215,20 @@ export async function saveProgram(db: Db, id: number | null, input: ProgramInput
   });
 }
 
+/** Advisory lock key for the featured list. Every write that adds a rank or renumbers takes it first. */
+const FEATURED_LOCK = 128_001;
+
+/** Waits for the featured list lock; Postgres frees it at the end of the transaction. */
+const lockFeatured = (tx: Db) => tx.execute(sql`select pg_advisory_xact_lock(${FEATURED_LOCK})`);
+
 /** The Program's current rank when it is featured already; otherwise the end of the list (max + 1). */
 async function keepOrNextRank(tx: Db, id: number | null): Promise<number> {
+  // A second check or a reorder waits here, so two Programs cannot get the same rank.
+  await lockFeatured(tx);
   if (id !== null) {
     const [row] = await tx.select({ rank: t.programs.featuredRank }).from(t.programs).where(eq(t.programs.id, id));
     if (row?.rank != null) return row.rank;
   }
-  // shortcut: two Programs featured at the same moment can get the same rank; ties sort by ID and the next reorder renumbers them.
   const [last] = await tx.select({ rank: max(t.programs.featuredRank) }).from(t.programs);
   return (last?.rank ?? 0) + 1;
 }
@@ -262,6 +269,7 @@ export async function reorderFeaturedPrograms(db: Db, input: unknown): Promise<A
   if (ids.length === 0 || ids.includes(null) || new Set(ids).size !== ids.length) return { ok: false, error: STALE_FEATURED };
 
   return db.transaction(async (tx) => {
+    await lockFeatured(tx);
     const list = await tx
       .select({ id: t.programs.id, rank: t.programs.featuredRank })
       .from(t.programs)

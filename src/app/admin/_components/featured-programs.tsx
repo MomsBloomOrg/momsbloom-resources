@@ -20,7 +20,7 @@ const screenReaderInstructions = {
 };
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
-const iconButton = `inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-field disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`;
+const iconButton = `inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-ink hover:bg-field aria-disabled:cursor-not-allowed aria-disabled:opacity-40 ${focusRing}`;
 
 /**
  * The featured Programs on the Admin home, in rank order. Staff reorder them by drag and drop (mouse,
@@ -50,11 +50,13 @@ export function FeaturedPrograms({ programs }: { programs: FeaturedRow[] }) {
   function save(from: number, to: number) {
     if (from === to || to < 0 || to >= items.length) return;
     const next = arrayMove(items, from, to);
+    const moved = `${items[from].name} moved to position ${to + 1} of ${items.length}.`;
+    setState({ result: "idle" }); // An old message must not stay while this save runs.
     startTransition(async () => {
       setItems(next);
       try {
         const result = await reorderFeaturedProgramsAction(next.map((p) => p.id));
-        setState(result);
+        setState(result.result === "ok" ? { result: "ok", message: moved } : result);
         // Refused (the list changed): load the saved list again.
         if (result.result === "error") router.refresh();
       } catch (error) {
@@ -105,10 +107,11 @@ function FeaturedRowItem({ program, index, last, onMove }: { program: FeaturedRo
       </div>
       <div className="ml-auto flex items-center gap-1">
         <Badge tone={program.tone}>{program.statusName}</Badge>
-        <button type="button" disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Move ${program.name} up`} className={iconButton}>
+        {/* aria-disabled, not disabled: a button that becomes disabled while focused drops the focus to the page. save() ignores an out-of-range move. */}
+        <button type="button" aria-disabled={index === 0} onClick={() => onMove(index - 1)} aria-label={`Move ${program.name} up`} className={iconButton}>
           <ArrowUp aria-hidden size={18} />
         </button>
-        <button type="button" disabled={last} onClick={() => onMove(index + 1)} aria-label={`Move ${program.name} down`} className={iconButton}>
+        <button type="button" aria-disabled={last} onClick={() => onMove(index + 1)} aria-label={`Move ${program.name} down`} className={iconButton}>
           <ArrowDown aria-hidden size={18} />
         </button>
         <button

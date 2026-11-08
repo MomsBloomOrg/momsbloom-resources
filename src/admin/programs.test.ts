@@ -169,6 +169,22 @@ describe("Program edit", () => {
       expect(await featuredIds()).toEqual([a, c]);
     });
 
+    it("re-featuring goes to the end, past a gap in the ranks", async () => {
+      // Now a = 1, c = 3: b was unchecked, so rank 2 is a gap.
+      expect([await rankOf(a), await rankOf(c)]).toEqual([1, 3]);
+      await saveProgram(db, b, parse({ featured: "on" }));
+      expect(await rankOf(b)).toBe(4);
+      await saveProgram(db, b, parse());
+    });
+
+    it("a new Program saved without the field is not featured", async () => {
+      const { featured, ...input } = parse();
+      void featured;
+      const r = await saveProgram(db, null, input);
+      if (!r.ok) throw new Error(r.error);
+      expect(await rankOf(r.value.id)).toBeNull();
+    });
+
     it("a save without the field leaves the rank alone", async () => {
       const { featured, ...input } = parse();
       void featured;
