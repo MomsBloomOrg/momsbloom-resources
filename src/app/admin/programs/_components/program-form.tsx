@@ -17,43 +17,6 @@ const checkRowClass = "flex min-h-9 items-center gap-2";
 const CHIP_LISTS = ["categoryIds", "subcategoryIds", "insurancePlanIds", "languageIds", "audienceIds"] as const;
 const chipOptions = (name: string, list: Option[]): ChipOption[] => list.map((o) => ({ name, id: o.id, label: o.name }));
 
-/** A group of checkboxes that sends one `name` value per checked box. */
-export function Checks({
-  name,
-  legend,
-  hint,
-  options,
-  checked,
-  error,
-}: {
-  name: string;
-  legend: string;
-  hint?: string;
-  options: Option[];
-  checked: number[];
-  error?: string;
-}) {
-  return (
-    <fieldset className="flex flex-col gap-1" aria-describedby={error ? `${name}-error` : undefined}>
-      <legend className={labelClass}>{legend}</legend>
-      {hint && <p className={hintClass}>{hint}</p>}
-      <div className="grid gap-x-4 sm:grid-cols-2">
-        {options.map((o) => (
-          <label key={o.id} className={checkRowClass}>
-            <input type="checkbox" name={name} value={o.id} defaultChecked={checked.includes(o.id)} />
-            {o.name}
-          </label>
-        ))}
-      </div>
-      {error && (
-        <p id={`${name}-error`} role="alert" className={errorClass}>
-          {error}
-        </p>
-      )}
-    </fieldset>
-  );
-}
-
 /** One checkbox of a ChipSelect. It sends `name=id` when checked. */
 export interface ChipOption {
   name: string;
