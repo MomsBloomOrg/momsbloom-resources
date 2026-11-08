@@ -193,6 +193,22 @@ export function DocumentForm({
           <input key={lastVerified} id="document-lastVerified" name="lastVerified" aria-describedby={verifiedBy ? "document-lastVerified-hint" : undefined} type="date" defaultValue={lastVerified} className={inputClass} />
         </Field>
       </div>
+      <Field id="document-organizationId" label="Organization" hint="Optional. The guide also shows on this Organization's page. Shows on the Organization's page only while the Organization is shown." error={errors.organizationId}>
+        <select
+          id="document-organizationId"
+          name="organizationId"
+          defaultValue={String(d?.organizationId ?? "")}
+          aria-describedby={describedBy("organizationId", "hint")}
+          className={inputClass}
+        >
+          <option value="">None</option>
+          {options.organizations.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+      </Field>
       <Field id="document-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>
         <textarea
           id="document-internalNotes"

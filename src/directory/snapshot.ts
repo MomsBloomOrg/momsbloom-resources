@@ -128,6 +128,7 @@ async function loadDirectorySnapshot(): Promise<DirectorySnapshot> {
         url: t.documents.url,
         lastVerified: t.documents.lastVerified,
         statusId: t.documents.statusId,
+        organizationId: t.documents.organizationId,
       })
       .from(t.documents)
       .orderBy(t.documents.id),

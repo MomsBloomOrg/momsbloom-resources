@@ -106,7 +106,7 @@ export function programSearchText(program: DirectoryProgram, labelOf: LabelLooku
 /** All the searchable text of a Document, as one normalized string. */
 export function documentSearchText(document: DirectoryDocument, labelOf: LabelLookup): string {
   return normalizeText(
-    [document.title, document.description, document.searchKeywords, ...categoryLabels(document.facetValues, labelOf)].join(
+    [document.title, document.description, document.searchKeywords, document.organization?.name, ...categoryLabels(document.facetValues, labelOf)].join(
       " ",
     ),
   );

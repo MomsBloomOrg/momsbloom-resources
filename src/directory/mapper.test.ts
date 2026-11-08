@@ -99,14 +99,28 @@ describe("toDirectorySnapshot", () => {
       rows({
         programs: [program({ id: 1 }), program({ id: 2, statusId: 2 }), program({ id: 3, statusId: INACTIVE }), program({ id: 4, organizationId: 11 })],
         documents: [
-          { id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE },
-          { id: 8, title: "Old guide", description: null, searchKeywords: null, url: "https://example.org/old.pdf", lastVerified: null, statusId: INACTIVE },
+          { id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null },
+          { id: 8, title: "Old guide", description: null, searchKeywords: null, url: "https://example.org/old.pdf", lastVerified: null, statusId: INACTIVE, organizationId: null },
         ],
       }),
     );
     expect(snapshot.programs.map((p) => p.id)).toEqual(["1", "2"]);
     expect(snapshot.programs[0].organization).toEqual({ id: "10", name: "Org 10" });
     expect(snapshot.documents.map((d) => d.id)).toEqual(["7"]);
+  });
+
+  it("links a Document to its Organization, and to null when that Organization's Status is hidden", () => {
+    const document = { description: null, searchKeywords: null, url: "https://example.org/g.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null };
+    const snapshot = toDirectorySnapshot(
+      rows({
+        documents: [
+          { ...document, id: 7, title: "Linked", organizationId: 10 },
+          { ...document, id: 8, title: "Hidden org", organizationId: 11 },
+          { ...document, id: 9, title: "Alone", organizationId: null },
+        ],
+      }),
+    );
+    expect(snapshot.documents.map((d) => d.organization)).toEqual([{ id: "10", name: "Org 10" }, null, null]);
   });
 
   it("shows only Contacts with Show on website, and uses the specialty when there is no title", () => {
@@ -132,7 +146,7 @@ describe("toDirectorySnapshot", () => {
           withNotes({ programId: 1, name: "Sam Example", title: "Doula", specialty: null, email: null, phone: null, showOnWebsite: true }),
           withNotes({ programId: 1, name: "Pat Private", title: null, specialty: null, email: "pat@example.org", phone: "616-555-0101", showOnWebsite: false }),
         ],
-        documents: [withNotes({ id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE })],
+        documents: [withNotes({ id: 7, title: "Guide", description: null, searchKeywords: null, url: "https://example.org/guide.pdf", lastVerified: null, statusId: ACTIVE, organizationId: null })],
       }),
     );
     const json = JSON.stringify(snapshot);
@@ -239,7 +253,7 @@ describe("toDirectorySnapshot", () => {
   });
 
   it("leaves out a Document whose link is not a URL", () => {
-    const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE };
+    const document = { description: null, searchKeywords: null, lastVerified: null, statusId: ACTIVE, organizationId: null };
     const snapshot = toDirectorySnapshot(
       rows({
         documents: [

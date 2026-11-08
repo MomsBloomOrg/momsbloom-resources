@@ -190,6 +190,7 @@ export const TEST_SNAPSHOT: DirectorySnapshot = {
       searchKeywords: "PPD, bleeding, fever",
       facetValues: facetValues({ category: ["medical-care", "mental-health"], language: ["english", "spanish"] }),
       pdfUrl: "https://example.org/warning-signs.pdf",
+      organization: null,
       lastVerified: "2026-10-01",
     },
     {
@@ -199,6 +200,7 @@ export const TEST_SNAPSHOT: DirectorySnapshot = {
       searchKeywords: "",
       facetValues: facetValues({ category: ["postpartum-recovery"], subcategory: ["yoga"], language: ["english"] }),
       pdfUrl: "https://example.org/gentle-yoga.pdf",
+      organization: null,
       lastVerified: null,
     },
   ],

@@ -59,7 +59,7 @@ never deleted (they become Inactive). Build work: issue #38.
 | `/admin` | The Resources list, the Admin home, with tabs All, Organizations, Programs, and Guides & Downloads. Search, Type and Status filters, and sortable columns work on every tab. |
 | `/admin/organizations/new`, `/admin/organizations/[id]` | Organization form, then its Programs table and "Add program". |
 | `/admin/programs/new?org=ID`, `/admin/programs/[id]` | Program form (below), with its Contacts section. |
-| `/admin/documents`, `/new`, `/[id]` | Document list and form. Documents belong to no Organization, so Documents is a top-level nav item. |
+| `/admin/documents`, `/new`, `/[id]` | Document list and form. A Document may link to one Organization (optional), but it is not made from an Organization page, so Documents is a top-level nav item. |
 | `/admin/settings/[facet]` | Filter options: one page for each Facet (see "Facet values" below). |
 | `/admin/staff-admins` | **Staff admins**: the Owners and the added Staff admins, an add form, and Remove (with a confirm step) for an added Staff admin that is not you. |
 | `/admin/content` | **Website content**: the text of the help box ("Can't find what you need?"): heading, body with a `{phone}` token, phone, button label, button link (`https://` only). A blank field shows the default. A save reloads the Directory. |
@@ -110,7 +110,8 @@ Buttons:
 ### Documents (`/admin/documents`)
 
 - A table and a form. Fields: title, description, search keywords, Categories, Subcategories,
-  languages, PDF link (required, a full URL), Status, Last verified, internal notes.
+  languages, PDF link (required, a full URL), Status, Organization (optional, "None" first; the guide
+  also shows on that Organization's page), Last verified, internal notes.
 - The PDF stays where it is today (momsbloom.org). We store the link, not the file.
 
 ### Facet values (`/admin/settings/[facet]`, headed "Filter options")

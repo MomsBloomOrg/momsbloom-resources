@@ -108,6 +108,8 @@ export interface DirectoryDocument {
   /** Only category, subcategory, and language are used; the other Facets are []. */
   facetValues: FacetValueKeys;
   pdfUrl: string;
+  /** The Organization whose page also shows this Document; null when it has none or its Status is hidden. */
+  organization: { id: string; name: string } | null;
   lastVerified: string | null;
 }
 

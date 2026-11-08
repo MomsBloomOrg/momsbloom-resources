@@ -86,6 +86,23 @@ describe("Document edit", () => {
     expect(await listDocumentsForAdmin(db)).toEqual(before);
   });
 
+  it("Organization is optional: blank is null, an unknown ID is refused, a saved ID reloads, clearing sets null", async () => {
+    expect(parse({ organizationId: "" }).organizationId).toBeNull();
+    expect(parse({}).organizationId).toBeNull();
+    expect(parseDocumentInput(form({ organizationId: "x" })).ok).toBe(false);
+    expect(options.organizations.map((o) => o.id)).toContain(ids.organizations.cedar);
+    // Lakeshore has a hidden Status in the sample data: the select marks it.
+    expect(options.organizations.find((o) => o.id === ids.organizations.lakeshore)?.name).toMatch(/\(hidden\)$/);
+
+    expect(await saveDocument(db, null, parse({ organizationId: "999999" }))).toMatchObject({ ok: false, fieldErrors: { organizationId: expect.any(String) } });
+
+    const saved = await saveDocument(db, null, parse({ organizationId: String(ids.organizations.cedar) }));
+    if (!saved.ok) throw new Error(saved.error);
+    expect((await getDocumentForAdmin(db, saved.value.id))?.document.organizationId).toBe(ids.organizations.cedar);
+    expect((await saveDocument(db, saved.value.id, parse({ organizationId: "" }))).ok).toBe(true);
+    expect((await getDocumentForAdmin(db, saved.value.id))?.document.organizationId).toBeNull();
+  });
+
   it("Mark verified changes only Last verified", async () => {
     const saved = await saveDocument(db, null, parse({ lastVerified: "2020-01-01" }));
     if (!saved.ok) throw new Error(saved.error);
