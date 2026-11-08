@@ -101,7 +101,8 @@ test("split-row-inside-margins: at 1440 the map ends where the toolbar ends and 
   const mapBox = (await page.locator(".leaflet-container").boundingBox())!;
   const paneBox = (await page.locator("[data-results-pane]").boundingBox())!;
   const tabsBox = (await page.getByRole("navigation", { name: "Results" }).boundingBox())!;
-  expect(mapBox.x + mapBox.width).toBeLessThanOrEqual(1440 - tabsBox.x + 1);
+  expect(mapBox.x + mapBox.width).toBeLessThanOrEqual(tabsBox.x + tabsBox.width + 1);
+  expect(mapBox.x + mapBox.width).toBeGreaterThanOrEqual(tabsBox.x + tabsBox.width - 1);
   expect(paneBox.x).toBeGreaterThanOrEqual(tabsBox.x - 1);
   expect(mapBox.x).toBeGreaterThan(paneBox.x + paneBox.width);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
