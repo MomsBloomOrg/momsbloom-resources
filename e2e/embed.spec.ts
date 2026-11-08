@@ -17,7 +17,7 @@ test("the embed script adds an iframe, and the iframe height matches its content
   await page.goto(HOST);
   await expect(page.locator(IFRAME)).toHaveAttribute("src", `${APP}/embed`);
   const frame = page.frameLocator(IFRAME);
-  await expect(frame.getByRole("heading", { level: 1, name: "Postpartum Resources" })).toBeVisible();
+  await expect(frame.getByRole("heading", { level: 1, name: "Pregnancy & Postpartum Resources" })).toBeVisible();
   // The start height is 600 px. After the resize message, the iframe is exactly as tall as its content.
   await expect.poll(async () => Math.abs((await iframeHeight(page)) - (await contentHeight(page)))).toBeLessThan(2);
   expect(await iframeHeight(page)).not.toBe(600);
