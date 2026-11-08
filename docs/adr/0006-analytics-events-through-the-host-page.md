@@ -21,7 +21,7 @@ The iframe tells the host page about each event, and `public/embed.js` calls the
   - `directory_search`: `search_term`, `result_count`
   - `directory_zero_results`: `search_term`, `filters` (the checked Facet value keys, joined with ",")
   - `directory_filter`: `filter_group` (for example `insurance`), `filter_value` (for example `medicaid`)
-  - `program_view`, `program_call`, `program_directions`, `program_website`: `program_id`, `program_name`
+  - `program_view`, `program_call`, `program_directions`, `program_website`, `program_share_copy`, `program_share_email`: `program_id`, `program_name`
   - `organization_view`: `organization_id`, `organization_name`
   - `document_download`: `document_id`, `document_title`
 

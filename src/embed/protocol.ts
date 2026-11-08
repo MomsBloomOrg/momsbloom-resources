@@ -38,6 +38,8 @@ export const ANALYTICS_EVENTS: Readonly<Record<string, readonly string[]>> = {
   program_call: ["program_id", "program_name"],
   program_directions: ["program_id", "program_name"],
   program_website: ["program_id", "program_name"],
+  program_share_copy: ["program_id", "program_name"],
+  program_share_email: ["program_id", "program_name"],
   document_download: ["document_id", "document_title"],
 };
 /** A record name or title for an event: trimmed and cut to 100 (a longer string drops the whole event). */
@@ -50,6 +52,12 @@ export const REDACT_STRIP = /[\s().\/_-]/g;
 export function safeKeyword(keyword: string): string {
   const text = keyword.trim().slice(0, MAX_PARAM_LENGTH);
   return text.includes("@") || /\d{5}/.test(text.replace(REDACT_STRIP, "")) ? "(redacted)" : text;
+}
+/** The Host page that holds the Embed. The iframe cannot read its URL, so a share link is built from this (ADR 0005). */
+export const HOST_PAGE_URL = "https://www.momsbloom.org/resources";
+/** The link that opens one Program inside the Host page. Only the Program, never the family's filters. */
+export function programShareUrl(id: string): string {
+  return `${HOST_PAGE_URL}?${HOST_KEY_PREFIX}program=${encodeURIComponent(id)}`;
 }
 /** A longer `search` is surely a bug or an attack; the parent ignores it. */
 export const MAX_SEARCH_LENGTH = 2_000;

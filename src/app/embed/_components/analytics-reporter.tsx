@@ -20,7 +20,7 @@ function send(name: string, params: Params) {
 /**
  * Runs inside the iframe. Sends the analytics events: the search events on the results page (`search`),
  * `program_view` on the detail page (`programId`), `organization_view` on the Organization page (`organizationId`), `directory_filter` for a checked Facet value, and the
- * click events for links with a `data-event` attribute. It returns nothing to draw.
+ * click events for links and buttons with a `data-event` attribute. It returns nothing to draw.
  */
 export function AnalyticsReporter({
   search,
@@ -72,7 +72,7 @@ export function AnalyticsReporter({
   useEffect(() => {
     // The host page does not navigate when a link is clicked in the iframe, so nothing can block: no preventDefault, no wait.
     const onClick = (event: MouseEvent) => {
-      const link = (event.target as Element | null)?.closest?.("a[data-event]");
+      const link = (event.target as Element | null)?.closest?.("[data-event]");
       const name = link?.getAttribute("data-event");
       if (!link || !name) return;
       const programId = link.getAttribute("data-program-id");

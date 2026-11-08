@@ -129,6 +129,10 @@ See the four `*-detail-*.png` captures.
 - "Part of [Organization]" opens the Organization detail page. "See all programs at ..." opens the
   results filtered to that Organization. That filter keeps only the Documents linked to that
   Organization (still narrowed by keyword and Facets); a Document with no Organization is hidden by it.
+- "Share this resource" card (right column, under the actions; on mobile it stacks after the main
+  content): "Copy Page Link" copies, "Email" opens a blank email. The link is the Host page URL with
+  only `mbr-program=<id>` (no filters, no location). Email subject "<Program name> — MomsBloom
+  Resource Directory", body "I found this resource for you: <link>". No native share sheet.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
 - A featured Program shows the same "Featured" pill next to the title (outside the heading).
@@ -249,7 +253,7 @@ and the style of the existing screens.
 
 The site uses Google Analytics 4 (`G-1QJ4VJRFP1`). Events: `directory_search` (keyword, result
 count), `directory_filter` (group, value), `directory_zero_results`, `program_view` (Program ID),
-`organization_view` (Organization ID), `program_call`, `program_directions`, `program_website`, `document_download`. Zero-result searches
+`organization_view` (Organization ID), `program_call`, `program_directions`, `program_website`, `program_share_copy`, `program_share_email`, `document_download`. Zero-result searches
 are the most useful signal: they show which resources are missing. **Never send ZIP codes,
 location, or any free text except the keyword.**
 
