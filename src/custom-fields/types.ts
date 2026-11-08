@@ -52,6 +52,9 @@ export const CUSTOM_FIELD_TYPE_LABELS: Readonly<Record<CustomFieldType, string>>
 export const CHOICE_TYPES: readonly CustomFieldType[] = ["choice", "multiChoice"];
 
 /** Types that families can filter Programs by. Free text, numbers, and dates are not filters. */
+/** The record types whose fields can be filters. */
+export const FILTER_ENTITIES = ["program", "document"] as const;
+export type FilterEntity = (typeof FILTER_ENTITIES)[number];
 export const FILTERABLE_TYPES: readonly CustomFieldType[] = ["yesNo", "choice", "multiChoice"];
 
 export interface CustomFieldOption {

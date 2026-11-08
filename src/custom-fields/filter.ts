@@ -5,10 +5,8 @@
  * Filter value keys: a list field uses its option keys; a Yes / No field uses "yes" and "no".
  */
 import { fieldsFor } from "./definitions";
-import { FILTERABLE_TYPES, type CustomFieldDefinition, type CustomFieldEntity, type CustomValues } from "./types";
+import { FILTER_ENTITIES, FILTERABLE_TYPES, type CustomFieldDefinition, type CustomValues, type FilterEntity } from "./types";
 
-/** The record types that can have filters. A filter only touches its own record type. */
-type FilterEntity = Extract<CustomFieldEntity, "program" | "document">;
 
 /** Field id → the checked value keys. */
 export type CustomFilters = Readonly<Record<string, readonly string[]>>;
@@ -23,9 +21,9 @@ export interface CustomFilterGroup {
 
 /** The custom filter groups to show after the Facets, in the order staff set. Without `entity`: both record types. */
 export function customFilterGroups(definitions: readonly CustomFieldDefinition[], entity?: FilterEntity): CustomFilterGroup[] {
-  return filterFields(definitions, entity).map((field) => ({
+  return (entity ? [entity] : FILTER_ENTITIES).flatMap((e) => filterFields(definitions, e).map((field) => ({
     fieldId: field.id,
-    entity: field.entity as FilterEntity,
+    entity: e,
     label: field.label,
     values:
       field.type === "yesNo"
@@ -34,7 +32,7 @@ export function customFilterGroups(definitions: readonly CustomFieldDefinition[]
             { key: "no", label: "No" },
           ]
         : field.options.filter((o) => !o.hidden).map((o) => ({ key: o.key, label: o.label })),
-  }));
+  })));
 }
 
 /**
@@ -90,8 +88,8 @@ export function countCustomFilterValues<T extends { custom: CustomValues }>(
   return counts;
 }
 
-function filterFields(definitions: readonly CustomFieldDefinition[], entity?: FilterEntity): CustomFieldDefinition[] {
-  return (entity ? fieldsFor(definitions, entity) : [...fieldsFor(definitions, "program"), ...fieldsFor(definitions, "document")]).filter(
+function filterFields(definitions: readonly CustomFieldDefinition[], entity: FilterEntity): CustomFieldDefinition[] {
+  return fieldsFor(definitions, entity).filter(
     (f) => f.filterable && f.showOnWebsite && FILTERABLE_TYPES.includes(f.type),
   );
 }

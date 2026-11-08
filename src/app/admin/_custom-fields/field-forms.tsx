@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState, type FormEvent } from "react";
-import { FILTERABLE_TYPES, CHOICE_TYPES, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_TYPE_LABELS, type CustomFieldDefinition, type CustomFieldType } from "@/custom-fields/types";
+import { FILTER_ENTITIES, FILTERABLE_TYPES, CHOICE_TYPES, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_TYPE_LABELS, type CustomFieldDefinition, type CustomFieldType } from "@/custom-fields/types";
 import type { AdminEntity } from "@/custom-fields/form";
 import { previewFromForm, savedFieldData, type FieldPreview } from "@/custom-fields/preview";
 import { Badge, Field, buttonClass, hintClass, inputClass, labelClass } from "../_components/ui";
@@ -46,7 +46,7 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
   field?: CustomFieldDefinition;
   errors: Record<string, string>;
 }) {
-  const canFilter = (entity === "program" || entity === "document") && FILTERABLE_TYPES.includes(type);
+  const canFilter = (FILTER_ENTITIES as readonly string[]).includes(entity) && FILTERABLE_TYPES.includes(type);
   const errorId = `${idPrefix}-visibility-error`;
   const choices = [
     { value: "public", label: "Families see it", checked: field?.showOnWebsite === true },
