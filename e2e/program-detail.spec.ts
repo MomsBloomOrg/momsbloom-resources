@@ -88,3 +88,13 @@ test("actions-one-row-desktop: Call, Directions, and Website share one row at 90
   expect(ys[0]).toBeDefined();
   expect(new Set(ys).size).toBe(1);
 });
+
+test("request-update-link: Request an update opens the form in a new tab with the Program name", async ({ page }) => {
+  await page.goto("/embed/programs/P-001");
+  const link = page.getByRole("link", { name: /^Request an update/ });
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute(
+    "href",
+    `https://forms.cloud.microsoft/r/0DgyX0L0JS?r14e623fa7c204883bc6d93bbf151541d=${encodeURIComponent("Mom and baby yoga (Program P-001)")}`,
+  );
+});

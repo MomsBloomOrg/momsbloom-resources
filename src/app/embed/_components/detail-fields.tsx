@@ -28,3 +28,19 @@ export function CustomField({ field }: { field: ShownCustomValue }) {
     </Field>
   );
 }
+
+const REQUEST_UPDATE_URL = "https://forms.cloud.microsoft/r/0DgyX0L0JS";
+
+/** "Request an update" opens the MomsBloom form. The `r14e…` parameter is the ID of the form question "Which program or services does this apply to?". */
+export function RequestUpdate({ record }: { record: string }) {
+  return (
+    <a
+      href={`${REQUEST_UPDATE_URL}?r14e623fa7c204883bc6d93bbf151541d=${encodeURIComponent(record)}`}
+      target="_blank"
+      rel="noopener"
+      className="underline"
+    >
+      Request an update<span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
+}

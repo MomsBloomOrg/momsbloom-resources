@@ -63,3 +63,13 @@ test("org-actions-one-row-desktop: Call, Directions, and Website share one row a
   expect(ys[0]).toBeDefined();
   expect(new Set(ys).size).toBe(1);
 });
+
+test("org-request-update-link: Request an update shows with no Last verified date and names the Organization", async ({ page }) => {
+  await page.goto("/embed/organizations/O-001");
+  const link = page.getByRole("link", { name: /^Request an update/ });
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute(
+    "href",
+    `https://forms.cloud.microsoft/r/0DgyX0L0JS?r14e623fa7c204883bc6d93bbf151541d=${encodeURIComponent("Riverbend Health (Organization O-001)")}`,
+  );
+});
