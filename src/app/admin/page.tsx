@@ -42,10 +42,11 @@ function formatDate(iso: string | null): string {
 /** The filter selects: the input style, sized to their text (the design's small selects), not full width. */
 const selectClass = `${inputClass.replace("w-full ", "")} w-full pr-9 md:w-auto`;
 
-/** The tabs. "All" covers Programs too; the Type select narrows to Programs. */
+/** The tabs. "All" has no type filter; each other tab is a Type filter link. */
 const TABS: { type?: ResourceType; label: string }[] = [
   { label: "All" },
   { type: "organization", label: "Organizations" },
+  { type: "program", label: "Programs" },
   { type: "guide", label: "Guides & Downloads" },
 ];
 
@@ -182,8 +183,6 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
 
   const { rows, statuses } = await listResourcesForAdmin(getDb(), { q, type, statusId, sort, dir });
   const current: ListParams = { q, type, status: statusId, sort, dir };
-  // Programs live under All: the Type select narrows to them.
-  const activeTab = type === "program" ? undefined : type;
 
   return (
     <>
@@ -191,7 +190,7 @@ export default async function ResourcesPage({ searchParams }: PageProps<"/admin"
 
       <nav aria-label="Resource type" className="mb-8 flex flex-wrap gap-x-8 border-b border-line">
         {TABS.map((tab) => {
-          const isCurrent = tab.type === activeTab;
+          const isCurrent = tab.type === type;
           return (
             <Link
               key={tab.label}

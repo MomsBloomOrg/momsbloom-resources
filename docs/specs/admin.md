@@ -20,7 +20,7 @@ not designed yet ("Build out admin experience" is still on the designer's to-do 
   but they do not have to be pretty there.
 
 The resource list design is one list for Organizations and Documents: title "Resources Admin", a
-"New Resource" button, tabs (All, Organizations, Guides & Downloads), "Sign Out", a search box, Type
+"New Resource" button, tabs (All, Organizations, Programs, Guides & Downloads; Programs is our addition, issue #75), "Sign Out", a search box, Type
 and Status menus, a "Show Deleted" checkbox, and a table with Name, Type, and Status. Today the
 Admin has separate Organizations and Documents pages (see "Pages" below). **Open questions:** does
 the design replace those two lists; what "Type" filters (record type or Organization); and what
