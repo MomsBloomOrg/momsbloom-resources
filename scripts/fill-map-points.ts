@@ -17,13 +17,16 @@ const write = process.argv.includes("--write");
 const DELAY_MS = 250; // one Census call at a time, politely spaced
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // Error names only: an error message can contain the connection string.
+/** An error whose message is safe to print (it never holds the connection string). */
+class Known extends Error {}
 const errName = (e: unknown) => (e instanceof Error ? e.name : "UnknownError");
 
 async function main() {
+  if (!process.env.DATABASE_URL) throw new Known("DATABASE_URL is not set");
   const url = requireDatabaseUrl();
   console.log(`Database: ${describeDatabase(url)}`);
   if (write && !explicitUrl) {
-    throw new Error("--write needs DATABASE_URL set in the environment (see the PR commands), not only in .env.local.");
+    throw new Known("--write needs DATABASE_URL set in the environment (see the PR commands), not only in .env.local.");
   }
   const { db, close } = openDb(url, { max: 1 });
   let errors = 0;
@@ -46,13 +49,13 @@ async function main() {
     for (const { label, id, name, row, table } of todo) {
       const address = [row.streetAddress, row.city, row.state, row.zip].filter(Boolean).join(", ");
       try {
-        if (!write) {
-          console.log(`would look up ${label} ${id} "${name}": ${address}`);
-          continue;
-        }
         // Only one of latitude and longitude is set: a person typed it. Leave it for staff.
         if ((row.latitude == null) !== (row.longitude == null)) {
           console.log(`SKIPPED: partial point ${label} ${id} "${name}"`);
+          continue;
+        }
+        if (!write) {
+          console.log(`would look up ${label} ${id} "${name}": ${address}`);
           continue;
         }
         const point = await geocodeAddress(address);
@@ -93,7 +96,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Fill failed:", errName(error));
-  if (error instanceof Error && error.message.startsWith("--write needs")) console.error(error.message);
+  console.error("Fill failed:", error instanceof Known ? error.message : errName(error));
   process.exitCode = 1;
 });
