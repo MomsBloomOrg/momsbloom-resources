@@ -1,13 +1,18 @@
 import { ArrowRight, Check, Globe, MapPin, Phone, User } from "lucide-react";
 import type { ProgramResult } from "@/directory/results";
 import type { FacetKey, FacetValueKeys, PostalAddress } from "@/directory/types";
+import { Highlight } from "./highlight";
 
 /** The label of a Facet value, or the key itself when the snapshot has no such value. */
 export type LabelOf = (facet: FacetKey, key: string) => string;
 
 /** The small light-green pill. Text is `ink`: green text on green fails contrast. */
-export function Tag({ children }: { children: string }) {
-  return <li className="rounded-md bg-secondary-soft px-2 py-0.5 text-xs">{children}</li>;
+export function Tag({ children, words = [] }: { children: string; words?: readonly string[] }) {
+  return (
+    <li className="rounded-md bg-secondary-soft px-2 py-0.5 text-xs [&_mark]:shadow-[inset_0_0_0_1px_#8fb2e6]">
+      <Highlight text={children} words={words} />
+    </li>
+  );
 }
 
 /** The "Type of support" tags: Categories, then Subcategories. `id` holds the Facet, because Category "1" and Subcategory "1" differ. */
@@ -65,6 +70,7 @@ export function ProgramCard({
   detailsHref,
   organizationHref,
   number,
+  words = [],
 }: {
   result: ProgramResult;
   labelOf: LabelOf;
@@ -72,6 +78,8 @@ export function ProgramCard({
   organizationHref: string;
   /** The pin number on the map (map view only), so card 3 matches pin 3. */
   number?: number;
+  /** The keyword words to highlight in the text. */
+  words?: readonly string[];
 }) {
   const values = program.facetValues;
   const format = formatText(values.format, labelOf);
@@ -101,7 +109,7 @@ export function ProgramCard({
             </span>
           )}
           <a href={organizationHref} className="underline">
-            {program.organization.name}
+            <Highlight text={program.organization.name} words={words} />
           </a>
         </p>
         {distanceMiles !== null && (
@@ -111,15 +119,21 @@ export function ProgramCard({
           </p>
         )}
       </div>
-      <h3 className="mt-1 text-xl font-extrabold">{program.name}</h3>
+      <h3 className="mt-1 text-xl font-extrabold">
+        <Highlight text={program.name} words={words} />
+      </h3>
       {tags.length > 0 && (
         <ul aria-label="Type of support" className="mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <Tag key={tag.id}>{tag.label}</Tag>
+            <Tag key={tag.id} words={words}>
+              {tag.label}
+            </Tag>
           ))}
         </ul>
       )}
-      <p className="mt-3 line-clamp-3">{program.description}</p>
+      <p className="mt-3 line-clamp-3">
+        <Highlight text={program.description} words={words} />
+      </p>
       <div className="mt-3 flex flex-col gap-1 text-sm">
         {/* No address (or virtual only): show how to connect instead (spec, "States and edge cases"). */}
         <p className="flex items-start gap-2">
@@ -166,7 +180,7 @@ export function ProgramCard({
         {contact ? (
           <p className="flex items-center gap-2 text-muted">
             <User aria-hidden="true" className="size-4" />
-            {[contact.name, contact.title].filter(Boolean).join(", ")}
+            <Highlight text={[contact.name, contact.title].filter(Boolean).join(", ")} words={words} />
             {otherContacts.length > 0 && ` +${otherContacts.length} more`}
           </p>
         ) : (

@@ -24,6 +24,47 @@ export function keywordWords(keyword: string): string[] {
   return normalized ? normalized.split(" ") : [];
 }
 
+/**
+ * The [start, end) ranges of `text` that the words match, for the highlight. It normalizes each
+ * character on its own (as `normalizeText` does) and keeps the original position, so "cafe" marks "café".
+ * Words under 2 characters are skipped: "a" would mark nearly every letter. Ranges are sorted and merged.
+ */
+export function highlightRanges(text: string, words: readonly string[]): [number, number][] {
+  const needles = words.filter((word) => word.length >= 2);
+  if (!needles.length) return [];
+  let normalized = "";
+  const starts: number[] = [];
+  const ends: number[] = [];
+  for (let index = 0; index < text.length; ) {
+    const length = text.codePointAt(index)! > 0xffff ? 2 : 1;
+    const piece = text.slice(index, index + length).normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+    for (const unit of piece) {
+      normalized += unit;
+      for (let i = 0; i < unit.length; i++) {
+        starts.push(index);
+        ends.push(index + length);
+      }
+    }
+    index += length;
+  }
+  const found: [number, number][] = [];
+  for (const word of needles) {
+    for (let at = normalized.indexOf(word); at !== -1; at = normalized.indexOf(word, at + 1)) {
+      let end = ends[at + word.length - 1];
+      while (end < text.length && /\p{M}/u.test(text[end])) end++; // an NFD accent belongs to its letter
+      found.push([starts[at], end]);
+    }
+  }
+  found.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const range of found) {
+    const last = merged[merged.length - 1];
+    if (last && range[0] <= last[1]) last[1] = Math.max(last[1], range[1]);
+    else merged.push(range);
+  }
+  return merged;
+}
+
 /** True when every word appears in the text. No words always matches. */
 export function matchesWords(normalizedText: string, words: readonly string[]): boolean {
   return words.every((word) => normalizedText.includes(word));

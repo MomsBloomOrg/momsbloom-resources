@@ -22,6 +22,8 @@
   --color-primary-hover: #8f4300;
   --color-primary-text: #c14d00;
   --color-primary-soft: #fcefe2;
+  /* Search highlight behind ink or muted text (13:1 and 5.1:1). Never put it behind primary-text. */
+  --color-highlight: #e6f0fe;
   --color-secondary: #9dbb86;
   --color-secondary-soft: #e5efea;
   --color-ink: #2a2230;
