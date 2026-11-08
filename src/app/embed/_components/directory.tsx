@@ -55,7 +55,7 @@ export async function Directory({ params, embed = false }: { params: Record<stri
   const mapPrograms: MapProgram[] = [];
   if (mapView) {
     for (const { program, distanceMiles } of results.programs) {
-      if (!program.location || !hasPin(program)) continue;
+      if (!hasPin(program)) continue;
       mapPrograms.push({
         id: program.id,
         number: mapPrograms.length + 1,

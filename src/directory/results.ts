@@ -65,7 +65,8 @@ function cachedText<T extends object>(record: T, make: (record: T) => string): s
 }
 
 /** One pin rule for map view: the card order and the pin numbers both use it. */
-export const hasPin = (program: DirectoryProgram) => Boolean(program.location) && !program.virtualOnly;
+export const hasPin = (program: DirectoryProgram): program is DirectoryProgram & { location: LatLng } =>
+  Boolean(program.location) && !program.virtualOnly;
 
 const byName = (a: string, b: string) => a.localeCompare(b, "en", { sensitivity: "base" });
 
