@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Sort } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import { DIRECTORY_FORM_ID } from "./search-bar";
@@ -27,16 +28,21 @@ export function ResultSummary({ results }: { results: DirectoryResults }) {
 }
 
 /**
- * The Programs & Providers toolbar: the view links on the left, the sort dropdown on the right. The select is a
+ * The Programs & Providers toolbar: the view links and `children` (map view: the Filters button, where the list
+ * view's filters column was) on the left, the sort dropdown on the right. The select is a
  * field of the search form. Its default option sends no `sort` (the URL stays clean); without JavaScript
  * the "Sort" button submits it, with JavaScript DirectoryLive submits on change.
  */
-export function ResultToolbar({ results }: { results: DirectoryResults }) {
+export function ResultToolbar({ results, children }: { results: DirectoryResults; children?: ReactNode }) {
   const sorts: Sort[] = results.origin ? ["nearest", "az", "verified"] : ["az", "verified"];
   const valueOf = (sort: Sort) => (sort === sorts[0] ? "" : sort);
   return (
     <div className="flex items-center justify-between gap-2">
-      <ViewToggle query={results.query} />
+      <div className="flex items-center gap-3">
+        <ViewToggle query={results.query} />
+        {children}
+      </div>
+      <div className="flex min-w-0 items-center gap-3">
       <label className="flex min-w-0 items-center gap-1 text-sm">
         <span className="text-muted">Sort:</span>
         <select
@@ -54,6 +60,7 @@ export function ResultToolbar({ results }: { results: DirectoryResults }) {
           ))}
         </select>
       </label>
+      </div>
       <noscript>
         <button type="submit" form={DIRECTORY_FORM_ID} className="min-h-11 w-full min-w-0 rounded-full border border-line bg-surface px-3 text-sm">
           Sort

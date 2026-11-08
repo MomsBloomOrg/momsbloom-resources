@@ -91,6 +91,24 @@ export async function Directory({ params, embed = false }: { params: Record<stri
     { key: "programs", label: "Programs & Providers", count: results.totalPrograms },
     { key: "guides", label: "Guides & Downloads", count: results.documents.length },
   ] as const;
+  // "Filters": opens the modal (FilterSheet). Without JavaScript it jumps to the filters after the results.
+  const filtersButton = (className: string) => (
+    <a
+      href="#filters"
+      data-action="open-filters"
+      aria-haspopup="dialog"
+      className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:border-ink md:min-h-8 md:px-3 ${className}`}
+    >
+      <SlidersHorizontal aria-hidden="true" className="size-4" />
+      Filters
+      {filterCount > 0 && (
+        <span className="rounded-full bg-primary-text px-2 text-white">
+          {filterCount}
+          <span className="sr-only"> active</span>
+        </span>
+      )}
+    </a>
+  );
   const nearby = results.programs.filter((result) => result.group !== "virtual-and-phone");
   const virtual = results.programs.filter((result) => result.group === "virtual-and-phone");
 
@@ -102,29 +120,16 @@ export async function Directory({ params, embed = false }: { params: Record<stri
         <div className="mt-16">
           <SearchBar query={query} zipNotFound={results.zipNotFound || zipInvalid} zipText={zipInvalid ? rawZip : undefined} />
         </div>
-        {/* The filters live in a modal (FilterSheet), opened by the "Filters" button above the tabs. Without
-            JavaScript the dialog is a plain block at the bottom of the page, and the button jumps to it. */}
+        {/* The filters (FilterSheet): from lg in list view, a column on the left of the results, always shown. In map
+            view (lg: a "Filters" button in the toolbar) and below lg (the button above the tabs), a modal. The tabs and
+            toolbar stay put when the view changes; only what is under them changes. Without JavaScript the dialog is a
+            plain block after the results, and the button jumps to it. */}
         <div className="mt-8 flex flex-col gap-6">
-          {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
-          <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
+          <div className="flex min-w-0 flex-col gap-4">
             <ResultSummary results={results} />
             {/* The Filters button, then the active filter chips. The filters apply to both tabs. */}
-            <div className="flex min-w-0 items-center gap-3">
-              <a
-                href="#filters"
-                data-action="open-filters"
-                aria-haspopup="dialog"
-                className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold hover:border-ink md:min-h-8 md:px-3"
-              >
-                <SlidersHorizontal aria-hidden="true" className="size-4" />
-                Filters
-                {filterCount > 0 && (
-                  <span className="rounded-full bg-primary-text px-2 text-white">
-                    {filterCount}
-                    <span className="sr-only"> active</span>
-                  </span>
-                )}
-              </a>
+            <div className={`flex min-w-0 items-center gap-3 ${clearAllHref ? "" : "lg:hidden"}`}>
+              {filtersButton("lg:hidden")}
               {clearAllHref && (
                 <div className="min-w-0">
                   <ActiveChips query={query} labelOf={labelOf} customFields={snapshot.customFields} organizationName={organizationName} clearAllHref={clearAllHref} />
@@ -147,9 +152,16 @@ export async function Directory({ params, embed = false }: { params: Record<stri
               ))}
             </nav>
 
+            {query.tab === "programs" && (
+              <ResultToolbar results={results}>{mapView && filtersButton("max-lg:hidden")}</ResultToolbar>
+            )}
+
+            {/* List view, lg: the filters column on the left, then the results. Map view: only the results. */}
+            <div className={mapView ? "contents" : "flex flex-col gap-4 lg:grid lg:grid-cols-[17rem_1fr] lg:items-start lg:gap-8"}>
+            {/* While new results load, the old ones stay, faded (spec, "States and edge cases"). */}
+            <div className="flex min-w-0 flex-col gap-4 transition-opacity group-data-[pending]/live:opacity-60">
             {query.tab === "programs" ? (
               <>
-                <ResultToolbar results={results} />
                 {/* Map view: cards on the left, map on the right (the map goes above the cards below lg). */}
                 <div className={mapView ? "grid gap-4 lg:grid-cols-[22rem_1fr]" : "contents"}>
                   {/* Map view, lg and up: the cards scroll in their own box, as tall as the map (ProgramMap, lg:h-[800px]),
@@ -215,10 +227,12 @@ export async function Directory({ params, embed = false }: { params: Record<stri
               </section>
             )}
             <HelpBox />
+            </div>
+            <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref} sidebar={!mapView}>
+              <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
+            </FilterSheet>
+            </div>
           </div>
-          <FilterSheet total={results.totalPrograms} clearAllHref={clearAllHref}>
-            <FilterColumn facets={snapshot.facets} customFields={snapshot.customFields} results={results} clearAllHref={clearAllHref} />
-          </FilterSheet>
         </div>
       </DirectoryLive>
       {embed && <ResizeReporter share={shareSearch(query)} />}
