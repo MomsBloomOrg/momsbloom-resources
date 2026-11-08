@@ -35,12 +35,14 @@ export default async function FacetSettingsPage({ params }: PageProps<"/admin/se
   return (
     <>
       <PageHeader title="Filter options" />
-      <p className="mb-6 max-w-2xl">
-        These are the options families filter by. The order here is the order on the website: drag a
-        value by its handle, or use Move up and Move down in its menu. A hidden option stays on the
-        Programs that have it, but families no longer see it as a filter. You can delete an option only
-        when no Program or Document uses it.
-      </p>
+      <div className="mb-6 flex max-w-2xl flex-col gap-3">
+        <p>These are the options families filter by. The order here is the order on the website.</p>
+        <ul className="flex list-disc flex-col gap-1 pl-5">
+          <li><strong>Reorder</strong> — drag an option by its handle, or use Move up and Move down in its menu.</li>
+          <li><strong>Hide</strong> — a hidden option stays on the Programs that have it, but families no longer see it as a filter.</li>
+          <li><strong>Delete</strong> — you can delete an option only when no Program or Document uses it.</li>
+        </ul>
+      </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <nav aria-label="Filter groups" className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:w-56 lg:shrink-0 lg:px-0">
