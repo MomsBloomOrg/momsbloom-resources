@@ -153,10 +153,11 @@
     iframe.setAttribute("data-momsbloom-embed", "");
     // "Use my location" needs this: a cross-origin iframe may not ask for the location without it.
     iframe.allow = "geolocation; clipboard-write";
-    // sandbox: the iframe may run scripts and open links in new tabs, and nothing more.
+    // sandbox: the iframe may run scripts, open links in new tabs, and navigate the host page on a click
+    // (the help box button uses target=_top), and nothing more.
     iframe.setAttribute(
       "sandbox",
-      "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms",
+      "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-top-navigation-by-user-activation",
     );
     iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
     iframe.style.width = "100%";

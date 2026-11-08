@@ -199,3 +199,12 @@ test("loader-gives-up: the loader goes away after 20 s when /embed never answers
   await page.clock.fastForward(21_000);
   await expect(loader).toHaveCount(0);
 });
+
+test("help-box-top-navigation: the help box button opens the contact page in the whole window", async ({ page }) => {
+  // Stub the real contact page: the test checks the navigation, not momsbloom.org.
+  await page.route("https://www.momsbloom.org/contact", (route) => route.fulfill({ contentType: "text/html", body: "<title>Contact</title>" }));
+  await page.goto(HOST);
+  await page.frameLocator(IFRAME).getByRole("link", { name: "Connect with a Navigator" }).click();
+  // Without allow-top-navigation-by-user-activation in the sandbox, the browser blocks this click.
+  await expect(page).toHaveURL("https://www.momsbloom.org/contact");
+});
