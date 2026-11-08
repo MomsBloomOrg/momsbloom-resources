@@ -341,6 +341,21 @@ test.describe("sort-dropdown", () => {
     await expect(sort(page).locator("option")).toHaveText(["A to Z", "Recently verified"]);
   });
 
+  // The sample snapshot features "Pelvic floor therapy" (rank 1) and "Baby clothes closet" (rank 2).
+  test("featured-first: featured Programs come first, in rank order, for every sort and with filters", async ({ page }) => {
+    const firstTwo = async () => (await programCards(page).getByRole("heading").allTextContents()).slice(0, 2);
+    for (const url of ["/embed?tab=programs", "/embed?tab=programs&sort=verified", "/embed?tab=programs&zip=49508"]) {
+      await page.goto(url);
+      expect(await firstTwo()).toEqual(["Pelvic floor therapy", "Baby clothes closet"]);
+    }
+    // Pelvic floor therapy is not free, so the filter hides it; the other featured Program still leads.
+    await page.goto("/embed?tab=programs&cost=free&sort=az");
+    const names = await programCards(page).getByRole("heading").allTextContents();
+    expect(names[0]).toBe("Baby clothes closet");
+    expect(names.slice(1)).toEqual([...names.slice(1)].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" })));
+    expect(names).not.toContain("Pelvic floor therapy");
+  });
+
   test.describe("sort-no-js", () => {
     test.use({ javaScriptEnabled: false });
     test("the Sort button applies the choice", async ({ page }) => {

@@ -35,6 +35,7 @@ function program(fields: Partial<DirectoryProgram> & Pick<DirectoryProgram, "id"
     acceptsInsurance: null,
     eligibilityNotes: null,
     lastVerified: null,
+    featuredRank: null,
     contacts: [],
     custom: {},
     organizationCustom: {},

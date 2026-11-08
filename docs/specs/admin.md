@@ -88,6 +88,7 @@ Fields, in the order of the data template:
 | Languages, Who it serves | Facet values. |
 | Eligibility notes | Free text. |
 | Status | Active, Needs review, or Inactive. |
+| Featured | A checkbox. Checked puts the Program at the end of the Featured programs section; unchecked takes it off. Admin and Editor roles may both set it. No limit on the count. |
 | Internal notes | Staff only. Label it "Not shown on the website". |
 | Contacts | A list inside the form: name, title or specialty, phone, email, "Show on website" (yes or no), internal notes. Add, edit, and remove. |
 
@@ -97,6 +98,15 @@ Buttons:
 - **Mark verified.** Sets Last verified to today. A staff member uses it after a phone call that
   confirms nothing changed, without editing anything else.
 - **View on site.** Opens the public Program detail in a new tab.
+
+### Featured programs (`/admin`, All and Programs tabs)
+
+- A "Featured programs" section above the Resources table. It shows the full ranked list, with each
+  Program's Status; search, filters, and sorts change only the table. Hidden when no Program is featured.
+- **Change the rank** by drag and drop (mouse, touch, keyboard), the same way as Facet values. A save
+  that is refused (the list changed since the page opened) or fails puts the list back and shows a message.
+- Families see featured Programs first in the Directory results (see
+  [public-directory.md](public-directory.md)).
 
 ### Organizations (`/admin`, `/admin/organizations/[id]`)
 
@@ -183,6 +193,8 @@ with their value counts: a side column on a wide screen, a row that scrolls side
 - [ ] Renaming a Facet value changes it on every Program that has it, and in the filters.
 - [ ] Hiding a Facet value removes it from the filters but not from the Programs that have it.
 - [ ] Changing the order of Facet values changes the order of the filter options.
+- [ ] Checking "Featured" adds the Program to the end of the Featured programs section; unchecking removes it.
+- [ ] Dragging a featured Program changes its place in the Directory results.
 - [ ] A Contact with "Show on website" set to no never appears on the public site.
 - [ ] Internal notes never appear on the public site or in its page source.
 - [ ] A website that is not a full URL is refused with a clear message, in the browser and on the server.

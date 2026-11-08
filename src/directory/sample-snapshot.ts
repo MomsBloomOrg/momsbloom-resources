@@ -40,6 +40,7 @@ function sample(fields: Partial<DirectoryProgram> & Pick<DirectoryProgram, "id" 
     acceptsInsurance: null,
     eligibilityNotes: null,
     lastVerified: null,
+    featuredRank: null,
     contacts: [],
     custom: {},
     organizationCustom: {},
@@ -165,6 +166,7 @@ const SAMPLE_PROGRAMS: DirectoryProgram[] = [
     }),
     acceptsInsurance: "yes",
     lastVerified: "2026-06-15",
+    featuredRank: 1,
   }),
   sample({
     id: "P-107",
@@ -193,6 +195,7 @@ const SAMPLE_PROGRAMS: DirectoryProgram[] = [
     description: "Free clothes for babies and toddlers, newborn to 2T. Open Saturdays.",
     facetValues: facetValues({ category: ["basic-needs"], cost: ["free"], language: ["english"], format: ["in-person"] }),
     lastVerified: "2026-09-02",
+    featuredRank: 2,
   }),
 ];
 

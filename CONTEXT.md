@@ -24,6 +24,7 @@ to translate, and bugs from "I thought you meant..." go away.
 | **Service format** | How a family gets the service: In person, Virtual, or In person and virtual. On screen it is labeled "How you'll connect". |
 | **Accepts insurance** | Yes, No, Not applicable, or blank. Blank means "we don't know". Never show blank as No. |
 | **Status** | Whether a record shows to families: `Active` (shows), `Needs review` (shows; staff should check it), or `Inactive` (hidden, but kept). Organizations, Programs, and Documents each have a Status. |
+| **Featured** | A Program that staff promote. Staff check "Featured" on the Program and rank the featured Programs on the Admin home. Families see featured Programs that match their search first, in rank order, for every sort. Stored as `programs.featured_rank` (null = not featured). |
 | **Last verified** | The date a staff member last confirmed that a record is correct. Shown to families as "Last verified Oct 1, 2026". |
 | **Internal notes** | Text for staff only. Never sent to the browser on public pages. |
 | **Inheritance** | A Program's blank address, phone, or website means "use the Organization's". The app applies this when it reads the data, so a change to the Organization's address updates all its Programs. Map coordinates follow the address that was used. |

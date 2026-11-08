@@ -40,6 +40,7 @@ function program(fields: Partial<ProgramRow> & Pick<ProgramRow, "id">): ProgramR
     insuranceAcceptanceId: null,
     eligibilityNotes: null,
     lastVerified: null,
+    featuredRank: null,
     statusId: ACTIVE,
     custom: {},
     ...noPlace,
