@@ -100,3 +100,11 @@ test("request-update-link: Request an update opens the form in a new tab with th
     `https://forms.cloud.microsoft/r/0DgyX0L0JS?r14e623fa7c204883bc6d93bbf151541d=${encodeURIComponent("Mom and baby yoga (Program P-001)")}`,
   );
 });
+
+test("featured-badge-detail: a featured Program shows the pill next to the title, outside the heading", async ({ page }) => {
+  await page.goto("/embed/programs/P-106");
+  await expect(page.getByRole("heading", { level: 1, name: "Pelvic floor therapy", exact: true })).toBeVisible();
+  await expect(page.getByText("Featured", { exact: true })).toBeVisible();
+  await page.goto("/embed/programs/P-001");
+  await expect(page.getByText("Featured", { exact: true })).toHaveCount(0);
+});

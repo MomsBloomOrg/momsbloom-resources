@@ -100,7 +100,9 @@ under it), Insurance, Cost, Language, Who it serves, How you'll connect (Service
 - **Program card** (see `desktop-directory-list.png`): Organization name, Program name, distance,
   tags (Facet values), description cut to 3 lines, address, phone (a `tel:` link, so a phone can
   call it), website, a row of facts (insurance summary, cost, languages, format), the first Contact
-  plus "+N more", and "View details".
+  plus "+N more", and "View details". A featured Program (it has a feature rank) gets a 2 px green
+  border and a "Featured" pill in the top-right corner; its distance moves to the right end of the
+  address row.
 - **Document card:** title, description, tags, "PDF" and languages, and "Download".
 - The green box "Can't find what you need?" (call or text 211, or contact MomsBloom; text from the Admin (Content)) always comes
   last.
@@ -127,6 +129,7 @@ See the four `*-detail-*.png` captures.
   Organization (still narrowed by keyword and Facets); a Document with no Organization is hidden by it.
 - Directions opens Google Maps with the address. Website opens in a new tab.
 - Hide "More from ..." when the Organization has only one Program.
+- A featured Program shows the same "Featured" pill next to the title (outside the heading).
 - "Request an update" follows "Last verified" and opens the MomsBloom update form
   (https://forms.cloud.microsoft/r/0DgyX0L0JS) in a new tab. The link pre-fills the form question
   "Which program or services does this apply to?" with "<name> (Program <id>)" (or Organization). It
@@ -263,6 +266,7 @@ desktop Chrome, inside the Squarespace test page.
 - [ ] Two insurance options give more results; adding a language gives fewer.
 - [ ] Entering 49508 sorts by distance. Virtual Programs and Documents still show at 5 mi.
 - [ ] Featured Programs come first, in rank order, for Nearest, A to Z, and Recently verified, with filters applied.
+- [ ] Featured Programs show a green border and a "Featured" pill on the card (list and map view) and next to the title on Program detail; other Programs show neither.
 - [ ] Every chip removes its filter. "Clear all" keeps the keyword and ZIP code.
 - [ ] A shared link restores the same results. (How depends on the open question above.)
 - [ ] A Program's detail view opens. Back returns to the same results and scroll position.
