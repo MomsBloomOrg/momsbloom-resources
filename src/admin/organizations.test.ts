@@ -70,8 +70,11 @@ describe("Organization edit", () => {
   const form = (extra: Record<string, string> = {}) => ({ name: " Sample Org ", statusId: String(ids.statuses.active), ...extra });
 
   it("parse trims, turns blanks into null, and reads numbers", () => {
-    const r = parseOrganizationInput(form({ about: "  ", latitude: "42.96", website: "https://example.org" }));
-    expect(r).toMatchObject({ ok: true, value: { name: "Sample Org", about: null, latitude: 42.96, longitude: null } });
+    const r = parseOrganizationInput(form({ about: "  ", latitude: "42.96", website: "https://example.org", phone: "616-555-0100 x12" }));
+    expect(r).toMatchObject({
+      ok: true,
+      value: { name: "Sample Org", about: null, latitude: 42.96, longitude: null, phone: "(616) 555-0100 x12" },
+    });
   });
 
   it("parse refuses a missing name, bad URL, bad email, bad number, bad date, bad Status ID", () => {
@@ -79,12 +82,13 @@ describe("Organization edit", () => {
       name: "",
       website: "ftp://example.org",
       email: "nope",
+      phone: "555-0100",
       latitude: "200",
       lastVerified: "2026-13-45",
       statusId: "0",
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(Object.keys(r.fieldErrors ?? {}).sort()).toEqual(["email", "lastVerified", "latitude", "name", "statusId", "website"]);
+    if (!r.ok) expect(Object.keys(r.fieldErrors ?? {}).sort()).toEqual(["email", "lastVerified", "latitude", "name", "phone", "statusId", "website"]);
   });
 
   it("parse refuses an impossible date such as 2026-02-31", () => {

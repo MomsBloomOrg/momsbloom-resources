@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import * as t from "@/db/schema";
 import type { Db } from "@/db/types";
 import { FIX_FIELDS, GONE, parseTextFields, str, type AdminResult, type Raw } from "./organizations";
+import { checkPhone } from "./phone";
 
 export interface ContactInput {
   name: string;
@@ -36,6 +37,7 @@ export function parseContactInput(raw: Raw): AdminResult<ContactInput> {
   else if ((out.name as string).length > 200) errors.name = "Use 200 characters or fewer.";
 
   parseTextFields(raw, TEXT_FIELDS, errors, out);
+  checkPhone(raw.phone, errors, out);
 
   const email = str(raw, "email");
   out.email = email || null;

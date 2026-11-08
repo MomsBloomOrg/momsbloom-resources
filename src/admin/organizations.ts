@@ -3,6 +3,7 @@ import { count, eq } from "drizzle-orm";
 import { organizations, programs, statuses } from "@/db/schema";
 import type { Db } from "@/db/types";
 import type { CustomValues } from "@/custom-fields/types";
+import { checkPhone } from "./phone";
 
 /**
  * The Status name that "n need review" counts.
@@ -229,6 +230,7 @@ export function parseOrganizationInput(raw: Raw): AdminResult<OrganizationInput>
   const out: Out = {};
   parseName(raw, errors, out);
   parseTextFields(raw, TEXT_FIELDS, errors, out);
+  checkPhone(raw.phone, errors, out);
   parseSharedFields(raw, errors, out);
 
   const email = str(raw, "email");

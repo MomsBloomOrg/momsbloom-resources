@@ -38,9 +38,14 @@ export function insuranceText(plans: readonly string[], accepts: ProgramResult["
   return null;
 }
 
-/** The `tel:` link for a phone text. The extension ("x12", "ext. 12") is cut: a tel: link cannot dial it. */
+/** The `tel:` link: US numbers use +1, while the visible text keeps its readable national format. Extensions are cut. */
 export function telHref(phone: string): string {
-  return `tel:${phone.split(/x|ext/i)[0].replace(/[^\d+]/g, "")}`;
+  const base = phone.split(/x|ext/i)[0].trim();
+  const digits = base.replace(/\D/g, "");
+  if (base.startsWith("+")) return `tel:+${digits}`;
+  if (digits.length === 10) return `tel:+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `tel:+${digits}`;
+  return `tel:${digits}`;
 }
 
 /** The website, or null when it is not an http(s) URL (never put another scheme in an href). */

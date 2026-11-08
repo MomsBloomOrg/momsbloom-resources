@@ -46,13 +46,17 @@ describe("Program edit", () => {
     expect(v).toMatchObject({ name: "Sample Program", phone: null, costOptionId: null, languageIds: [1, 2] });
   });
 
+  it("normalizes a US phone number with an extension", () => {
+    expect(parse({ phone: "(616) 555-0100 ext 42" }).phone).toBe("(616) 555-0100 x42");
+  });
+
   it("parse refuses a missing name and description, no Category, a bad URL, and a bad ID", () => {
     const r = parseProgramInput(
-      form({ name: "", description: "", website: "javascript:alert(1)", organizationId: "x", costOptionId: "-1" }, { categoryIds: [], languageIds: ["abc"] }),
+      form({ name: "", description: "", website: "javascript:alert(1)", phone: "not a phone", organizationId: "x", costOptionId: "-1" }, { categoryIds: [], languageIds: ["abc"] }),
     );
     expect(r.ok).toBe(false);
     if (!r.ok) {
-      expect(Object.keys(r.fieldErrors ?? {}).sort()).toEqual(["categoryIds", "costOptionId", "description", "languageIds", "name", "organizationId", "website"]);
+      expect(Object.keys(r.fieldErrors ?? {}).sort()).toEqual(["categoryIds", "costOptionId", "description", "languageIds", "name", "organizationId", "phone", "website"]);
     }
   });
 
