@@ -20,7 +20,7 @@ export function ViewToggle({ query }: { query: DirectoryQuery }) {
           key={view}
           href={`?${serializeDirectoryQuery({ ...query, view })}`}
           aria-current={query.view === view ? "page" : undefined}
-          className="flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full px-3 aria-[current]:bg-primary-text aria-[current]:font-bold aria-[current]:text-white max-md:aria-[current]:hidden md:min-h-8"
+          className="flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full px-3 aria-[current]:bg-primary-soft aria-[current]:font-bold aria-[current]:text-primary-text max-md:aria-[current]:hidden md:min-h-8"
         >
           <Icon aria-hidden="true" className="size-4" />
           <span className="max-md:hidden">{label}</span>

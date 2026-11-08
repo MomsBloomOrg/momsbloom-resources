@@ -27,9 +27,10 @@ export function SearchBar({
       noValidate
       className="mx-auto flex max-w-3xl flex-col gap-3 md:flex-row md:items-start md:rounded-full md:bg-surface md:p-2 md:shadow-md"
     >
-      {/* Keep the Organization filter and the view when the family searches again. */}
+      {/* Keep the Organization filter, the view, and the tab when the family searches again. */}
       {query.org && <input type="hidden" name="org" value={query.org} />}
       {query.view === "map" && <input type="hidden" name="view" value="map" />}
+      {query.tab === "guides" && <input type="hidden" name="tab" value="guides" />}
       <label className="flex min-h-12 flex-1 items-center gap-2 rounded-full border border-line bg-surface px-4 md:border-0">
         <Search aria-hidden="true" className="size-4 shrink-0" />
         <span className="sr-only">Keyword</span>

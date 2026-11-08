@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { Sort } from "@/directory/query";
 import type { DirectoryResults } from "@/directory/results";
 import { DIRECTORY_FORM_ID } from "./search-bar";
@@ -18,29 +17,28 @@ export function resultSummary({ totalPrograms, query, origin, radius }: Director
     .join(" ");
 }
 
-/** The result count, announced to screen readers after each change. */
+/** The result count, announced to screen readers after each change. Not shown: the tabs carry the counts. */
 export function ResultSummary({ results }: { results: DirectoryResults }) {
   return (
-    <p aria-live="polite" className="font-bold">
+    <p aria-live="polite" className="sr-only">
       {resultSummary(results)}
     </p>
   );
 }
 
 /**
- * The toolbar: `children` (the mobile Filters link), the view link, and the sort dropdown. The select is a
+ * The Programs & Providers toolbar: the view links on the left, the sort dropdown on the right. The select is a
  * field of the search form. Its default option sends no `sort` (the URL stays clean); without JavaScript
  * the "Sort" button submits it, with JavaScript DirectoryLive submits on change.
  */
-export function ResultToolbar({ results, children }: { results: DirectoryResults; children?: ReactNode }) {
+export function ResultToolbar({ results }: { results: DirectoryResults }) {
   const sorts: Sort[] = results.origin ? ["nearest", "az", "verified"] : ["az", "verified"];
   const valueOf = (sort: Sort) => (sort === sorts[0] ? "" : sort);
   return (
-    <div className="flex items-center gap-2 max-md:justify-between md:gap-4">
-      {children}
+    <div className="flex items-center justify-between gap-2">
       <ViewToggle query={results.query} />
-      <label className="flex min-w-0 items-center gap-1 text-sm max-md:flex-1">
-        <span className="text-muted max-md:sr-only">Sort:</span>
+      <label className="flex min-w-0 items-center gap-1 text-sm">
+        <span className="text-muted">Sort:</span>
         <select
           // Keyed: a new sort remounts it, so the browser never keeps a stale choice after Back or a chip click.
           key={results.sort}

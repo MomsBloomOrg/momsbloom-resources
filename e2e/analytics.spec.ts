@@ -81,7 +81,7 @@ test("org-view-event: the Organization page sends organization_view with the Org
 });
 
 test("download-event: Download sends document_download with the Document ID", async ({ page }) => {
-  await page.goto(`${HOST}/?mbr-q=yoga`);
+  await page.goto(`${HOST}/?mbr-q=yoga&mbr-tab=guides`);
   await stay(page, 'a[data-event="document_download"]');
   await frameOf(page).locator('a[data-event="document_download"]').first().click();
   expect(await waitFor(page, "document_download")).toEqual({ document_id: expect.any(String), document_title: expect.any(String) });
