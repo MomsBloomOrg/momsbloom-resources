@@ -31,20 +31,7 @@ export function FilterColumn({
     checkboxRow(FACET_URL_KEYS[facet], value, counts[facet][value.key] ?? 0, query.filters[facet].includes(value.key), indent);
   const checkboxRow = (name: string, value: { key: string; label: string }, count: number, checked: boolean, indent = false): ReactNode => {
     if (count === 0 && !checked) return null;
-    return (
-      <label key={`${name}:${value.key}`} className={`flex min-h-11 items-center gap-3 md:min-h-8 ${indent ? "pl-7" : ""}`}>
-        <input
-          type="checkbox"
-          form={DIRECTORY_FORM_ID}
-          name={name}
-          value={value.key}
-          defaultChecked={checked}
-          className="size-5 shrink-0 accent-primary-text"
-        />
-        <span className="flex-1">{value.label}</span>
-        <span className="text-sm text-muted">{count}</span>
-      </label>
-    );
+    return <FilterCheckbox key={`${name}:${value.key}`} form={DIRECTORY_FORM_ID} name={name} value={value} count={count} checked={checked} indent={indent} />;
   };
 
   const byKey = new Map(facets.map((facet) => [facet.key, facet]));
@@ -67,7 +54,7 @@ export function FilterColumn({
         const orphans = subcategories.filter((sub) => !categoryKeys.has(sub.parentKey ?? ""));
         options = [...options, ...orphans.map((sub) => ({ node: row("subcategory", sub), checked: query.filters.subcategory.includes(sub.key) }))];
       }
-      return group(facet.key, facet.label, options);
+      return <FilterGroup key={facet.key} label={facet.label} options={options} />;
     });
 
   const customGroups = customFilterGroups(customFields).map((field) => {
@@ -76,34 +63,8 @@ export function FilterColumn({
       const checked = checkedKeys.includes(value.key);
       return { node: checkboxRow(customFilterUrlKey(field.fieldId), value, customCounts[field.fieldId]?.[value.key] ?? 0, checked), checked };
     });
-    return group(`custom-${field.fieldId}`, field.label, options);
+    return <FilterGroup key={`custom-${field.fieldId}`} label={field.label} options={options} />;
   });
-
-  /** A fieldset of options; after VISIBLE_OPTIONS the rest go behind "Show all". Null when nothing shows. */
-  function group(key: string, label: string, all: { node: ReactNode; checked: boolean }[]): ReactNode {
-      const options = all.filter((option) => option.node);
-      if (options.length === 0) return null;
-      const shown = options.slice(0, VISIBLE_OPTIONS);
-      const rest = options.slice(VISIBLE_OPTIONS);
-      return (
-        <fieldset key={key} className="border-t border-line pt-4 group-open/sheet:first-of-type:border-t-0 group-open/sheet:first-of-type:pt-0">
-          <legend className="float-left mb-2 w-full font-bold">{label}</legend>
-          <div className="clear-left">
-            {shown.map((option) => option.node)}
-            {rest.length > 0 && (
-              <details open={rest.some((option) => option.checked)} className="group">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 text-sm font-bold text-primary-text md:min-h-8">
-                  <span className="group-open:hidden">Show all {options.length}</span>
-                  <span className="hidden group-open:inline">Show fewer</span>
-                  <ChevronDown aria-hidden="true" className="size-4 group-open:rotate-180" />
-                </summary>
-                {rest.map((option) => option.node)}
-              </details>
-            )}
-          </div>
-        </fieldset>
-      );
-  }
 
   return (
     <section id="filters" aria-labelledby="filters-heading" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 text-sm group-open/sheet:rounded-none group-open/sheet:border-0">
@@ -153,6 +114,67 @@ export function FilterColumn({
         </button>
       </noscript>
     </section>
+  );
+}
+
+/** One checkbox row. Without a `count` there is no number and the row always shows (the Admin preview). */
+export function FilterCheckbox({
+  form,
+  name,
+  value,
+  count,
+  checked = false,
+  indent = false,
+  disabled = false,
+}: {
+  form?: string;
+  name: string;
+  value: { key: string; label: string };
+  count?: number;
+  checked?: boolean;
+  indent?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <label className={`flex min-h-11 items-center gap-3 md:min-h-8 ${indent ? "pl-7" : ""}`}>
+      <input
+        type="checkbox"
+        form={form}
+        name={name}
+        value={value.key}
+        defaultChecked={checked}
+        disabled={disabled}
+        className="size-5 shrink-0 accent-primary-text"
+      />
+      <span className="flex-1">{value.label}</span>
+      {count !== undefined && <span className="text-sm text-muted">{count}</span>}
+    </label>
+  );
+}
+
+/** A fieldset of options; after VISIBLE_OPTIONS the rest go behind "Show all". Null when nothing shows. */
+export function FilterGroup({ label, options: all }: { label: string; options: { node: ReactNode; checked: boolean }[] }) {
+  const options = all.filter((option) => option.node);
+  if (options.length === 0) return null;
+  const shown = options.slice(0, VISIBLE_OPTIONS);
+  const rest = options.slice(VISIBLE_OPTIONS);
+  return (
+    <fieldset className="border-t border-line pt-4 group-open/sheet:first-of-type:border-t-0 group-open/sheet:first-of-type:pt-0">
+      <legend className="float-left mb-2 w-full font-bold">{label}</legend>
+      <div className="clear-left">
+        {shown.map((option) => option.node)}
+        {rest.length > 0 && (
+          <details open={rest.some((option) => option.checked)} className="group">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 text-sm font-bold text-primary-text md:min-h-8">
+              <span className="group-open:hidden">Show all {options.length}</span>
+              <span className="hidden group-open:inline">Show fewer</span>
+              <ChevronDown aria-hidden="true" className="size-4 group-open:rotate-180" />
+            </summary>
+            {rest.map((option) => option.node)}
+          </details>
+        )}
+      </div>
+    </fieldset>
   );
 }
 

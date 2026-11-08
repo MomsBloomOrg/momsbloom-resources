@@ -3,7 +3,9 @@
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { FILTERABLE_TYPES, CHOICE_TYPES, CUSTOM_FIELD_TYPES, CUSTOM_FIELD_TYPE_LABELS, type CustomFieldDefinition, type CustomFieldType } from "@/custom-fields/types";
 import type { AdminEntity } from "@/custom-fields/form";
+import { previewFromForm, type FieldPreview } from "@/custom-fields/preview";
 import { Badge, Field, buttonClass, hintClass, inputClass, labelClass } from "../_components/ui";
+import { FieldPreviewPanel } from "./field-preview";
 import { addFieldAction, fieldRowAction, type FieldFormState } from "./actions";
 
 const idle: FieldFormState = { result: "idle" };
@@ -73,6 +75,22 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
   );
 }
 
+const withPreview = "grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]";
+
+/** The Edit form's starting data, so the preview shows the saved field before anything changes. */
+function savedFieldData(field: CustomFieldDefinition): FormData {
+  const data = new FormData();
+  data.set("label", field.label);
+  data.set("visibility", field.showOnWebsite ? "public" : "staff");
+  if (field.filterable) data.set("filterable", "on");
+  for (const o of field.options) {
+    data.append("optionKey", o.key);
+    data.append("optionLabel", o.label);
+    if (o.hidden) data.append("optionHidden", o.key);
+  }
+  return data;
+}
+
 /** "Add a field" for one record type. */
 export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; entityLabel: string }) {
   const [state, dispatch, pending] = useActionState(addFieldAction, idle);
@@ -80,15 +98,29 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
   // A new key after each good add empties the form for the next field.
   const [formKey, setFormKey] = useState(0);
   const [seen, setSeen] = useState(state);
+  const [preview, setPreview] = useState<FieldPreview>(() => previewFromForm(entity, "text", new FormData()));
   if (state !== seen) {
     setSeen(state);
-    if (state.result === "ok") setFormKey((k) => k + 1);
+    if (state.result === "ok") {
+      setFormKey((k) => k + 1);
+      setPreview(previewFromForm(entity, type, new FormData()));
+    }
   }
   const errors = state.result === "error" ? state.errors : {};
   const id = `add-${entity}`;
 
   return (
-    <form key={formKey} method="post" onSubmit={submitWith(dispatch)} className="flex flex-col gap-4">
+    <div className={withPreview}>
+    <form
+      key={formKey}
+      method="post"
+      onSubmit={submitWith(dispatch)}
+      onChange={(e) => {
+        const data = new FormData(e.currentTarget);
+        setPreview(previewFromForm(entity, data.get("type") as CustomFieldType, data));
+      }}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="entity" value={entity} />
       <h3 className="text-xl font-normal">Add {/^[AEIOU]/.test(entityLabel) ? "an" : "a"} {entityLabel} field</h3>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -121,6 +153,8 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
         <Message state={state} />
       </div>
     </form>
+    <FieldPreviewPanel preview={preview} />
+    </div>
   );
 }
 
@@ -128,6 +162,7 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
 export function FieldRow({ field, first, last }: { field: CustomFieldDefinition; first: boolean; last: boolean }) {
   const [state, dispatch, pending] = useActionState(fieldRowAction, idle);
   const submit = submitWith(dispatch);
+  const [preview, setPreview] = useState<FieldPreview>(() => previewFromForm(field.entity as AdminEntity, field.type, savedFieldData(field)));
   const errors = state.result === "error" ? state.errors : {};
   const isList = CHOICE_TYPES.includes(field.type);
   const id = `field-${field.id}`;
@@ -172,7 +207,13 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
 
       <details open={state.result === "error" && Object.keys(errors).length > 0 ? true : undefined}>
         <summary className={summary}>Edit</summary>
-        <form method="post" onSubmit={submit} className="mt-3 flex flex-col gap-4 rounded-2xl border border-line bg-background p-4 sm:p-5">
+        <div className={`mt-3 ${withPreview}`}>
+        <form
+          method="post"
+          onSubmit={submit}
+          onChange={(e) => setPreview(previewFromForm(field.entity as AdminEntity, field.type, new FormData(e.currentTarget)))}
+          className="flex flex-col gap-4 rounded-2xl border border-line bg-background p-4 sm:p-5"
+        >
           {intent("edit")}
           <p className={hintClass}>
             Type: {CUSTOM_FIELD_TYPE_LABELS[field.type]}. It can&apos;t change: to change it, archive this field and add a new one.
@@ -219,6 +260,8 @@ export function FieldRow({ field, first, last }: { field: CustomFieldDefinition;
             </button>
           </div>
         </form>
+        <FieldPreviewPanel preview={preview} />
+        </div>
       </details>
       <Message state={state} />
     </li>
