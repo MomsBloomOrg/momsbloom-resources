@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
-import { FIX_FIELDS, GONE, parseId, stampVerifiedBy } from "@/admin/organizations";
+import { FIX_FIELDS, GONE, parseId, stampVerifiedBy, verifiedByAfterSave } from "@/admin/organizations";
 import { getProgramForAdmin, markProgramVerified, parseProgramInput, saveProgram } from "@/admin/programs";
 import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
 import { parseCustomForm } from "@/custom-fields/form";
@@ -45,7 +45,7 @@ export async function saveProgramAction(_prev: ProgramFormState, formData: FormD
   // geocodeOnSave passes every other field through, so the custom answers stay on the input.
   const old = id === null ? null : ((await getProgramForAdmin(db, id))?.program ?? null);
   const { input, failed } = await geocodeOnSave(stampVerifiedBy(withCustom, old, admin.email), old);
-  const lastVerifiedBy = input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy;
+  const lastVerifiedBy = verifiedByAfterSave(input, old);
   const saved = await saveProgram(db, id, input);
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();

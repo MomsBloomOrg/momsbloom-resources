@@ -442,7 +442,7 @@ export function ProgramForm({
           <div className="flex flex-wrap items-end gap-3">
             <Field id="program-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
               {/* key: a new value from "Mark verified" replaces what the input shows. */}
-              <input key={lastVerified} id="program-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
+              <input key={lastVerified} id="program-lastVerified" name="lastVerified" aria-describedby={verifiedBy ? "program-lastVerified-hint" : undefined} type="date" defaultValue={lastVerified} className={inputClass} />
             </Field>
             {id !== undefined && (
               <button type="submit" name="intent" value="verify" disabled={pending} className={buttonClass("secondary")}>

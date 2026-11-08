@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireStaffAdmin } from "@/auth/dal";
 import { directoryChanged } from "@/admin/directory-changed";
 import { getDocumentForAdmin, markDocumentVerified, parseDocumentInput, saveDocument } from "@/admin/documents";
-import { GONE, parseId, stampVerifiedBy } from "@/admin/organizations";
+import { GONE, parseId, stampVerifiedBy, verifiedByAfterSave } from "@/admin/organizations";
 import { getDb } from "@/db";
 
 export type DocumentFormState =
@@ -38,5 +38,5 @@ export async function saveDocumentAction(_prev: DocumentFormState, formData: For
   if (!saved.ok) return invalid(saved.error, saved.fieldErrors);
   directoryChanged();
   if (id === null) redirect(`/admin/documents/${saved.value.id}`);
-  return { status: "saved", message: "Saved.", lastVerifiedBy: input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy };
+  return { status: "saved", message: "Saved.", lastVerifiedBy: verifiedByAfterSave(input, old) };
 }

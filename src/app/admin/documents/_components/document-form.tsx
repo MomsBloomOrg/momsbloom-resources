@@ -190,7 +190,7 @@ export function DocumentForm({
           </select>
         </Field>
         <Field id="document-lastVerified" label="Last verified" hint={verifiedBy ? `Verified by ${verifiedBy}` : undefined} error={errors.lastVerified}>
-          <input key={lastVerified} id="document-lastVerified" name="lastVerified" type="date" defaultValue={lastVerified} className={inputClass} />
+          <input key={lastVerified} id="document-lastVerified" name="lastVerified" aria-describedby={verifiedBy ? "document-lastVerified-hint" : undefined} type="date" defaultValue={lastVerified} className={inputClass} />
         </Field>
       </div>
       <Field id="document-internalNotes" label="Internal notes" hint="Not shown on the website." error={errors.internalNotes}>

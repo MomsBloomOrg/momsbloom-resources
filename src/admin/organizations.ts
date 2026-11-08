@@ -218,6 +218,11 @@ export function stampVerifiedBy<T extends { lastVerified: string | null }>(
   return { ...input, lastVerifiedBy: input.lastVerified ? email : null };
 }
 
+/** The Verified by value after a Save: the stamped one, else the one the record had. */
+export function verifiedByAfterSave(input: { lastVerifiedBy?: string | null }, old: { lastVerifiedBy?: string | null } | null): string | null | undefined {
+  return input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy;
+}
+
 /** A required name of at most 200 characters. */
 export function parseName(raw: Raw, errors: Errors, out: Out): void {
   out.name = str(raw, "name");

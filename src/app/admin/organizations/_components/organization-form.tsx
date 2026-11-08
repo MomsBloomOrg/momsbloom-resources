@@ -128,7 +128,7 @@ export function OrganizationForm({
           <input
             key={lastVerified}
             id="org-lastVerified"
-            name="lastVerified"
+            name="lastVerified" aria-describedby={verifiedBy ? "org-lastVerified-hint" : undefined}
             type="date"
             defaultValue={lastVerified}
             className={inputClass}

@@ -13,6 +13,7 @@ import {
   parseId,
   parseOrganizationInput,
   stampVerifiedBy,
+  verifiedByAfterSave,
   updateOrganization,
 } from "@/admin/organizations";
 import { NOT_PLACED, geocodeOnSave } from "@/admin/geocode";
@@ -66,7 +67,7 @@ export async function saveOrganizationAction(_prev: OrganizationFormState, formD
     directoryChanged();
     redirect(`/admin/organizations/${created.value.id}`);
   }
-  const lastVerifiedBy = input.lastVerifiedBy !== undefined ? input.lastVerifiedBy : old?.lastVerifiedBy;
+  const lastVerifiedBy = verifiedByAfterSave(input, old);
   const updated = await updateOrganization(db, id, input);
   if (!updated.ok) return invalid(updated.error);
   directoryChanged();
