@@ -27,13 +27,17 @@ export default async function StaffAdminsPage() {
   return (
     <>
       <PageHeader title="Staff admins" />
-      <p className="mb-6 max-w-2xl">
-        These people can log in to the Admin. An Editor can change Resources: Organizations, Programs,
-        Contacts, and Documents. An Admin can also change Settings, Content, the custom fields, and this
-        page. Owners come from the site settings, are always Admins, and only the developer can change
-        them. Add a Staff admin here; they log in at /login with a Login link. When you remove a Staff
-        admin, they are logged out at once. You cannot change your own role.
-      </p>
+      <div className="mb-6 flex max-w-2xl flex-col gap-3">
+        <p>These people can log in to the Admin. Each person is an Editor, an Admin, or an Owner:</p>
+        <ul className="flex list-disc flex-col gap-1 pl-5">
+          <li><strong>Editor</strong> — can change Resources: Organizations, Programs, Contacts, and Documents.</li>
+          <li><strong>Admin</strong> — can change Resources, and also Settings, Content, the custom fields, and this page.</li>
+          <li><strong>Owner</strong> — is always an Admin. Owners come from the site settings. Only the developer can change them.</li>
+        </ul>
+        <p>To add a Staff admin, use the form below. They log in at /login with a Login link.</p>
+        <p>When you remove a Staff admin, they are logged out at once.</p>
+        <p>You cannot change your own role.</p>
+      </div>
       <Card className="mb-8">
         <StaffAdminTable rows={rows} />
       </Card>
