@@ -28,6 +28,8 @@
   --color-secondary-soft: #e5efea;
   --color-ink: #2a2230;
   --color-muted: #6b6270;
+  /* Admin placeholder text (italic). Lightest shade of `muted` that keeps 4.56:1 on `surface` (white), the input background. */
+  --color-placeholder: #7b7380;
   --color-line: #e6dfe3;
   --color-surface: #ffffff;
   --color-background: #fbf7f4;

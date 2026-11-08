@@ -36,7 +36,7 @@ export function buttonClass(variant: ButtonVariant = "secondary", size: keyof ty
 /** Links sit on `field` panels, where `primary-text` is below 4.5:1, so they use `primary-hover` (about 6:1). */
 export const linkClass = "text-primary-hover underline decoration-1 underline-offset-2 hover:text-ink";
 export const inputClass =
-  "w-full rounded-lg border border-muted/70 bg-surface px-4 py-2.5 text-ink placeholder:text-muted disabled:bg-field " +
+  "w-full rounded-lg border border-muted/70 bg-surface px-4 py-2.5 text-ink placeholder:text-placeholder placeholder:italic disabled:bg-field " +
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-text focus-visible:ring-offset-1";
 /** The Status select in an edit page header: a pill, not a boxed field. */
 export const statusPillClass =
