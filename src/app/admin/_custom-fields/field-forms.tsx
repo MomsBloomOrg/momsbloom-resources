@@ -45,13 +45,14 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
   errors: Record<string, string>;
 }) {
   const canFilter = entity === "program" && FILTERABLE_TYPES.includes(type);
+  const errorId = `${idPrefix}-visibility-error`;
   const choices = [
     { value: "public", label: "Families see it", checked: field?.showOnWebsite === true },
     { value: "staff", label: "Staff only", checked: field?.showOnWebsite === false },
   ];
   return (
     <div className="flex flex-col gap-1">
-      <fieldset className="flex flex-col gap-1">
+      <fieldset role="radiogroup" className="flex flex-col gap-1" aria-invalid={errors.showOnWebsite ? true : undefined} aria-describedby={errors.showOnWebsite ? errorId : undefined}>
         <legend className={labelClass}>Who sees it</legend>
         {choices.map((c) => (
           <label key={c.value} className={checkRowClass}>
@@ -59,6 +60,7 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
             {c.label}
           </label>
         ))}
+        {errors.showOnWebsite && <p id={errorId} role="alert" className={errorClass}>{errors.showOnWebsite}</p>}
       </fieldset>
       {canFilter && (
         <label className={checkRowClass}>
@@ -66,7 +68,7 @@ function Visibility({ idPrefix, entity, type, field, errors }: {
           Use as a filter
         </label>
       )}
-      {(errors.showOnWebsite || errors.filterable) && <p role="alert" className={errorClass}>{errors.showOnWebsite ?? errors.filterable}</p>}
+      {errors.filterable && <p role="alert" className={errorClass}>{errors.filterable}</p>}
     </div>
   );
 }
@@ -88,7 +90,7 @@ export function AddFieldForm({ entity, entityLabel }: { entity: AdminEntity; ent
   return (
     <form key={formKey} method="post" onSubmit={submitWith(dispatch)} className="flex flex-col gap-4">
       <input type="hidden" name="entity" value={entity} />
-      <h3 className="text-xl font-normal">Add a {entityLabel} field</h3>
+      <h3 className="text-xl font-normal">Add {/^[AEIOU]/.test(entityLabel) ? "an" : "a"} {entityLabel} field</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id={`${id}-type`} label="Field type" hint="It can't be changed later." error={errors.type}>
           <select id={`${id}-type`} name="type" value={type} onChange={(e) => setType(e.target.value as CustomFieldType)} className={inputClass}>

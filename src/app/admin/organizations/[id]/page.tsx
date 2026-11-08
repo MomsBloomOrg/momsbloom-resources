@@ -109,7 +109,6 @@ export default async function OrganizationPage({ params }: PageProps<"/admin/org
           </table>
         )}
       </Card>
-
     </div>
   );
 }
