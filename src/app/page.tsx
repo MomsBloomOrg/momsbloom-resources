@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import logo from "./_brand/momsbloom-logo.webp";
 import { Directory } from "./embed/_components/directory";
+
+/** The host page is the real page; this stops `/` competing with it in search results. */
+export const metadata: Metadata = {
+  alternates: { canonical: "https://www.momsbloom.org/resources" },
+};
 
 /** Block on the server and send the full HTML, so the page works without JavaScript (cacheComponents). */
 export const instant = false;
