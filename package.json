@@ -18,7 +18,8 @@
     "db:list-bad-phones": "tsx scripts/list-bad-phones.ts",
     "db:seed-sample": "tsx scripts/seed-sample.ts",
     "db:studio": "drizzle-kit studio",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "guide:pdf": "node scripts/guide-pdf.mjs"
   },
   "dependencies": {
     "@auth/core": "0.41.3",
