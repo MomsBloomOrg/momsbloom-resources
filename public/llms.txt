@@ -5,9 +5,8 @@
 > Good WM (West Michigan) built it.
 
 A Program is a service a family can use. An Organization runs one or more Programs. A Document is a
-downloadable guide (a PDF) that belongs to no Organization or Program. Terms follow CONTEXT.md. The
-data is sample data until the database loader lands. Do not scrape contact details from the
-directory.
+downloadable guide (a PDF). It can belong to one Organization. Terms follow CONTEXT.md. Do not scrape
+contact details from the directory.
 
 ## Docs
 
@@ -16,6 +15,7 @@ directory.
 - [Public directory spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/public-directory.md): what visitors see and do
 - [Admin spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/admin.md): what staff see and do
 - [Data import spec](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/specs/data-import.md): how data gets into the directory
+- [Technical guide](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/technical-guide.md): how the app is set up, deployed, and fixed
 - [ADR 0001: pnpm is the package manager](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0001-pnpm-is-the-package-manager.md)
 - [ADR 0002: Vercel deploys from GitHub](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0002-vercel-deploys-from-github.md)
 - [ADR 0003: Admin login is an email link first](https://github.com/MomsBloomOrg/momsbloom-resources/blob/main/docs/adr/0003-admin-login-by-email-link-first.md)
