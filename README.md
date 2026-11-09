@@ -4,6 +4,9 @@ A resource directory for [momsbloom.org](https://momsbloom.org), where organizat
 
 ## Architecture
 
+For the full setup, a diagram of every service, and a troubleshooting run book, see the
+[Technical guide](docs/technical-guide.md).
+
 ```
 GitHub (code) ──▶ Vercel (build + host)
                          │
